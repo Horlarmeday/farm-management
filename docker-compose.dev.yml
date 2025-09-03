@@ -1,0 +1,115 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: kuyash_mysql_dev
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: kuyash_fms
+      MYSQL_USER: kuyash_user
+      MYSQL_PASSWORD: kuyash_password
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./server/src/database/init:/docker-entrypoint-initdb.d
+    command: --default-authentication-plugin=mysql_native_password
+    restart: unless-stopped
+
+  # Redis for caching and sessions
+  redis:
+    image: redis:7-alpine
+    container_name: kuyash_redis_dev
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  # Backend API
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile.dev
+    container_name: kuyash_server_dev
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_NAME=kuyash_fms
+      - DB_USER=kuyash_user
+      - DB_PASSWORD=kuyash_password
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=your-jwt-secret-key-change-in-production
+      - JWT_REFRESH_SECRET=your-jwt-refresh-secret-key-change-in-production
+      - MAIL_HOST=smtp.gmail.com
+      - MAIL_PORT=587
+      - MAIL_USER=your-email@gmail.com
+      - MAIL_PASSWORD=your-app-password
+    ports:
+      - '5000:5000'
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+      - ./uploads:/app/uploads
+    depends_on:
+      - mysql
+      - redis
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+  # Frontend React App
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.dev
+    container_name: kuyash_client_dev
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:5000/api
+      - VITE_WS_URL=ws://localhost:5000
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    depends_on:
+      - server
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+  # Nginx for reverse proxy (optional in dev)
+  nginx:
+    image: nginx:alpine
+    container_name: kuyash_nginx_dev
+    ports:
+      - '80:80'
+    volumes:
+      - ./nginx/dev.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - client
+      - server
+    restart: unless-stopped
+
+  # Adminer for database management
+  adminer:
+    image: adminer:latest
+    container_name: kuyash_adminer_dev
+    ports:
+      - '8080:8080'
+    depends_on:
+      - mysql
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+  redis_data:
+
+networks:
+  default:
+    name: kuyash_network_dev 

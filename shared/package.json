@@ -1,0 +1,42 @@
+{
+  "name": "@kuyash/shared",
+  "version": "1.0.0",
+  "description": "Shared types and utilities for Kuyash Farm Management System",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "lint": "echo 'ESLint temporarily disabled - use format and type-check instead'",
+    "lint:fix": "echo 'ESLint temporarily disabled - use format and type-check instead'",
+    "format": "prettier --write \"src/**/*.{ts,js,json}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,js,json}\"",
+    "code:check": "yarn type-check && yarn format:check",
+    "code:fix": "yarn format",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "typescript",
+    "shared",
+    "types",
+    "farm-management"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.45.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.1.1",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "zod": "^3.22.0"
+  },
+  "files": [
+    "dist/**/*",
+    "src/**/*"
+  ]
+}

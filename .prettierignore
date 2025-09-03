@@ -1,0 +1,88 @@
+# Dependencies
+node_modules/
+**/node_modules/
+package-lock.json
+yarn.lock
+.yarn/
+.pnp.*
+
+# Build outputs
+dist/
+build/
+**/dist/
+**/build/
+*.tsbuildinfo
+
+# Environment files
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Coverage directory used by tools like istanbul
+coverage/
+**/coverage/
+*.lcov
+
+# Generated files
+*.d.ts
+*.js.map
+
+# Database
+*.sqlite
+*.db
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+*.temp
+
+# Migration files (often auto-generated)
+**/migrations/*.ts
+**/database/migrations/*.ts
+
+# API documentation
+docs/
+**/docs/api/
+swagger.json
+**/swagger.json
+
+# Public uploads
+uploads/
+**/uploads/
+public/uploads/
+**/public/uploads/
+
+# Docker files
+Dockerfile*
+docker-compose*.yml
+
+# CI/CD files
+.github/
+.gitlab-ci.yml
+
+# Monorepo specific
+.nx/
+.turbo/ 

@@ -1,0 +1,533 @@
+{
+  "info": {
+    "_postman_id": "b1e2c3d4-5678-1234-9abc-def012345678",
+    "name": "Kuyash Farm Management System API",
+    "description": "Comprehensive Postman collection for Kuyash FMS. All endpoints grouped by module. Use {{base_url}} and {{auth_token}} variables.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:5000" },
+    { "key": "auth_token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "description": "Login and receive JWT tokens."
+          }
+        },
+        {
+          "name": "Admin Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/admin/create-user",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "admin", "create-user"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newemployee@example.com\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"phone\": \"+1234567890\",\n  \"password\": \"password123\",\n  \"roleId\": \"role-uuid-here\",\n  \"department\": \"department-uuid-here\",\n  \"hireDate\": \"2024-01-15\",\n  \"salary\": 50000,\n  \"status\": \"active\",\n  \"dateOfBirth\": \"1990-05-15\",\n  \"gender\": \"male\",\n  \"bio\": \"Experienced farm worker\",\n  \"address\": \"123 Farm Street\",\n  \"city\": \"Farm City\",\n  \"state\": \"Farm State\",\n  \"country\": \"Farm Country\",\n  \"postalCode\": \"12345\",\n  \"emergencyContact\": \"+0987654321\",\n  \"isActive\": true,\n  \"isEmailVerified\": false,\n  \"preferences\": {\n    \"theme\": \"dark\",\n    \"language\": \"en\"\n  }\n}"
+            },
+            "description": "Create a new user with complete information (Admin/HR only). EmployeeId is auto-generated on the server."
+          }
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "profile"]
+            },
+            "description": "Get the authenticated user's profile."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Inventory",
+      "item": [
+        {
+          "name": "List Inventory Items",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/inventory",
+              "host": ["{{base_url}}"],
+              "path": ["api", "inventory"]
+            },
+            "description": "Get a paginated list of inventory items."
+          }
+        },
+        {
+          "name": "Create Inventory Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/inventory",
+              "host": ["{{base_url}}"],
+              "path": ["api", "inventory"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Layer Feed\",\n  \"category\": \"feed\",\n  \"unit\": \"kg\",\n  \"currentStock\": 1000,\n  \"reorderLevel\": 100,\n  \"unitPrice\": 25.5,\n  \"supplier\": \"Acme Feeds\"\n}"
+            },
+            "description": "Create a new inventory item."
+          }
+        },
+        {
+          "name": "Get Inventory Item by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/inventory/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "inventory", ":id"]
+            },
+            "description": "Get details of a specific inventory item by ID."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Poultry",
+      "item": [
+        {
+          "name": "List Bird Batches",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/poultry/batches",
+              "host": ["{{base_url}}"],
+              "path": ["api", "poultry", "batches"]
+            },
+            "description": "Get a list of all bird batches."
+          }
+        },
+        {
+          "name": "Create Bird Batch",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/poultry/batches",
+              "host": ["{{base_url}}"],
+              "path": ["api", "poultry", "batches"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"batchCode\": \"BATCH-001\",\n  \"birdType\": \"layer\",\n  \"breed\": \"ISA Brown\",\n  \"quantity\": 500,\n  \"arrivalDate\": \"2024-07-01\",\n  \"source\": \"Farm Supplier\",\n  \"houseLocation\": \"House 1\"\n}"
+            },
+            "description": "Create a new bird batch."
+          }
+        },
+        {
+          "name": "Get Bird Batch by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/poultry/batches/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "poultry", "batches", ":id"]
+            },
+            "description": "Get details of a specific bird batch by ID."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Livestock",
+      "item": [
+        {
+          "name": "List Animals",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/livestock/animals",
+              "host": ["{{base_url}}"],
+              "path": ["api", "livestock", "animals"]
+            },
+            "description": "Get a list of all livestock animals."
+          }
+        },
+        {
+          "name": "Create Animal",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/livestock/animals",
+              "host": ["{{base_url}}"],
+              "path": ["api", "livestock", "animals"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tagNumber\": \"TAG-001\",\n  \"species\": \"cow\",\n  \"breed\": \"Friesian\",\n  \"gender\": \"female\",\n  \"dateOfBirth\": \"2022-01-01\",\n  \"acquisitionDate\": \"2022-06-01\",\n  \"source\": \"Local Market\"\n}"
+            },
+            "description": "Create a new livestock animal."
+          }
+        },
+        {
+          "name": "Get Animal by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/livestock/animals/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "livestock", "animals", ":id"]
+            },
+            "description": "Get details of a specific animal by ID."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Fishery",
+      "item": [
+        {
+          "name": "List Ponds",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/fishery/ponds",
+              "host": ["{{base_url}}"],
+              "path": ["api", "fishery", "ponds"]
+            },
+            "description": "Get a list of all fish ponds."
+          }
+        },
+        {
+          "name": "Create Pond",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/fishery/ponds",
+              "host": ["{{base_url}}"],
+              "path": ["api", "fishery", "ponds"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Pond 1\",\n  \"location\": \"North Field\",\n  \"type\": \"earthen\",\n  \"size\": 500,\n  \"species\": \"Tilapia\",\n  \"stockingDate\": \"2024-06-01\"\n}"
+            },
+            "description": "Create a new fish pond."
+          }
+        },
+        {
+          "name": "Get Pond by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/fishery/ponds/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "fishery", "ponds", ":id"]
+            },
+            "description": "Get details of a specific pond by ID."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Assets",
+      "item": [
+        {
+          "name": "List Assets",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/assets",
+              "host": ["{{base_url}}"],
+              "path": ["api", "assets"]
+            },
+            "description": "Get a list of all assets."
+          }
+        },
+        {
+          "name": "Create Asset",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/assets",
+              "host": ["{{base_url}}"],
+              "path": ["api", "assets"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Tractor\",\n  \"category\": \"vehicle\",\n  \"serialNumber\": \"TR-12345\",\n  \"purchaseDate\": \"2023-01-01\",\n  \"purchasePrice\": 15000,\n  \"condition\": \"good\",\n  \"location\": \"Garage\"\n}"
+            },
+            "description": "Create a new asset."
+          }
+        },
+        {
+          "name": "Get Asset by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/assets/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "assets", ":id"]
+            },
+            "description": "Get details of a specific asset by ID."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Finance",
+      "item": [
+        {
+          "name": "List Transactions",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/finance/transactions",
+              "host": ["{{base_url}}"],
+              "path": ["api", "finance", "transactions"]
+            },
+            "description": "Get a list of all financial transactions."
+          }
+        },
+        {
+          "name": "Create Transaction",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/finance/transactions",
+              "host": ["{{base_url}}"],
+              "path": ["api", "finance", "transactions"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"income\",\n  \"category\": \"egg sales\",\n  \"amount\": 5000,\n  \"description\": \"Egg sales for July\",\n  \"date\": \"2024-07-01\",\n  \"paymentMethod\": \"cash\"\n}"
+            },
+            "description": "Create a new financial transaction."
+          }
+        },
+        {
+          "name": "Get Transaction by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/finance/transactions/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "finance", "transactions", ":id"]
+            },
+            "description": "Get details of a specific transaction by ID."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users"]
+            },
+            "description": "Get a list of all users."
+          }
+        },
+        {
+          "name": "Admin Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/admin/create-user",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "admin", "create-user"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newemployee@example.com\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"phone\": \"+1234567890\",\n  \"password\": \"password123\",\n  \"roleId\": \"role-uuid-here\",\n  \"department\": \"department-uuid-here\",\n  \"hireDate\": \"2024-01-15\",\n  \"salary\": 50000,\n  \"status\": \"active\",\n  \"dateOfBirth\": \"1990-05-15\",\n  \"gender\": \"male\",\n  \"bio\": \"Experienced farm worker\",\n  \"address\": \"123 Farm Street\",\n  \"city\": \"Farm City\",\n  \"state\": \"Farm State\",\n  \"country\": \"Farm Country\",\n  \"postalCode\": \"12345\",\n  \"emergencyContact\": \"+0987654321\",\n  \"isActive\": true,\n  \"isEmailVerified\": false,\n  \"preferences\": {\n    \"theme\": \"dark\",\n    \"language\": \"en\"\n  }\n}"
+            },
+            "description": "Create a new user with complete information (Admin/HR only). EmployeeId is auto-generated on the server."
+          }
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", ":id"]
+            },
+            "description": "Get details of a specific user by ID."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "List Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/notifications",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications"]
+            },
+            "description": "Get a list of all notifications for the current user."
+          }
+        },
+        {
+          "name": "Mark Notification as Read",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/notifications/:id/read",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications", ":id", "read"]
+            },
+            "body": { "mode": "raw", "raw": "{}" },
+            "description": "Mark a notification as read by ID."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reporting",
+      "item": [
+        {
+          "name": "List Reports",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/reports",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reports"]
+            },
+            "description": "Get a list of all reports."
+          }
+        },
+        {
+          "name": "Generate Report",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/reports",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reports"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"inventory_summary\",\n  \"format\": \"pdf\",\n  \"parameters\": {\n    \"dateFrom\": \"2024-07-01\",\n    \"dateTo\": \"2024-07-31\"\n  }\n}"
+            },
+            "description": "Generate a new report."
+          }
+        }
+      ]
+    }
+  ]
+}

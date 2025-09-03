@@ -1,0 +1,72 @@
+{
+  "name": "kuyash-farm-management",
+  "version": "1.0.0",
+  "description": "A comprehensive multi-branch farm management platform combining Poultry, Fishery, Livestock, and Auxiliary Production Units",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server",
+    "shared"
+  ],
+  "scripts": {
+    "dev": "concurrently \"yarn workspace @kuyash/server dev\" \"yarn workspace @kuyash/client dev\"",
+    "dev:server": "yarn workspace @kuyash/server dev",
+    "dev:client": "yarn workspace @kuyash/client dev",
+    "dev:shared": "yarn workspace @kuyash/shared dev",
+    "build": "yarn workspace @kuyash/shared build && yarn workspace @kuyash/server build && yarn workspace @kuyash/client build",
+    "build:shared": "yarn workspace @kuyash/shared build",
+    "build:server": "yarn workspace @kuyash/server build",
+    "build:client": "yarn workspace @kuyash/client build",
+    "start": "yarn workspace @kuyash/server start",
+    "test": "yarn workspaces foreach --all run test",
+    "test:server": "yarn workspace @kuyash/server test",
+    "test:client": "yarn workspace @kuyash/client test",
+    "test:shared": "yarn workspace @kuyash/shared test",
+    "lint": "echo 'ESLint temporarily disabled - use format and type-check instead'",
+    "lint:fix": "echo 'ESLint temporarily disabled - use format and type-check instead'",
+    "lint:server": "yarn workspace @kuyash/server lint",
+    "lint:client": "yarn workspace @kuyash/client lint",
+    "lint:shared": "yarn workspace @kuyash/shared lint",
+    "format": "prettier --write \"**/*.{ts,js,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,js,json,md}\"",
+    "code:check": "yarn typecheck && yarn format:check",
+    "code:fix": "yarn format",
+    "typecheck": "yarn workspaces foreach --all run type-check",
+    "clean": "yarn workspaces foreach --all run clean",
+    "setup": "yarn install",
+    "seed": "yarn workspace @kuyash/server seed",
+    "migrate": "yarn workspace @kuyash/server migrate",
+    "docker:dev": "docker-compose -f docker-compose.dev.yml up --build",
+    "docker:prod": "docker-compose -f docker-compose.prod.yml up --build"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.13.1",
+    "@typescript-eslint/parser": "^6.13.1",
+    "concurrently": "^8.2.2",
+    "eslint": "^8.54.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.1.1",
+    "typescript": "^5.3.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "yarn": ">=4.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-username/kuyash-farm-management.git"
+  },
+  "keywords": [
+    "farm-management",
+    "poultry",
+    "livestock",
+    "fishery",
+    "agriculture",
+    "typescript",
+    "react",
+    "nodejs"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "packageManager": "yarn@4.9.2"
+}
