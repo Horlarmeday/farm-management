@@ -1,5 +1,6 @@
-import { Entity, Column, OneToMany } from 'typeorm';
+import { Entity, Column, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
+import { Farm } from './Farm';
 import { InventoryTransaction } from './InventoryTransaction';
 import { InventoryCategory } from '@kuyash/shared';
 
@@ -29,6 +30,9 @@ export class InventoryItem extends BaseEntity {
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
   maximumStock?: number;
 
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  reorderPoint!: number;
+
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
   unitCost?: number;
 
@@ -45,6 +49,13 @@ export class InventoryItem extends BaseEntity {
   notes?: string;
 
   // Relationships
+  @ManyToOne(() => Farm, { nullable: false })
+  @JoinColumn({ name: 'farmId' })
+  farm!: Farm;
+
+  @Column({ type: 'varchar', length: 255 })
+  farmId!: string;
+
   @OneToMany(() => InventoryTransaction, (transaction) => transaction.item)
   transactions!: InventoryTransaction[];
 }

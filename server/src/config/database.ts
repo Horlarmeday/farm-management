@@ -53,6 +53,9 @@ import { BudgetItem } from '../entities/BudgetItem';
 import { CashFlow } from '../entities/CashFlow';
 import { CostCenter } from '../entities/CostCenter';
 import { Department } from '../entities/Department';
+import { Farm } from '../entities/Farm';
+import { FarmUser } from '../entities/FarmUser';
+import { FarmInvitation } from '../entities/FarmInvitation';
 import { FishHarvest } from '../entities/FishHarvest';
 import { FishSale } from '../entities/FishSale';
 import { FishStock } from '../entities/FishStock';
@@ -91,6 +94,9 @@ export const AppDataSource = new DataSource({
     Role,
     Permission,
     Location,
+    Farm,
+    FarmUser,
+    FarmInvitation,
 
     // HR entities
     AttendanceRecord,

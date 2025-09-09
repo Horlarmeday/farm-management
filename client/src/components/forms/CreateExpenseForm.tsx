@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { getExpenseCategoryOptions, getDepartmentOptions, getPaymentMethodOptions } from "@/lib/formUtils";
 import { Loader2 } from "lucide-react";
 
 interface CreateExpenseFormProps {
@@ -86,17 +87,11 @@ export default function CreateExpenseForm({ onSuccess }: CreateExpenseFormProps)
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="feed">Feed & Nutrition</SelectItem>
-                <SelectItem value="veterinary">Veterinary Services</SelectItem>
-                <SelectItem value="equipment">Equipment & Tools</SelectItem>
-                <SelectItem value="utilities">Utilities</SelectItem>
-                <SelectItem value="labor">Labor & Wages</SelectItem>
-                <SelectItem value="transportation">Transportation</SelectItem>
-                <SelectItem value="maintenance">Maintenance & Repairs</SelectItem>
-                <SelectItem value="supplies">Supplies</SelectItem>
-                <SelectItem value="insurance">Insurance</SelectItem>
-                <SelectItem value="taxes">Taxes & Fees</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
+                {getExpenseCategoryOptions().map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -157,12 +152,11 @@ export default function CreateExpenseForm({ onSuccess }: CreateExpenseFormProps)
                 <SelectValue placeholder="Select payment method" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="cash">Cash</SelectItem>
-                <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                <SelectItem value="mobile_money">Mobile Money</SelectItem>
-                <SelectItem value="check">Check</SelectItem>
-                <SelectItem value="credit_card">Credit Card</SelectItem>
-                <SelectItem value="debit_card">Debit Card</SelectItem>
+                {getPaymentMethodOptions().map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -185,12 +179,11 @@ export default function CreateExpenseForm({ onSuccess }: CreateExpenseFormProps)
               <SelectValue placeholder="Select project/department" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="poultry">Poultry</SelectItem>
-              <SelectItem value="livestock">Livestock</SelectItem>
-              <SelectItem value="fishery">Fishery</SelectItem>
-              <SelectItem value="crops">Crops</SelectItem>
-              <SelectItem value="general">General Farm</SelectItem>
-              <SelectItem value="infrastructure">Infrastructure</SelectItem>
+              {getDepartmentOptions().map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>

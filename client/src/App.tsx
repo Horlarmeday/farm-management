@@ -1,112 +1,122 @@
-import { useState, useEffect, createContext, useContext } from "react";
-import { Switch, Route } from "wouter";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { queryClient } from "./lib/queryClient";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import Dashboard from "@/pages/Dashboard";
-import Poultry from "@/pages/Poultry";
-import Livestock from "@/pages/Livestock";
-import Fishery from "@/pages/Fishery";
-import Assets from "@/pages/Assets";
-import Inventory from "@/pages/Inventory";
-import Finance from "@/pages/Finance";
-import Reports from "@/pages/Reports";
-import HR from "@/pages/HR";
-import Login from "@/pages/Login";
-import NotFound from "@/pages/not-found";
-import Navbar from "@/components/layout/Navbar";
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { Toaster } from 'sonner';
+import { AuthProvider, useAuth } from '@/hooks/useAuth';
+import { FarmProvider, useFarmContext } from '@/contexts/FarmContext';
+import Navbar from '@/components/layout/Navbar';
+import FarmSelection from '@/components/farm/FarmSelection';
+import Login from '@/pages/Login';
+import Register from '@/pages/Register';
+import Dashboard from '@/pages/Dashboard';
+import Inventory from '@/pages/Inventory';
+import Finance from '@/pages/Finance';
+import Livestock from '@/pages/Livestock';
+import Poultry from '@/pages/Poultry';
+import Fishery from '@/pages/Fishery';
+import Assets from '@/pages/Assets';
+import Reports from '@/pages/Reports';
+import Settings from '@/pages/Settings';
+import Profile from '@/pages/Profile';
+import NotFound from '@/pages/NotFound';
+import './App.css';
 
-// Frontend-only auth context
-const AuthContext = createContext<{
-  isAuthenticated: boolean;
-  login: (username: string, password: string) => Promise<void>;
-  logout: () => void;
-}>({
-  isAuthenticated: false,
-  login: async () => {},
-  logout: () => {}
+// Create a query client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      retry: 1,
+    },
+  },
 });
 
-export const useAuth = () => useContext(AuthContext);
+const AppContent: React.FC = () => {
+  const { user, isLoading } = useAuth();
+  const { selectedFarmId, setSelectedFarmId, isLoading: farmLoading } = useFarmContext();
 
-function Router() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // Check if user is already logged in (from localStorage)
-    const savedAuth = localStorage.getItem('farmAuth');
-    if (savedAuth === 'true') {
-      setIsAuthenticated(true);
-    }
-    setIsLoading(false);
-  }, []);
-
-  const login = async (username: string, password: string) => {
-    // Simple frontend validation - in real app this would call an API
-    if (username === 'admin' && password === 'admin123') {
-      setIsAuthenticated(true);
-      localStorage.setItem('farmAuth', 'true');
-    } else {
-      throw new Error('Invalid credentials');
-    }
-  };
-
-  const logout = () => {
-    setIsAuthenticated(false);
-    localStorage.removeItem('farmAuth');
-  };
-
-  if (isLoading) {
+  if (isLoading || farmLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Loading...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
-      <div className="min-h-screen bg-background">
-        {isAuthenticated && <Navbar />}
-        <div className={isAuthenticated ? "pt-16" : ""}>
-          <Switch>
-            {!isAuthenticated ? (
-              <Route path="/" component={Login} />
+    <Router>
+      <div className="min-h-screen bg-gray-50">
+        <Routes>
+          <Route
+            path="/login"
+            element={!user ? <Login /> : <Navigate to="/" replace />}
+          />
+          <Route
+            path="/register"
+            element={!user ? <Register /> : <Navigate to="/" replace />}
+          />
+          <Route
+            path="/select-farm"
+            element={
+              user ? (
+                <FarmSelection onFarmSelect={setSelectedFarmId} />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          {user ? (
+            selectedFarmId ? (
+              <Route path="/*" element={<AuthenticatedApp />} />
             ) : (
-              <>
-                <Route path="/" component={Dashboard} />
-                <Route path="/poultry" component={Poultry} />
-                <Route path="/livestock" component={Livestock} />
-                <Route path="/fishery" component={Fishery} />
-                <Route path="/assets" component={Assets} />
-                <Route path="/inventory" component={Inventory} />
-                <Route path="/finance" component={Finance} />
-                <Route path="/hr" component={HR} />
-                <Route path="/reports" component={Reports} />
-                <Route component={NotFound} />
-              </>
-            )}
-          </Switch>
-        </div>
+              <Route path="/*" element={<Navigate to="/select-farm" replace />} />
+            )
+          ) : (
+            <Route path="/*" element={<Navigate to="/login" replace />} />
+          )}
+        </Routes>
       </div>
-    </AuthContext.Provider>
+    </Router>
   );
-}
+};
 
-function App() {
+const AuthenticatedApp: React.FC = () => {
+  return (
+    <>
+      <Navbar />
+      <div className="pt-16">
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/inventory" element={<Inventory />} />
+          <Route path="/finance" element={<Finance />} />
+          <Route path="/livestock" element={<Livestock />} />
+          <Route path="/poultry" element={<Poultry />} />
+          <Route path="/fishery" element={<Fishery />} />
+          <Route path="/assets" element={<Assets />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </div>
+    </>
+  );
+};
+
+const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Router />
-        <Toaster />
-      </TooltipProvider>
+      <AuthProvider>
+        <FarmProvider>
+          <AppContent />
+          <Toaster position="top-right" />
+          <ReactQueryDevtools initialIsOpen={false} />
+        </FarmProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
-}
+};
 
 export default App;

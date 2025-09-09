@@ -23,6 +23,7 @@ import { Notification } from './Notification';
 import { PayrollRecord } from './PayrollRecord';
 import { Role } from './Role';
 import { Task } from './Task';
+import { FarmUser } from './FarmUser';
 
 @Entity('users')
 export class User extends BaseEntity {
@@ -180,6 +181,9 @@ export class User extends BaseEntity {
   @OneToMany(() => Notification, (notification) => notification.createdBy)
   createdNotifications!: Notification[];
 
+  @OneToMany(() => FarmUser, (farmUser) => farmUser.user)
+  farmUsers!: FarmUser[];
+
   // Computed properties
   get fullName(): string {
     return `${this.firstName} ${this.lastName}`;
@@ -187,9 +191,16 @@ export class User extends BaseEntity {
 
   // Hash password before saving
   @BeforeInsert()
-  @BeforeUpdate()
   async hashPassword() {
     if (this.password) {
+      this.password = await bcrypt.hash(this.password, 12);
+    }
+  }
+
+  @BeforeUpdate()
+  async hashPasswordOnUpdate() {
+    // Only hash if password has actually changed
+    if (this.password && !this.password.startsWith('$2')) {
       this.password = await bcrypt.hash(this.password, 12);
     }
   }

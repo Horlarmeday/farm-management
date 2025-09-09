@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { getWaterSourceOptions, getPondTypeOptions } from "@/lib/formUtils";
 
 interface CreatePondFormProps {
   onSuccess?: () => void;
@@ -110,11 +111,12 @@ export default function CreatePondForm({ onSuccess }: CreatePondFormProps) {
                 <SelectValue placeholder="Select pond type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="earthen">Earthen Pond</SelectItem>
-                <SelectItem value="concrete">Concrete Pond</SelectItem>
-                <SelectItem value="plastic">Plastic Liner</SelectItem>
-                <SelectItem value="fiberglass">Fiberglass Tank</SelectItem>
-              </SelectContent>
+              {getPondTypeOptions().map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
             </Select>
           </div>
           
@@ -152,10 +154,11 @@ export default function CreatePondForm({ onSuccess }: CreatePondFormProps) {
                 <SelectValue placeholder="Select water source" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="borehole">Borehole</SelectItem>
-                <SelectItem value="river">River</SelectItem>
-                <SelectItem value="rainwater">Rainwater</SelectItem>
-                <SelectItem value="tap">Tap Water</SelectItem>
+                {getWaterSourceOptions().map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

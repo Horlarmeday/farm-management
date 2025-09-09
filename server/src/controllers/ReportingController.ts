@@ -175,6 +175,107 @@ export class ReportingController {
     }
   };
 
+  getDashboardModules = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const modules = await this.reportingService.getDashboardModules(req.query);
+
+      res.json({
+        success: true,
+        message: 'Dashboard modules retrieved successfully',
+        data: modules,
+      } as ApiResponse<typeof modules>);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getRevenueTrend = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { period = 'month' } = req.query;
+      const trend = await this.reportingService.getRevenueTrend(period as string);
+
+      res.json({
+        success: true,
+        message: 'Revenue trend retrieved successfully',
+        data: trend,
+      } as ApiResponse<typeof trend>);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getProductionDistribution = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const distribution = await this.reportingService.getProductionDistribution(req.query);
+
+      res.json({
+        success: true,
+        message: 'Production distribution retrieved successfully',
+        data: distribution,
+      } as ApiResponse<typeof distribution>);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getQuickStats = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const stats = await this.reportingService.getQuickStats(req.query);
+
+      res.json({
+        success: true,
+        message: 'Quick stats retrieved successfully',
+        data: stats,
+      } as ApiResponse<typeof stats>);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getRecentActivities = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { limit = 10 } = req.query;
+      const activities = await this.reportingService.getRecentActivities(Number(limit));
+
+      res.json({
+        success: true,
+        message: 'Recent activities retrieved successfully',
+        data: activities,
+      } as ApiResponse<typeof activities>);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getDashboardAlerts = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { limit = 10 } = req.query;
+      const alerts = await this.reportingService.getDashboardAlerts(limit ? Number(limit) : undefined);
+
+      res.json({
+        success: true,
+        message: 'Dashboard alerts retrieved successfully',
+        data: alerts,
+      } as ApiResponse<typeof alerts>);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getDashboardTasks = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const tasks = await this.reportingService.getDashboardTasks();
+
+      res.json({
+        success: true,
+        message: 'Dashboard tasks retrieved successfully',
+        data: tasks,
+      } as ApiResponse<typeof tasks>);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   // Module-specific Analytics
   getPoultryAnalytics = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -594,8 +695,10 @@ export class ReportingController {
   // Scheduled Reports
   scheduleReport = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
+      const scheduleData = req.body;
+
       const schedule = await this.reportingService.scheduleReport({
-        ...req.body,
+        ...scheduleData,
         createdById: req.user!.id,
       });
 
@@ -776,17 +879,13 @@ export class ReportingController {
     try {
       const { startDate, endDate, groupBy, includeCharts, includeDetails } = req.body;
 
-      const report = await this.reportingService.generateReport({
-        reportType: 'financial',
-        reportName: 'Financial Report',
-        parameters: {
-          startDate: new Date(startDate),
-          endDate: new Date(endDate),
-          groupBy,
-          includeCharts,
-          includeDetails,
-        },
-        requestedById: req.user!.id,
+      const report = await this.reportingService.createFinancialReport({
+        startDate,
+        endDate,
+        groupBy,
+        includeCharts,
+        includeDetails,
+        userId: req.user!.id,
       });
 
       res.json({

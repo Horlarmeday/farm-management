@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { getSalePaymentMethodOptions, getPaymentStatusOptions, getProductTypeOptions, getUnitOptions } from "@/lib/formUtils";
 
 interface CreateSaleFormProps {
   onSuccess?: () => void;
@@ -103,14 +104,12 @@ export default function CreateSaleForm({ onSuccess }: CreateSaleFormProps) {
                 <SelectValue placeholder="Select product type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="eggs">Eggs</SelectItem>
-                <SelectItem value="meat">Meat</SelectItem>
-                <SelectItem value="fish">Fish</SelectItem>
-                <SelectItem value="dairy">Dairy</SelectItem>
-                <SelectItem value="produce">Produce</SelectItem>
-                <SelectItem value="livestock">Livestock</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
-              </SelectContent>
+              {getProductTypeOptions().map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
             </Select>
           </div>
           
@@ -147,13 +146,12 @@ export default function CreateSaleForm({ onSuccess }: CreateSaleFormProps) {
                 <SelectValue placeholder="Select unit" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="dozens">Dozens</SelectItem>
-                <SelectItem value="kg">Kilograms</SelectItem>
-                <SelectItem value="lbs">Pounds</SelectItem>
-                <SelectItem value="pieces">Pieces</SelectItem>
-                <SelectItem value="crates">Crates</SelectItem>
-                <SelectItem value="bags">Bags</SelectItem>
-              </SelectContent>
+              {getUnitOptions().map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
             </Select>
           </div>
           
@@ -237,11 +235,11 @@ export default function CreateSaleForm({ onSuccess }: CreateSaleFormProps) {
                 <SelectValue placeholder="Select payment method" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="cash">Cash</SelectItem>
-                <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                <SelectItem value="mobile_money">Mobile Money</SelectItem>
-                <SelectItem value="check">Check</SelectItem>
-                <SelectItem value="credit">Credit</SelectItem>
+                {getSalePaymentMethodOptions().map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -253,10 +251,11 @@ export default function CreateSaleForm({ onSuccess }: CreateSaleFormProps) {
                 <SelectValue placeholder="Select payment status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="paid">Paid</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="partial">Partial Payment</SelectItem>
-                <SelectItem value="overdue">Overdue</SelectItem>
+                {getPaymentStatusOptions().map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

@@ -36,9 +36,9 @@ export const inventoryValidations = {
         'number.min': 'Current stock cannot be negative',
         'any.required': 'Current stock is required',
       }),
-      reorderLevel: Joi.number().min(0).required().messages({
-        'number.min': 'Reorder level cannot be negative',
-        'any.required': 'Reorder level is required',
+      reorderPoint: Joi.number().min(0).required().messages({
+        'number.min': 'Reorder point cannot be negative',
+        'any.required': 'Reorder point is required',
       }),
       unitPrice: Joi.number().min(0).required().messages({
         'number.min': 'Unit price cannot be negative',
@@ -65,7 +65,7 @@ export const inventoryValidations = {
       description: Joi.string().max(500).optional(),
       unit: Joi.string().max(20).optional(),
       currentStock: Joi.number().min(0).optional(),
-      reorderLevel: Joi.number().min(0).optional(),
+      reorderPoint: Joi.number().min(0).optional(),
       unitPrice: Joi.number().min(0).optional(),
       supplier: Joi.string().max(100).optional(),
       expiryDate: Joi.date().iso().optional(),

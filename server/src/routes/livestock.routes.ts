@@ -1,14 +1,20 @@
 import { Router } from 'express';
 import { LivestockController } from '../controllers/LivestockController';
 import { authenticate } from '../middleware/auth.middleware';
+import { requireFarmAccessWithRole } from '../middleware/farm-auth.middleware';
 import { validate } from '../middleware/joiValidation.middleware';
 import { livestockValidations } from '../validations/livestock.validations';
+import { FarmRole } from '@kuyash/shared';
 
 const router: Router = Router();
 const livestockController = new LivestockController();
 
 // Apply authentication to all routes
 router.use(authenticate);
+
+// Apply farm access middleware to all routes
+// All livestock operations require at least WORKER role
+router.use(requireFarmAccessWithRole([FarmRole.WORKER, FarmRole.MANAGER, FarmRole.OWNER]));
 
 // Animal Management Routes
 router.post(

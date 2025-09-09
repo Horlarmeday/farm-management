@@ -1,7 +1,8 @@
-import { Entity, Column, OneToMany } from 'typeorm';
+import { Entity, Column, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
 import { BirdBatch } from './BirdBatch';
 import { Animal } from './Animal';
+import { Farm } from './Farm';
 import { Pond } from './Pond';
 import { Asset } from './Asset';
 
@@ -38,6 +39,13 @@ export class Location extends BaseEntity {
   isActive!: boolean;
 
   // Relationships
+  @ManyToOne(() => Farm, { nullable: false })
+  @JoinColumn({ name: 'farmId' })
+  farm!: Farm;
+
+  @Column({ type: 'varchar', length: 255 })
+  farmId!: string;
+
   @OneToMany(() => BirdBatch, (birdBatch) => birdBatch.location)
   birdBatches!: BirdBatch[];
 

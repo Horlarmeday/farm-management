@@ -1,7 +1,8 @@
-import { FinanceTransactionType } from '@kuyash/shared';
+import { FinanceTransactionType, PaymentStatus } from '@kuyash/shared';
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
 import { CostCenter } from './CostCenter';
+import { Farm } from './Farm';
 import { User } from './User';
 
 @Entity('financial_transactions')
@@ -27,6 +28,9 @@ export class FinancialTransaction extends BaseEntity {
   @Column({ type: 'varchar', length: 100, nullable: true })
   paymentMethod?: string;
 
+  @Column({ type: 'enum', enum: PaymentStatus, default: PaymentStatus.PENDING })
+  status!: PaymentStatus;
+
   @Column({ type: 'varchar', length: 255, nullable: true })
   reference?: string;
 
@@ -47,4 +51,11 @@ export class FinancialTransaction extends BaseEntity {
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   costCenterId?: string;
+
+  @ManyToOne(() => Farm, { nullable: false })
+  @JoinColumn({ name: 'farmId' })
+  farm!: Farm;
+
+  @Column({ type: 'varchar', length: 255 })
+  farmId!: string;
 }

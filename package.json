@@ -9,9 +9,9 @@
     "shared"
   ],
   "scripts": {
-    "dev": "concurrently \"yarn workspace @kuyash/server dev\" \"yarn workspace @kuyash/client dev\"",
+    "dev": "concurrently \"yarn workspace @kuyash/server dev\" \"yarn workspace rest-express dev\"",
     "dev:server": "yarn workspace @kuyash/server dev",
-    "dev:client": "yarn workspace @kuyash/client dev",
+    "dev:client": "yarn workspace rest-express dev",
     "dev:shared": "yarn workspace @kuyash/shared dev",
     "build": "yarn workspace @kuyash/shared build && yarn workspace @kuyash/server build && yarn workspace @kuyash/client build",
     "build:shared": "yarn workspace @kuyash/shared build",
@@ -68,5 +68,10 @@
   ],
   "author": "Your Name",
   "license": "MIT",
-  "packageManager": "yarn@4.9.2"
+  "packageManager": "yarn@4.9.2",
+  "dependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
+    "express-validator": "^7.2.1",
+    "jsonwebtoken": "^9.0.2"
+  }
 }

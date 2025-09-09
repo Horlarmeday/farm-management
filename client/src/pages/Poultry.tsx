@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import { Bird, Plus, Search, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,19 +6,23 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LoadingTable } from "@/components/ui/loading-card";
 import CreateBirdBatchForm from "@/components/forms/CreateBirdBatchForm";
+import { useBirdBatches, useEggProductionLogs } from "@/hooks/usePoultry";
 
 export default function Poultry() {
-  const { data: batches, isLoading } = useQuery({
-    queryKey: ["/api/bird-batches"],
-  });
+  const { data: batchesResponse, isLoading } = useBirdBatches();
+  const batches = batchesResponse?.data || [];
 
-  const { data: eggProduction } = useQuery({
-    queryKey: ["/api/egg-production"],
-  });
+  // Get egg production for the first active batch if available
+  const firstActiveBatch = batches.find((batch: any) => batch.status === 'active');
+  const { data: eggProductionResponse } = useEggProductionLogs(
+    firstActiveBatch?.id || '', 
+    { limit: 10 }
+  );
+  const eggProduction = eggProductionResponse?.data || [];
 
   if (isLoading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-full mx-auto px-6 py-6">
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
@@ -46,7 +49,7 @@ export default function Poultry() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-full mx-auto px-6 py-6">
       {/* Page Header */}
       <div className="mb-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

@@ -31,6 +31,7 @@ import { createBirdBatchFormSchema } from '@/lib/schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Bird, Plus } from 'lucide-react';
+import { getBirdBatchPurposeOptions } from "@/lib/formUtils";
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -198,10 +199,12 @@ export default function CreateBirdBatchForm() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="laying">Laying</SelectItem>
-                        <SelectItem value="broiler">Broiler</SelectItem>
-                        <SelectItem value="breeding">Breeding</SelectItem>
-                      </SelectContent>
+                {getBirdBatchPurposeOptions().map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
                     </Select>
                     <FormMessage />
                   </FormItem>

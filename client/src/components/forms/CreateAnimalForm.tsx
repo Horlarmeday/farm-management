@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -30,9 +31,9 @@ import { apiRequest } from '@/lib/queryClient';
 import { createAnimalFormSchema } from '@/lib/schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Dog, Plus } from 'lucide-react';
-import { useState } from 'react';
+import { Heart, Plus } from 'lucide-react';
 import { useForm } from 'react-hook-form';
+import { getAnimalStatusOptions, getAnimalPurposeOptions, getGenderOptions } from "@/lib/formUtils";
 
 export default function CreateAnimalForm() {
   const [open, setOpen] = useState(false);
@@ -95,7 +96,7 @@ export default function CreateAnimalForm() {
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Dog className="h-5 w-5" />
+            <Heart className="h-5 w-5" />
             Create New Animal
           </DialogTitle>
           <DialogDescription>
@@ -197,8 +198,11 @@ export default function CreateAnimalForm() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="male">Male</SelectItem>
-                        <SelectItem value="female">Female</SelectItem>
+                        {getGenderOptions().map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -218,10 +222,11 @@ export default function CreateAnimalForm() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="dairy">Dairy</SelectItem>
-                        <SelectItem value="meat">Meat</SelectItem>
-                        <SelectItem value="breeding">Breeding</SelectItem>
-                        <SelectItem value="draft">Draft</SelectItem>
+                        {getAnimalPurposeOptions().map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -242,10 +247,11 @@ export default function CreateAnimalForm() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="healthy">Healthy</SelectItem>
-                      <SelectItem value="sick">Sick</SelectItem>
-                      <SelectItem value="pregnant">Pregnant</SelectItem>
-                      <SelectItem value="sold">Sold</SelectItem>
+                      {getAnimalStatusOptions().map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />

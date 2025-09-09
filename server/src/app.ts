@@ -10,17 +10,24 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import 'reflect-metadata';
 
+// Import User type and extend Express Request interface
+import { User } from '@/entities/User';
+import '@/middleware/auth.middleware';
+
 // Import routes
 import assetRoutes from '@/routes/asset.routes';
 import authRoutes from '@/routes/auth.routes';
+import farmRoutes from '@/routes/farm.routes';
 import financeRoutes from '@/routes/finance.routes';
 import fisheryRoutes from '@/routes/fishery.routes';
 import inventoryRoutes from '@/routes/inventory.routes';
+import invitationRoutes from '@/routes/invitation.routes';
 import livestockRoutes from '@/routes/livestock.routes';
 import notificationRoutes from '@/routes/notification.routes';
 import poultryRoutes from '@/routes/poultry.routes';
 import reportingRoutes from '@/routes/reporting.routes';
 import userRoutes from '@/routes/user.routes';
+
 
 // Create Express app
 const app: Application = express();
@@ -73,6 +80,7 @@ app.get('/health', (req: Request, res: Response) => {
 
 // API routes
 app.use('/api/auth', authRoutes);
+app.use('/api/farms', farmRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/finance', financeRoutes);
 app.use('/api/poultry', poultryRoutes);
@@ -82,6 +90,8 @@ app.use('/api/assets', assetRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/reports', reportingRoutes);
+app.use('/api', invitationRoutes);
+
 
 // 404 handler
 app.use('*', (req: Request, res: Response) => {
@@ -93,7 +103,7 @@ app.use('*', (req: Request, res: Response) => {
 });
 
 // Global error handler
-app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
+app.use((error: Error | ApiError, req: Request, res: Response, next: NextFunction) => {
   let statusCode = 500;
   let message = 'Internal Server Error';
   let stack: string | undefined;
@@ -127,7 +137,7 @@ app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
   console.error(`[ERROR] ${req.method} ${req.originalUrl}`, {
     error: error.message,
     stack: error.stack,
-    user: req.user?.id,
+    user: req.user ? (req.user as any).id : undefined,
     ip: req.ip,
     userAgent: req.get('User-Agent'),
   });

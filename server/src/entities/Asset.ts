@@ -1,6 +1,7 @@
 import { AssetStatus, AssetType } from '@kuyash/shared';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
+import { Farm } from './Farm';
 import { Location } from './Location';
 import { MaintenanceLog } from './MaintenanceLog';
 import { User } from './User';
@@ -96,4 +97,11 @@ export class Asset extends BaseEntity {
 
   @OneToMany(() => MaintenanceLog, (log) => log.asset)
   maintenanceLogs!: MaintenanceLog[];
+
+  @ManyToOne(() => Farm, { nullable: false })
+  @JoinColumn({ name: 'farmId' })
+  farm!: Farm;
+
+  @Column({ type: 'varchar', length: 255 })
+  farmId!: string;
 }

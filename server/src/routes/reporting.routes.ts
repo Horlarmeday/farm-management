@@ -54,6 +54,48 @@ router.get(
   reportingController.getDashboardCharts,
 );
 
+router.get(
+  '/dashboard/modules',
+  validate({ query: reportingValidations.getDashboardModules }),
+  reportingController.getDashboardModules,
+);
+
+router.get(
+  '/dashboard/revenue-trend',
+  validate({ query: reportingValidations.getRevenueTrend }),
+  reportingController.getRevenueTrend,
+);
+
+router.get(
+  '/dashboard/production-distribution',
+  validate({ query: reportingValidations.getProductionDistribution }),
+  reportingController.getProductionDistribution,
+);
+
+router.get(
+  '/dashboard/quick-stats',
+  validate({ query: reportingValidations.getQuickStats }),
+  reportingController.getQuickStats,
+);
+
+router.get(
+  '/dashboard/recent-activities',
+  validate({ query: reportingValidations.getRecentActivities }),
+  reportingController.getRecentActivities,
+);
+
+router.get(
+  '/dashboard/alerts',
+  validate({ query: reportingValidations.getDashboardAlerts }),
+  reportingController.getDashboardAlerts,
+);
+
+router.get(
+  '/dashboard/tasks',
+  validate({ query: reportingValidations.getDashboardTasks }),
+  reportingController.getDashboardTasks,
+);
+
 // Module-specific Analytics Routes
 router.get(
   '/analytics/poultry',

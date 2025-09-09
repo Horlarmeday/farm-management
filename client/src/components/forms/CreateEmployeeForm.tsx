@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { getEmployeeDepartmentOptions, getEmploymentTypeOptions } from "@/lib/formUtils";
 
 interface CreateEmployeeFormProps {
   onSuccess?: () => void;
@@ -165,13 +166,11 @@ export default function CreateEmployeeForm({ onSuccess }: CreateEmployeeFormProp
                 <SelectValue placeholder="Select department" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="operations">Operations</SelectItem>
-                <SelectItem value="animal_health">Animal Health</SelectItem>
-                <SelectItem value="maintenance">Maintenance</SelectItem>
-                <SelectItem value="administration">Administration</SelectItem>
-                <SelectItem value="production">Production</SelectItem>
-                <SelectItem value="sales_marketing">Sales & Marketing</SelectItem>
-                <SelectItem value="quality_control">Quality Control</SelectItem>
+                {getEmployeeDepartmentOptions().map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -185,11 +184,11 @@ export default function CreateEmployeeForm({ onSuccess }: CreateEmployeeFormProp
                 <SelectValue placeholder="Select employment type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="full_time">Full Time</SelectItem>
-                <SelectItem value="part_time">Part Time</SelectItem>
-                <SelectItem value="contract">Contract</SelectItem>
-                <SelectItem value="seasonal">Seasonal</SelectItem>
-                <SelectItem value="internship">Internship</SelectItem>
+                {getEmploymentTypeOptions().map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

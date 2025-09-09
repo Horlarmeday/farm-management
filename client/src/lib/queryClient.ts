@@ -1,8 +1,7 @@
 import { QueryClient, QueryFunction } from '@tanstack/react-query';
-import { config } from './config';
 
 // API base URL - change this to match your backend server
-const API_BASE_URL = config.apiBaseUrl;
+const API_BASE_URL = 'http://localhost:5000';
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -16,14 +15,6 @@ export async function apiRequest(options: {
   url: string;
   body?: unknown;
 }): Promise<Response> {
-  // If using mock data, return a mock response
-  if (config.useMockData) {
-    return new Response(JSON.stringify({ success: true, message: 'Mock response' }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
-
   const { method, url, body } = options;
   const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
 
@@ -42,11 +33,6 @@ type UnauthorizedBehavior = 'returnNull' | 'throw';
 export const getQueryFn: <T>(options: { on401: UnauthorizedBehavior }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    // If using mock data, return null to prevent API calls
-    if (config.useMockData) {
-      return null;
-    }
-
     const url = queryKey[0] as string;
     const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
 

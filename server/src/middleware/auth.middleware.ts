@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppDataSource } from '@/config/database';
-import { User } from '@/entities/User';
+import { User as UserEntity } from '@/entities/User';
 import { Role } from '@/entities/Role';
 import { Permission } from '@/entities/Permission';
 import { verifyAccessToken, extractBearerToken } from '@/utils/jwt';
@@ -11,7 +11,7 @@ import { JwtPayload } from '@kuyash/shared';
 declare global {
   namespace Express {
     interface Request {
-      user?: User;
+      user?: UserEntity;
       permissions?: string[];
     }
   }
@@ -40,7 +40,7 @@ export const authenticate = async (
     }
 
     // Get user from database
-    const userRepository = AppDataSource.getRepository(User);
+    const userRepository = AppDataSource.getRepository(UserEntity);
     const user = await userRepository.findOne({
       where: { id: payload.userId },
       relations: ['role', 'role.permissions'],
@@ -90,7 +90,7 @@ export const optionalAuthenticate = async (
     }
 
     // Get user from database
-    const userRepository = AppDataSource.getRepository(User);
+    const userRepository = AppDataSource.getRepository(UserEntity);
     const user = await userRepository.findOne({
       where: { id: payload.userId },
       relations: ['role', 'role.permissions'],

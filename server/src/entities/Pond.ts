@@ -1,5 +1,6 @@
 import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
+import { Farm } from './Farm';
 import { Location } from './Location';
 import { PondType, PondStatus } from '@kuyash/shared';
 
@@ -39,4 +40,11 @@ export class Pond extends BaseEntity {
 
   @Column({ type: 'varchar', length: 255 })
   locationId!: string;
+
+  @ManyToOne(() => Farm, { nullable: false })
+  @JoinColumn({ name: 'farmId' })
+  farm!: Farm;
+
+  @Column({ type: 'varchar', length: 255 })
+  farmId!: string;
 }

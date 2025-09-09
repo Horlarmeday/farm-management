@@ -1,4 +1,4 @@
-import { DeliveryChannel, NotificationType } from '@kuyash/shared';
+import { DeliveryChannel, NotificationType, BirdStatus, AnimalStatus, FinanceTransactionType } from '@kuyash/shared';
 import * as ExcelJS from 'exceljs';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -1011,6 +1011,133 @@ export class ReportingService {
     return this.generateDashboardReport(params);
   }
 
+  async getDashboardModules(params: any): Promise<any> {
+    const modules = [
+      {
+        id: 'poultry',
+        name: 'Poultry Management',
+        status: 'active',
+        totalBatches: await this.birdBatchRepository.count(),
+        activeBatches: await this.birdBatchRepository.count({ where: { status: BirdStatus.ACTIVE } }),
+        totalBirds: await this.birdBatchRepository
+          .createQueryBuilder('batch')
+          .select('SUM(batch.currentQuantity)', 'total')
+          .getRawOne()
+          .then(result => parseInt(result.total) || 0)
+      },
+      {
+        id: 'livestock',
+        name: 'Livestock Management',
+        status: 'active',
+        totalAnimals: await this.animalRepository.count(),
+        activeAnimals: await this.animalRepository.count({ where: { status: AnimalStatus.ACTIVE } })
+      },
+      {
+        id: 'fishery',
+        name: 'Fishery Management',
+        status: 'active',
+        totalPonds: await this.pondRepository.count(),
+        activePonds: await this.pondRepository.count()
+      },
+      {
+        id: 'inventory',
+        name: 'Inventory Management',
+        status: 'active',
+        totalItems: await this.inventoryItemRepository.count(),
+        lowStockItems: 0 // Simplified for now
+      }
+    ];
+    return modules;
+  }
+
+  async getRevenueTrend(params: any): Promise<any> {
+    const { startDate, endDate } = params;
+    const start = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const end = endDate ? new Date(endDate) : new Date();
+
+    const revenueData = await this.financialTransactionRepository
+       .createQueryBuilder('transaction')
+       .select('DATE(transaction.transactionDate)', 'date')
+       .addSelect('SUM(CASE WHEN transaction.type = \'INCOME\' THEN transaction.amount ELSE 0 END)', 'revenue')
+       .where('transaction.transactionDate BETWEEN :start AND :end', { start, end })
+       .groupBy('DATE(transaction.transactionDate)')
+       .orderBy('DATE(transaction.transactionDate)', 'ASC')
+       .getRawMany();
+
+    return revenueData.map(item => ({
+      date: item.date,
+      revenue: parseFloat(item.revenue) || 0
+    }));
+  }
+
+  async getProductionDistribution(params: any): Promise<any> {
+    const poultryCount = await this.birdBatchRepository.count();
+    const livestockCount = await this.animalRepository.count();
+    const fisheryCount = await this.pondRepository.count();
+    
+    const total = poultryCount + livestockCount + fisheryCount;
+    
+    return [
+      {
+        module: 'Poultry',
+        count: poultryCount,
+        percentage: total > 0 ? Math.round((poultryCount / total) * 100) : 0
+      },
+      {
+        module: 'Livestock',
+        count: livestockCount,
+        percentage: total > 0 ? Math.round((livestockCount / total) * 100) : 0
+      },
+      {
+        module: 'Fishery',
+        count: fisheryCount,
+        percentage: total > 0 ? Math.round((fisheryCount / total) * 100) : 0
+      }
+    ];
+  }
+
+  async getQuickStats(params: any): Promise<any> {
+    const totalRevenue = await this.financialTransactionRepository
+       .createQueryBuilder('transaction')
+       .select('SUM(CASE WHEN transaction.type = \'INCOME\' THEN transaction.amount ELSE 0 END)', 'total')
+       .getRawOne()
+       .then(result => parseFloat(result.total) || 0);
+
+     const totalExpenses = await this.financialTransactionRepository
+       .createQueryBuilder('transaction')
+       .select('SUM(CASE WHEN transaction.type = \'EXPENSE\' THEN transaction.amount ELSE 0 END)', 'total')
+       .getRawOne()
+       .then(result => parseFloat(result.total) || 0);
+
+    const totalAssets = await this.assetRepository.count();
+    const activeUsers = await this.userRepository.count();
+
+    return {
+      totalRevenue,
+      totalExpenses,
+      netProfit: totalRevenue - totalExpenses,
+      totalAssets,
+      activeUsers
+    };
+  }
+
+  async getRecentActivities(params: any): Promise<any> {
+    const recentTransactions = await this.financialTransactionRepository.find({
+       order: { createdAt: 'DESC' },
+       take: 10,
+       relations: ['user']
+     });
+
+     return recentTransactions.map(transaction => ({
+       id: transaction.id,
+       type: 'financial',
+       description: `${transaction.type === FinanceTransactionType.INCOME ? 'Income' : 'Expense'}: ${transaction.description}`,
+       amount: transaction.amount,
+       date: transaction.transactionDate,
+       user: transaction.user?.firstName + ' ' + transaction.user?.lastName
+     }));
+  }
+
   async getRealTimeAnalytics(params: any): Promise<any> {
     return { message: 'Real-time analytics not implemented yet' };
   }
@@ -1035,5 +1162,108 @@ export class ReportingService {
     } else {
       return this.exportReportToExcel(id, 'system');
     }
+  }
+
+  async getDashboardAlerts(limit?: number): Promise<any> {
+    // Get critical alerts for dashboard
+    const alertLimit = limit || 10;
+    
+    const alerts = [];
+    
+    // Check for low inventory items
+    const lowInventoryItems = await this.inventoryItemRepository
+      .createQueryBuilder('item')
+      .where('item.currentStock <= item.reorderPoint')
+      .limit(alertLimit)
+      .getMany();
+    
+    lowInventoryItems.forEach(item => {
+      alerts.push({
+        id: `inventory-${item.id}`,
+        type: 'warning',
+        title: 'Low Inventory Alert',
+        message: `${item.name} is running low (${item.currentStock} remaining)`,
+        timestamp: new Date(),
+        module: 'inventory'
+      });
+    });
+    
+    // Check for overdue tasks (placeholder)
+    const overdueTasks = 5; // This would come from a task management system
+    if (overdueTasks > 0) {
+      alerts.push({
+        id: 'tasks-overdue',
+        type: 'error',
+        title: 'Overdue Tasks',
+        message: `You have ${overdueTasks} overdue tasks`,
+        timestamp: new Date(),
+        module: 'tasks'
+      });
+    }
+    
+    return alerts.slice(0, alertLimit);
+  }
+
+  async getDashboardTasks(): Promise<any[]> {
+    // Get pending tasks for dashboard
+    const tasks: any[] = [];
+    
+    // Check for birds/animals needing attention
+    const birdBatches = await this.birdBatchRepository
+      .createQueryBuilder('batch')
+      .where('batch.status = :status', { status: BirdStatus.ACTIVE })
+      .limit(5)
+      .getMany();
+    
+    birdBatches.forEach(batch => {
+      tasks.push({
+        id: `bird-check-${batch.id}`,
+        title: 'Daily Bird Check',
+        description: `Check batch ${batch.batchCode} health and feeding`,
+        priority: 'medium',
+        dueDate: new Date(),
+        module: 'poultry',
+        status: 'pending'
+      });
+    });
+    
+    // Check for financial transactions needing review
+    const pendingTransactions = await this.financialTransactionRepository
+      .createQueryBuilder('transaction')
+      .where('transaction.status = :status', { status: 'pending' })
+      .limit(3)
+      .getMany();
+    
+    pendingTransactions.forEach(transaction => {
+      tasks.push({
+        id: `transaction-review-${transaction.id}`,
+        title: 'Review Transaction',
+        description: `Review ${transaction.type} transaction of $${transaction.amount}`,
+        priority: 'high',
+        dueDate: new Date(),
+        module: 'finance',
+        status: 'pending'
+      });
+    });
+    
+    return tasks;
+  }
+
+  async createFinancialReport(params: any): Promise<Report> {
+    const { startDate, endDate, includeCharts = true } = params;
+    
+    const reportData = {
+      reportType: 'financial' as const,
+      reportName: 'Financial Report',
+      parameters: {
+        startDate: startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+        endDate: endDate ? new Date(endDate) : new Date(),
+        includeCharts,
+        includeDetails: true
+      },
+      requestedById: params.userId || 'system'
+    };
+    
+    return this.generateReport(reportData);
   }
 }

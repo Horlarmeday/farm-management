@@ -43,8 +43,7 @@ export const generateTokens = (user: User): TokenResponse => {
   const payload: JwtPayload = {
     userId: user.id,
     email: user.email,
-    roleId: user.roleId,
-    permissions: [], // Will be populated when needed
+    role: user.role?.name || 'worker',
   };
 
   const accessToken = generateAccessToken(payload);

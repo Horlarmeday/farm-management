@@ -3724,6 +3724,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tanstack/query-devtools@npm:5.87.3":
+  version: 5.87.3
+  resolution: "@tanstack/query-devtools@npm:5.87.3"
+  checksum: 10/fe91420e0ef66b4ec737502ab11f6261d15b2f24b9f419d9c878a152c0af30026b6decada2cc9ed2fdedba2d237a06e14a30b3645841ae084a01a58307fa103d
+  languageName: node
+  linkType: hard
+
+"@tanstack/react-query-devtools@npm:^5.87.3":
+  version: 5.87.3
+  resolution: "@tanstack/react-query-devtools@npm:5.87.3"
+  dependencies:
+    "@tanstack/query-devtools": "npm:5.87.3"
+  peerDependencies:
+    "@tanstack/react-query": ^5.87.1
+    react: ^18 || ^19
+  checksum: 10/377515bfaf744a7a0670b773c23bb2b8682f012d4b14220cc12e064d9d4687c1bfdf58a8b95018185ad4105ab2f2e270b87bc3922c734e222356c3bcdbd092c6
+  languageName: node
+  linkType: hard
+
 "@tanstack/react-query@npm:^5.60.5":
   version: 5.81.5
   resolution: "@tanstack/react-query@npm:5.81.5"
@@ -4078,7 +4097,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jsonwebtoken@npm:^9.0.5":
+"@types/jsonwebtoken@npm:^9.0.10, @types/jsonwebtoken@npm:^9.0.5":
   version: 9.0.10
   resolution: "@types/jsonwebtoken@npm:9.0.10"
   dependencies:
@@ -5718,6 +5737,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"cookie@npm:^1.0.1":
+  version: 1.0.2
+  resolution: "cookie@npm:1.0.2"
+  checksum: 10/f5817cdc84d8977761b12549eba29435e675e65c7fef172bc31737788cd8adc83796bf8abe6d950554e7987325ad2d9ac2971c5bd8ff0c4f81c145f82e4ab1be
+  languageName: node
+  linkType: hard
+
 "cookiejar@npm:^2.1.4":
   version: 2.1.4
   resolution: "cookiejar@npm:2.1.4"
@@ -7293,6 +7319,16 @@ __metadata:
   peerDependencies:
     express: 4 || 5 || ^5.0.0-beta.1
   checksum: 10/76ae8092386e23d0b209362b5af12de46bcdc1e0555087db659447d18647ec98519d7a1b96824311d9a02f4c5811547eaec83ba078f0ca8b9b15d9a906f5858d
+  languageName: node
+  linkType: hard
+
+"express-validator@npm:^7.2.1":
+  version: 7.2.1
+  resolution: "express-validator@npm:7.2.1"
+  dependencies:
+    lodash: "npm:^4.17.21"
+    validator: "npm:~13.12.0"
+  checksum: 10/977a920b4baec9d552a3dfe822d10860ee987a0654d766a86663fa4ab0d4c18b0ae7dadbed4fe6dd293fc24388bff675092116cedf5ee9e3af5b3ccfa94ebfc9
   languageName: node
   linkType: hard
 
@@ -9198,11 +9234,14 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "kuyash-farm-management@workspace:."
   dependencies:
+    "@types/jsonwebtoken": "npm:^9.0.10"
     "@typescript-eslint/eslint-plugin": "npm:^6.13.1"
     "@typescript-eslint/parser": "npm:^6.13.1"
     concurrently: "npm:^8.2.2"
     eslint: "npm:^8.54.0"
     eslint-config-prettier: "npm:^9.1.0"
+    express-validator: "npm:^7.2.1"
+    jsonwebtoken: "npm:^9.0.2"
     prettier: "npm:^3.1.1"
     typescript: "npm:^5.3.2"
   languageName: unknown
@@ -11259,6 +11298,34 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-router-dom@npm:^7.8.2":
+  version: 7.8.2
+  resolution: "react-router-dom@npm:7.8.2"
+  dependencies:
+    react-router: "npm:7.8.2"
+  peerDependencies:
+    react: ">=18"
+    react-dom: ">=18"
+  checksum: 10/2b8693c65b6c87004909c76a4cf1e2e1d4d241d20161ee792ce1aba0763e36484e98792a0c98a4d36d53cf8a7bc8a372ec5067b06f459df0d840dbfc8508e96e
+  languageName: node
+  linkType: hard
+
+"react-router@npm:7.8.2":
+  version: 7.8.2
+  resolution: "react-router@npm:7.8.2"
+  dependencies:
+    cookie: "npm:^1.0.1"
+    set-cookie-parser: "npm:^2.6.0"
+  peerDependencies:
+    react: ">=18"
+    react-dom: ">=18"
+  peerDependenciesMeta:
+    react-dom:
+      optional: true
+  checksum: 10/d1af3980cdfe8b915f6a8b219d57f18f9e3c4c062fa33bbb0946d4ff18c4c09fbf2f5c3616f5953f576c1d3be31616e4578773794cbb6eacf7812050997e04a2
+  languageName: node
+  linkType: hard
+
 "react-smooth@npm:^4.0.4":
   version: 4.0.4
   resolution: "react-smooth@npm:4.0.4"
@@ -11568,6 +11635,7 @@ __metadata:
     "@tailwindcss/typography": "npm:^0.5.15"
     "@tailwindcss/vite": "npm:^4.1.3"
     "@tanstack/react-query": "npm:^5.60.5"
+    "@tanstack/react-query-devtools": "npm:^5.87.3"
     "@types/bcryptjs": "npm:^2.4.6"
     "@types/connect-pg-simple": "npm:^7.0.3"
     "@types/express": "npm:4.17.21"
@@ -11611,7 +11679,9 @@ __metadata:
     react-hook-form: "npm:^7.55.0"
     react-icons: "npm:^5.4.0"
     react-resizable-panels: "npm:^2.1.7"
+    react-router-dom: "npm:^7.8.2"
     recharts: "npm:^2.15.2"
+    sonner: "npm:^2.0.7"
     tailwind-merge: "npm:^2.6.0"
     tailwindcss: "npm:^3.4.17"
     tailwindcss-animate: "npm:^1.0.7"
@@ -11885,6 +11955,13 @@ __metadata:
   version: 2.0.0
   resolution: "set-blocking@npm:2.0.0"
   checksum: 10/8980ebf7ae9eb945bb036b6e283c547ee783a1ad557a82babf758a065e2fb6ea337fd82cac30dd565c1e606e423f30024a19fff7afbf4977d784720c4026a8ef
+  languageName: node
+  linkType: hard
+
+"set-cookie-parser@npm:^2.6.0":
+  version: 2.7.1
+  resolution: "set-cookie-parser@npm:2.7.1"
+  checksum: 10/c92b1130032693342bca13ea1b1bc93967ab37deec4387fcd8c2a843c0ef2fd9a9f3df25aea5bb3976cd05a91c2cf4632dd6164d6e1814208fb7d7e14edd42b4
   languageName: node
   linkType: hard
 
@@ -12187,6 +12264,16 @@ __metadata:
     ip-address: "npm:^9.0.5"
     smart-buffer: "npm:^4.2.0"
   checksum: 10/0109090ec2bcb8d12d3875a987e85539ed08697500ad971a603c3057e4c266b4bf6a603e07af6d19218c422dd9b72d923aaa6c1f20abae275510bba458e4ccc9
+  languageName: node
+  linkType: hard
+
+"sonner@npm:^2.0.7":
+  version: 2.0.7
+  resolution: "sonner@npm:2.0.7"
+  peerDependencies:
+    react: ^18.0.0 || ^19.0.0 || ^19.0.0-rc
+    react-dom: ^18.0.0 || ^19.0.0 || ^19.0.0-rc
+  checksum: 10/c80321646f7fe06f92f4c16da9d72a27aec34abbf41438f8d8e8292ba8546d6bb620c54a113928f049948db1ad29d0b2ad3e9cb29dd5802c30951b41c99f12c4
   languageName: node
   linkType: hard
 
@@ -13369,6 +13456,13 @@ __metadata:
   version: 13.15.15
   resolution: "validator@npm:13.15.15"
   checksum: 10/a43d9271c879468b1ad6dd5d2597b71719a185d2c7ceb3d68f3c9c8c17c25af0d90a53edfa7efaa6ac0d4425ba0345684b9c7d8111bde0d06d915a634a287018
+  languageName: node
+  linkType: hard
+
+"validator@npm:~13.12.0":
+  version: 13.12.0
+  resolution: "validator@npm:13.12.0"
+  checksum: 10/db6eb0725e2b67d60d30073ae8573982713b5903195d031dc3c7db7e82df8b74e8c13baef8e2106d146d979599fd61a06cde1fec5c148e4abd53d52817ff0fd9
   languageName: node
   linkType: hard
 

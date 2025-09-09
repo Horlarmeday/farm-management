@@ -1,28 +1,57 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-
-const stats = [
-  {
-    label: "Feed Consumption",
-    value: "2,840 kg",
-    progress: 75,
-    color: "bg-primary",
-  },
-  {
-    label: "Mortality Rate",
-    value: "2.1%",
-    progress: 8,
-    color: "bg-green-500",
-  },
-  {
-    label: "Production Efficiency",
-    value: "89%",
-    progress: 89,
-    color: "bg-blue-500",
-  },
-];
+import { useQuickStats } from "@/hooks/useDashboard";
 
 export default function QuickStats() {
+  const { data: quickStats, isLoading, isError } = useQuickStats();
+
+  if (isLoading) {
+    return (
+      <Card className="farm-card">
+        <CardHeader>
+          <CardTitle className="text-lg">Quick Stats</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="text-sm text-muted-foreground">Loading...</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isError || !quickStats) {
+    return (
+      <Card className="farm-card">
+        <CardHeader>
+          <CardTitle className="text-lg">Quick Stats</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="text-sm text-red-500">Failed to load stats</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const stats = [
+    {
+      label: "Feed Consumption",
+      value: quickStats.feedConsumption?.value || '0',
+      progress: quickStats.feedConsumption?.progress || 0,
+      color: "bg-orange-500",
+    },
+    {
+      label: "Mortality Rate",
+      value: quickStats.mortalityRate?.value || '0',
+      progress: quickStats.mortalityRate?.progress || 0,
+      color: "bg-red-500",
+    },
+    {
+      label: "Production Efficiency",
+      value: quickStats.productionEfficiency?.value || '0',
+      progress: quickStats.productionEfficiency?.progress || 0,
+      color: "bg-green-500",
+    },
+  ];
+
   return (
     <Card className="farm-card">
       <CardHeader>

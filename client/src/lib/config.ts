@@ -1,8 +1,5 @@
 // Configuration for the application
 export const config = {
-  // Set to true to use mock data instead of API calls (useful when backend is not running)
-  useMockData: true,
-
   // API base URL
   apiBaseUrl: 'http://localhost:5000',
 

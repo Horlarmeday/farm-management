@@ -1,14 +1,20 @@
 import { Router } from 'express';
 import { FisheryController } from '../controllers/FisheryController';
 import { authenticate } from '../middleware/auth.middleware';
+import { requireFarmAccessWithRole } from '../middleware/farm-auth.middleware';
 import { validate } from '../middleware/joiValidation.middleware';
 import { fisheryValidations } from '../validations/fishery.validations';
+import { FarmRole } from '@kuyash/shared';
 
 const router: Router = Router();
 const fisheryController = new FisheryController();
 
 // Apply authentication to all routes
 router.use(authenticate);
+
+// Apply farm access middleware to all routes
+// All fishery operations require at least WORKER role
+router.use(requireFarmAccessWithRole([FarmRole.WORKER, FarmRole.MANAGER, FarmRole.OWNER]));
 
 // Pond Management Routes
 router.post(

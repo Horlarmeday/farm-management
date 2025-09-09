@@ -222,6 +222,7 @@ export interface JwtPayload {
   userId: string;
   email: string;
   role: string;
+  roleId: number;
   iat?: number;
   exp?: number;
   iss?: string;

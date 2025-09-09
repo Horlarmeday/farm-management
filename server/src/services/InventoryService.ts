@@ -70,8 +70,7 @@ export class InventoryService {
     search?: string;
   }): Promise<InventoryItem[]> {
     const query = this.inventoryItemRepository
-      .createQueryBuilder('item')
-      .leftJoinAndSelect('item.supplier', 'supplier');
+      .createQueryBuilder('item');
 
     if (filters?.category) {
       query.andWhere('item.category = :category', { category: filters.category });
@@ -85,9 +84,8 @@ export class InventoryService {
       query.andWhere('item.location LIKE :location', { location: `%${filters.location}%` });
     }
 
-    if (filters?.supplierId) {
-      query.andWhere('item.supplierId = :supplierId', { supplierId: filters.supplierId });
-    }
+    // Note: Supplier filtering removed as InventoryItem doesn't have direct supplier relationship
+    // TODO: Implement supplier filtering through purchase orders if needed
 
     if (filters?.search) {
       query.andWhere('(item.name LIKE :search OR item.description LIKE :search)', {

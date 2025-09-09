@@ -1,6 +1,12 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { FileText, Download, Filter, Calendar, TrendingUp, PieChart, BarChart3 } from "lucide-react";
+import { getReportModuleOptions, getExportFormatOptions } from "@/lib/formUtils";
+import { FileText, Download, Filter, Calendar, TrendingUp, BarChart3, RefreshCw, DollarSign, Activity, AlertTriangle } from "lucide-react";
+import { useReportsData, useGenerateReport, useDownloadReport } from '@/hooks/useReports';
+import { useDashboardStats, useRevenueTrend, useProductionDistribution } from '@/hooks/useDashboard';
+import { useFinancialStats, useExpensesByCategory } from '@/hooks/useFinance';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { useToast } from '@/hooks/use-toast';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,24 +15,27 @@ import { Badge } from "@/components/ui/badge";
 
 export default function Reports() {
   const [selectedModule, setSelectedModule] = useState<string>("all");
+  const [selectedPeriod, setSelectedPeriod] = useState('month');
+  const { toast } = useToast();
 
-  const { data: dashboardStats } = useQuery({
-    queryKey: ["/api/dashboard/stats"],
-  });
+  // Use actual reports data
+  const { reports, templates, schedules, stats, isLoading: reportsLoading, error: reportsError } = useReportsData();
+  const generateReportMutation = useGenerateReport();
+  const downloadReportMutation = useDownloadReport();
+
+  // Dashboard stats from actual API
+  const { data: dashboardStats } = useDashboardStats();
+  const { data: financeData } = useFinancialStats();
+
+  // Revenue trend data from actual API
+  const { data: revenueData, isLoading: revenueTrendLoading } = useRevenueTrend(selectedPeriod as 'week' | 'month' | 'quarter' | 'year');
+  const { data: productionDistribution, isLoading: productionLoading } = useProductionDistribution();
   
-  const stats = dashboardStats || {
-    totalRevenue: 0,
-    productionEfficiency: 0,
-    mortalityRate: 0
-  };
+  // Expenses data from actual API
+  const { data: expensesData } = useExpensesByCategory();
 
-  const { data: sales } = useQuery({
-    queryKey: ["/api/sales"],
-  });
-
-  const { data: expenses } = useQuery({
-    queryKey: ["/api/expenses"],
-  });
+  // Chart colors
+  const CHART_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
   const reportTypes = [
     {
@@ -63,45 +72,36 @@ export default function Reports() {
     }
   ];
 
-  const predefinedReports = [
-    {
-      name: "Monthly Performance Summary",
-      description: "Complete overview of farm performance for the current month",
-      lastGenerated: "2024-01-15",
-      status: "ready"
-    },
-    {
-      name: "Annual Financial Statement",
-      description: "Yearly financial report with profit/loss analysis",
-      lastGenerated: "2024-01-01",
-      status: "ready"
-    },
-    {
-      name: "Livestock Health Report",
-      description: "Health status and vaccination records for all livestock",
-      lastGenerated: "2024-01-10",
-      status: "pending"
-    },
-    {
-      name: "Feed Consumption Analysis",
-      description: "Feed usage patterns and efficiency metrics",
-      lastGenerated: "2024-01-12",
-      status: "ready"
-    }
-  ];
+  // Use actual reports data or fallback to empty array
+  const predefinedReports = reports || [];
 
-  const handleGenerateReport = (reportType: string) => {
-    // This would typically trigger report generation
-    console.log(`Generating ${reportType} report`);
+  const handleGenerateReport = async (reportType: string) => {
+    if (!reportType) {
+      toast({
+        title: 'Error',
+        description: 'Please select a report type.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      await generateReportMutation.mutateAsync(reportType);
+    } catch (error) {
+      console.error('Failed to generate report:', error);
+    }
   };
 
-  const handleDownloadReport = (reportName: string) => {
-    // This would typically download the report
-    console.log(`Downloading ${reportName}`);
+  const handleDownloadReport = async (reportId: string) => {
+    try {
+      await downloadReportMutation.mutateAsync(reportId);
+    } catch (error) {
+      console.error('Failed to download report:', error);
+    }
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-full mx-auto px-6 py-6">
       {/* Page Header */}
       <div className="mb-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -149,13 +149,12 @@ export default function Reports() {
                       <SelectValue placeholder="Select module" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Modules</SelectItem>
-                      <SelectItem value="poultry">Poultry</SelectItem>
-                      <SelectItem value="livestock">Livestock</SelectItem>
-                      <SelectItem value="fishery">Fishery</SelectItem>
-                      <SelectItem value="inventory">Inventory</SelectItem>
-                      <SelectItem value="finance">Finance</SelectItem>
-                    </SelectContent>
+                {getReportModuleOptions().map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
                   </Select>
                 </div>
                 <div>
@@ -172,10 +171,12 @@ export default function Reports() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="pdf">PDF</SelectItem>
-                      <SelectItem value="excel">Excel</SelectItem>
-                      <SelectItem value="csv">CSV</SelectItem>
-                    </SelectContent>
+                {getExportFormatOptions().map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
                   </Select>
                 </div>
               </div>
@@ -215,47 +216,57 @@ export default function Reports() {
 
         <TabsContent value="saved" className="space-y-4">
           <div className="grid gap-4">
-            {predefinedReports.map((report, index) => (
-              <Card key={index}>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="text-lg font-semibold">{report.name}</h3>
-                        <Badge 
-                          variant={report.status === "ready" ? "default" : "secondary"}
-                        >
-                          {report.status}
-                        </Badge>
+            {predefinedReports.length > 0 ? (
+              predefinedReports.map((report) => (
+                <Card key={report.id}>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <h3 className="text-lg font-semibold">{report.name}</h3>
+                          <Badge 
+                            variant={report.status === "completed" ? "default" : "secondary"}
+                          >
+                            {report.status}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-2">
+                          {report.type} report
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Last generated: {new Date(report.generatedAt).toLocaleDateString()}
+                        </p>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-2">
-                        {report.description}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Last generated: {new Date(report.lastGenerated).toLocaleDateString()}
-                      </p>
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDownloadReport(report.id)}
+                          disabled={report.status !== "completed" || downloadReportMutation.isPending}
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          {downloadReportMutation.isPending ? 'Downloading...' : 'Download'}
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => handleGenerateReport(report.id)}
+                          disabled={generateReportMutation.isPending}
+                        >
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                          {generateReportMutation.isPending ? 'Generating...' : 'Regenerate'}
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDownloadReport(report.name)}
-                        disabled={report.status !== "ready"}
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        Download
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => handleGenerateReport(report.name)}
-                      >
-                        Regenerate
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p>No reports available</p>
+                <p className="text-sm">Generate your first report using the form above</p>
+              </div>
+            )}
           </div>
         </TabsContent>
 
@@ -267,10 +278,10 @@ export default function Reports() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">Total Revenue</p>
-                    <p className="text-2xl font-bold">₦{stats.totalRevenue.toLocaleString()}</p>
+                    <p className="text-2xl font-bold">₦{(financeData?.totalIncome || dashboardStats?.totalRevenue || 0).toLocaleString()}</p>
                     <p className="text-sm text-green-600">+12% from last month</p>
                   </div>
-                  <TrendingUp className="h-8 w-8 text-green-600" />
+                  <DollarSign className="h-8 w-8 text-green-600" />
                 </div>
               </CardContent>
             </Card>
@@ -280,7 +291,7 @@ export default function Reports() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">Production Efficiency</p>
-                    <p className="text-2xl font-bold">{stats.productionEfficiency}%</p>
+                    <p className="text-2xl font-bold">{dashboardStats?.productionEfficiency || 0}%</p>
                     <p className="text-sm text-blue-600">Above target</p>
                   </div>
                   <BarChart3 className="h-8 w-8 text-blue-600" />
@@ -293,10 +304,10 @@ export default function Reports() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">Active Operations</p>
-                    <p className="text-2xl font-bold">4</p>
+                    <p className="text-2xl font-bold">{dashboardStats?.activeBirds || 4}</p>
                     <p className="text-sm text-purple-600">All modules active</p>
                   </div>
-                  <PieChart className="h-8 w-8 text-purple-600" />
+                  <Activity className="h-8 w-8 text-purple-600" />
                 </div>
               </CardContent>
             </Card>
@@ -306,25 +317,63 @@ export default function Reports() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">Mortality Rate</p>
-                    <p className="text-2xl font-bold">{stats.mortalityRate}%</p>
+                    <p className="text-2xl font-bold">{dashboardStats?.mortalityRate || 0}%</p>
                     <p className="text-sm text-green-600">Within normal range</p>
                   </div>
-                  <FileText className="h-8 w-8 text-orange-600" />
+                  <AlertTriangle className="h-8 w-8 text-orange-600" />
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Analytics Charts Placeholder */}
+          {/* Analytics Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
                 <CardTitle>Revenue Trend</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-64 flex items-center justify-center bg-muted rounded-lg">
-                  <p className="text-muted-foreground">Revenue chart will be displayed here</p>
-                </div>
+                {revenueTrendLoading ? (
+                  <div className="h-64 flex items-center justify-center">
+                    <div className="text-muted-foreground">Loading chart...</div>
+                  </div>
+                ) : revenueData?.data && revenueData?.labels ? (
+                  <ChartContainer
+                    config={{
+                      revenue: {
+                        label: "Revenue",
+                        color: "hsl(var(--chart-1))",
+                      },
+                    }}
+                    className="h-64"
+                  >
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart
+                        data={revenueData.labels.map((label, index) => ({
+                          name: label,
+                          revenue: revenueData.data[index] || 0,
+                        }))}
+                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Line
+                          type="monotone"
+                          dataKey="revenue"
+                          stroke="var(--color-revenue)"
+                          strokeWidth={2}
+                          dot={{ fill: "var(--color-revenue)" }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </ChartContainer>
+                ) : (
+                  <div className="h-64 flex items-center justify-center bg-muted rounded-lg">
+                    <p className="text-muted-foreground">No revenue data available</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -333,9 +382,48 @@ export default function Reports() {
                 <CardTitle>Production Distribution</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-64 flex items-center justify-center bg-muted rounded-lg">
-                  <p className="text-muted-foreground">Production pie chart will be displayed here</p>
-                </div>
+                {productionLoading ? (
+                  <div className="h-64 flex items-center justify-center">
+                    <div className="text-muted-foreground">Loading chart...</div>
+                  </div>
+                ) : productionDistribution?.data && productionDistribution?.labels ? (
+                  <ChartContainer
+                    config={{
+                      production: {
+                        label: "Production",
+                        color: "hsl(var(--chart-2))",
+                      },
+                    }}
+                    className="h-64"
+                  >
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={productionDistribution.labels.map((label, index) => ({
+                            name: label,
+                            value: productionDistribution.data[index] || 0,
+                          }))}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="value"
+                        >
+                          {productionDistribution.data.map((_, index) => (
+                            <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </ChartContainer>
+                ) : (
+                  <div className="h-64 flex items-center justify-center bg-muted rounded-lg">
+                    <p className="text-muted-foreground">No production data available</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -345,8 +433,25 @@ export default function Reports() {
               <CardTitle>Performance Metrics</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-96 flex items-center justify-center bg-muted rounded-lg">
-                <p className="text-muted-foreground">Detailed analytics dashboard will be displayed here</p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="text-center p-4 bg-muted rounded-lg">
+                  <div className="text-2xl font-bold text-primary">
+                    {dashboardStats?.productionEfficiency || 0}%
+                  </div>
+                  <div className="text-sm text-muted-foreground">Production Efficiency</div>
+                </div>
+                <div className="text-center p-4 bg-muted rounded-lg">
+                  <div className="text-2xl font-bold text-green-600">
+                    ₦{financeData?.totalIncome?.toLocaleString() || '0'}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Total Revenue</div>
+                </div>
+                <div className="text-center p-4 bg-muted rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {dashboardStats?.feedConsumption || 0} kg
+                  </div>
+                  <div className="text-sm text-muted-foreground">Feed Consumption</div>
+                </div>
               </div>
             </CardContent>
           </Card>

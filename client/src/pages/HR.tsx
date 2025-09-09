@@ -1,19 +1,55 @@
-import { useQuery } from "@tanstack/react-query";
-import { Users, Plus, Search, Filter } from "lucide-react";
+import React, { useState } from "react";
+import type { UserResponse } from "../../../shared/src/types/user.types";
+import { Users, Plus, Search, Filter, Edit, Trash2, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LoadingTable } from "@/components/ui/loading-card";
+import { 
+  useUsers, 
+  useDepartments, 
+  useAttendance, 
+  usePayroll, 
+  useUserLeaveRequests,
+  useUserStats,
+  useDeleteUser,
+  useCreateDepartment,
+  useUpdateDepartment,
+  useDeleteDepartment
+} from "@/hooks/useUsers";
+import { UserRole } from "../../../shared/src/types/user.types";
+import { getUserRoleOptions } from "@/lib/formUtils";
 
 export default function HR() {
-  // For now, just show a placeholder until we fix the backend
-  const isLoading = false;
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedDepartment, setSelectedDepartment] = useState<string>("");
+  const [selectedRole, setSelectedRole] = useState<UserRole | "">("");
+  
+  // Fetch data using hooks
+  const { data: usersData, isLoading: usersLoading, error: usersError } = useUsers({
+    search: searchTerm,
+    department: selectedDepartment,
+    role: selectedRole as UserRole,
+    page: 1,
+    limit: 50
+  });
+  
+  const { data: departmentsData, isLoading: departmentsLoading } = useDepartments();
+  const { data: statsData, isLoading: statsLoading } = useUserStats();
+  
+  const deleteUserMutation = useDeleteUser();
+  
+  const users = usersData?.data || [];
+  const departments = departmentsData?.data || [];
+  const stats = statsData?.data;
+  
+  const isLoading = usersLoading || departmentsLoading || statsLoading;
 
   if (isLoading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-full mx-auto px-6 py-6">
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
@@ -43,7 +79,7 @@ export default function HR() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-full mx-auto px-6 py-6">
       {/* Page Header */}
       <div className="mb-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -84,42 +120,91 @@ export default function HR() {
               <Input
                 placeholder="Search employees..."
                 className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
+            <select 
+              className="px-3 py-2 border rounded-md"
+              value={selectedDepartment}
+              onChange={(e) => setSelectedDepartment(e.target.value)}
+            >
+              <option value="">All Departments</option>
+              {departments.map((dept) => (
+                <option key={dept} value={dept}>{dept}</option>
+              ))}
+            </select>
+            <select 
+              className="px-3 py-2 border rounded-md"
+              value={selectedRole}
+              onChange={(e) => setSelectedRole(e.target.value as UserRole)}
+            >
+              {getUserRoleOptions().map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Demo employee cards */}
-            {[
-              { id: 1, name: "John Smith", position: "Farm Manager", department: "Operations", status: "active" },
-              { id: 2, name: "Sarah Johnson", position: "Veterinarian", department: "Animal Health", status: "active" },
-              { id: 3, name: "Mike Brown", position: "Equipment Operator", department: "Maintenance", status: "active" },
-            ].map((employee) => (
-              <Card key={employee.id} className="farm-card">
-                <CardHeader>
-                  <CardTitle className="text-lg">{employee.name}</CardTitle>
-                  <p className="text-sm text-muted-foreground">{employee.position}</p>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Department:</span>
-                      <span className="text-sm">{employee.department}</span>
+            {users.length === 0 ? (
+              <div className="col-span-full text-center py-8">
+                <p className="text-muted-foreground">No employees found</p>
+              </div>
+            ) : (
+              users.map((user) => (
+                <Card key={user.id} className="farm-card">
+                  <CardHeader>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <CardTitle className="text-lg">{user.firstName} {user.lastName}</CardTitle>
+                        <p className="text-sm text-muted-foreground">{user.department || 'No Department'}</p>
+                      </div>
+                      <div className="flex space-x-1">
+                        <Button size="sm" variant="outline">
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => deleteUserMutation.mutate(user.id)}
+                          disabled={deleteUserMutation.isPending}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Status:</span>
-                      <Badge 
-                        className={`farm-status-badge ${
-                          employee.status === "active" ? "farm-status-success" : "farm-status-warning"
-                        }`}
-                      >
-                        {employee.status}
-                      </Badge>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium">Email:</span>
+                        <span className="text-sm">{user.email}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium">Department:</span>
+                        <span className="text-sm">{user.department || 'No department'}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium">Role:</span>
+                        <span className="text-sm">{user.role.name}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium">Status:</span>
+                        <Badge 
+                          className={`farm-status-badge ${
+                            user.isActive ? "farm-status-success" : "farm-status-warning"
+                          }`}
+                        >
+                          {user.isActive ? 'Active' : 'Inactive'}
+                        </Badge>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </div>
         </TabsContent>
 

@@ -376,14 +376,12 @@ export const seedRolesAndPermissions = async (dataSource: DataSource): Promise<v
     });
 
     if (!existingAdmin) {
-      const hashedPassword = await bcrypt.hash('admin123', 12);
       const adminUser = userRepository.create({
         firstName: 'System',
         lastName: 'Administrator',
         email: 'admin@kuyashfarms.com',
-        password: hashedPassword,
+        password: 'admin123',
         employeeId: 'EMP001',
-        department: 'Administration',
         status: UserStatus.ACTIVE,
         isActive: true,
         isEmailVerified: true,

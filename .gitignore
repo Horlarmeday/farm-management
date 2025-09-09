@@ -171,3 +171,6 @@ docs/build/
 *.backup
 *.bak
 .env
+.claude/
+.trae/
+.cursor/

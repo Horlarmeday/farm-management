@@ -1,33 +1,35 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-const activities = [
-  {
-    id: 1,
-    text: "Added new poultry batch",
-    time: "2 hours ago",
-    color: "bg-primary",
-  },
-  {
-    id: 2,
-    text: "Updated water quality - Pond #5",
-    time: "4 hours ago",
-    color: "bg-blue-500",
-  },
-  {
-    id: 3,
-    text: "Completed vaccination schedule",
-    time: "6 hours ago",
-    color: "bg-green-500",
-  },
-  {
-    id: 4,
-    text: "Feed inventory updated",
-    time: "8 hours ago",
-    color: "bg-yellow-500",
-  },
-];
+import { useRecentActivities } from "@/hooks/useDashboard";
 
 export default function RecentActivities() {
+  const { data: activities, isLoading, isError } = useRecentActivities(4);
+
+  if (isLoading) {
+    return (
+      <Card className="farm-card">
+        <CardHeader>
+          <CardTitle className="text-lg">Recent Activities</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="text-sm text-muted-foreground">Loading activities...</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isError || !activities) {
+    return (
+      <Card className="farm-card">
+        <CardHeader>
+          <CardTitle className="text-lg">Recent Activities</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="text-sm text-muted-foreground">No recent activities</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="farm-card">
       <CardHeader>

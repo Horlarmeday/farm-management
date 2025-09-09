@@ -1,6 +1,7 @@
 import { TaskPriority, TaskStatus } from '@kuyash/shared';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
+import { Farm } from './Farm';
 import { Notification } from './Notification';
 import { TaskChecklistItem } from './TaskChecklistItem';
 import { User } from './User';
@@ -106,4 +107,11 @@ export class Task extends BaseEntity {
 
   @OneToMany(() => TaskChecklistItem, (item) => item.task)
   checklistItems!: TaskChecklistItem[];
+
+  @ManyToOne(() => Farm, { nullable: false })
+  @JoinColumn({ name: 'farmId' })
+  farm!: Farm;
+
+  @Column({ type: 'varchar', length: 255 })
+  farmId!: string;
 }

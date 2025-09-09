@@ -2,6 +2,7 @@ import { Entity, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
 import { User } from './User';
 import { Location } from './Location';
+import { Farm } from './Farm';
 import { AnimalStatus, AnimalType } from '@kuyash/shared';
 
 @Entity('animals')
@@ -53,4 +54,11 @@ export class Animal extends BaseEntity {
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   assignedUserId?: string;
+
+  @ManyToOne(() => Farm, { nullable: false })
+  @JoinColumn({ name: 'farmId' })
+  farm!: Farm;
+
+  @Column({ type: 'varchar', length: 255 })
+  farmId!: string;
 }

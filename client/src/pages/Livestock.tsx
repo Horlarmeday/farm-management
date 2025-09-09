@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import { Dog, Plus, Search, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,19 +6,16 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LoadingTable } from "@/components/ui/loading-card";
 import CreateAnimalForm from "@/components/forms/CreateAnimalForm";
-import { config } from "@/lib/config";
-import { mockAnimals } from "@/lib/mockData";
+import { useAnimals } from "@/hooks/useLivestock";
 
 export default function Livestock() {
-  const { data: animals, isLoading } = config.useMockData
-    ? { data: mockAnimals, isLoading: false }
-    : useQuery({
-        queryKey: ["/api/animals"],
-      });
+  const { data: animalsResponse, isLoading } = useAnimals();
+
+  const animals = animalsResponse?.data || [];
 
   if (isLoading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-full mx-auto px-6 py-6">
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
@@ -46,7 +42,7 @@ export default function Livestock() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-full mx-auto px-6 py-6">
       {/* Page Header */}
       <div className="mb-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

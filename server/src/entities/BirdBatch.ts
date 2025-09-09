@@ -1,5 +1,6 @@
 import { Entity, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
+import { Farm } from './Farm';
 import { User } from './User';
 import { Location } from './Location';
 import { BirdType, BirdStatus } from '@kuyash/shared';
@@ -82,4 +83,11 @@ export class BirdBatch extends BaseEntity {
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   assignedUserId?: string;
+
+  @ManyToOne(() => Farm, { nullable: false })
+  @JoinColumn({ name: 'farmId' })
+  farm!: Farm;
+
+  @Column({ type: 'varchar', length: 255 })
+  farmId!: string;
 }

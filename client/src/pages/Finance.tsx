@@ -5,19 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LoadingTable } from "@/components/ui/loading-card";
+import { useFinanceDashboardSummary, useFinancialTransactions } from "@/hooks/useFinance";
 
 export default function Finance() {
-  const { data: sales, isLoading: salesLoading } = useQuery({
-    queryKey: ["/api/sales"],
-  });
+  const { data: dashboardSummary, isLoading: summaryLoading, error: summaryError } = useFinanceDashboardSummary();
+  const { data: transactions, isLoading: transactionsLoading } = useFinancialTransactions({ limit: 10 });
 
-  const { data: expenses, isLoading: expensesLoading } = useQuery({
-    queryKey: ["/api/expenses"],
-  });
-
-  if (salesLoading || expensesLoading) {
+  if (summaryLoading || transactionsLoading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-full mx-auto px-6 py-6">
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
@@ -47,7 +43,7 @@ export default function Finance() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-full mx-auto px-6 py-6">
       {/* Page Header */}
       <div className="mb-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -79,8 +75,16 @@ export default function Finance() {
             <CardTitle className="text-lg text-green-600">Total Revenue</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">₦2,450,000</p>
-            <p className="text-sm text-muted-foreground">This month</p>
+            {summaryError ? (
+              <p className="text-sm text-red-500">Error loading data</p>
+            ) : (
+              <>
+                <p className="text-3xl font-bold">
+                  ₦{dashboardSummary?.totalRevenue?.toLocaleString() || '0'}
+                </p>
+                <p className="text-sm text-muted-foreground">This month</p>
+              </>
+            )}
           </CardContent>
         </Card>
         <Card>
@@ -88,8 +92,16 @@ export default function Finance() {
             <CardTitle className="text-lg text-red-600">Total Expenses</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">₦1,820,000</p>
-            <p className="text-sm text-muted-foreground">This month</p>
+            {summaryError ? (
+              <p className="text-sm text-red-500">Error loading data</p>
+            ) : (
+              <>
+                <p className="text-3xl font-bold">
+                  ₦{dashboardSummary?.totalExpenses?.toLocaleString() || '0'}
+                </p>
+                <p className="text-sm text-muted-foreground">This month</p>
+              </>
+            )}
           </CardContent>
         </Card>
         <Card>
@@ -97,8 +109,16 @@ export default function Finance() {
             <CardTitle className="text-lg text-primary">Net Profit</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">₦630,000</p>
-            <p className="text-sm text-muted-foreground">This month</p>
+            {summaryError ? (
+              <p className="text-sm text-red-500">Error loading data</p>
+            ) : (
+              <>
+                <p className="text-3xl font-bold">
+                  ₦{dashboardSummary?.netProfit?.toLocaleString() || '0'}
+                </p>
+                <p className="text-sm text-muted-foreground">This month</p>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>

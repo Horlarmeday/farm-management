@@ -1,19 +1,33 @@
-import AlertsWidget from '@/components/dashboard/AlertsWidget';
+import { AlertsWidget } from '@/components/dashboard/AlertsWidget';
 import BottomModules from '@/components/dashboard/BottomModules';
 import KPICard from '@/components/dashboard/KPICard';
 import ModuleCard from '@/components/dashboard/ModuleCard';
 import QuickStats from '@/components/dashboard/QuickStats';
 import RecentActivities from '@/components/dashboard/RecentActivities';
 import { Button } from '@/components/ui/button';
-import { dashboardStats } from '@/lib/mockData';
+import { useDashboardData } from '@/hooks/useDashboard';
 import { Bird, Dog, DollarSign, Download, Fish, Plus } from 'lucide-react';
 
 export default function Dashboard() {
-  // Use mock data instead of API call to prevent 404 errors
-  const stats = dashboardStats;
+  // Use dashboard data with API integration and fallback to mock data
+  const { stats, modules, isLoading, isError, error } = useDashboardData();
+
+  if (isLoading) {
+    return (
+      <div className="max-w-full mx-auto px-6 py-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg text-muted-foreground">Loading dashboard...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    console.warn('Dashboard API error, using fallback data:', error);
+  }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-full mx-auto px-6 py-6">
       {/* Page Header */}
       <div className="mb-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -80,17 +94,17 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-muted rounded-lg p-4">
                 <h4 className="font-medium mb-2">Layer Hens</h4>
-                <p className="text-2xl font-bold">8,500</p>
+                <p className="text-2xl font-bold">{modules?.poultry?.layerHens?.toLocaleString() || '0'}</p>
                 <p className="text-sm text-muted-foreground">Active birds</p>
               </div>
               <div className="bg-muted rounded-lg p-4">
                 <h4 className="font-medium mb-2">Egg Production</h4>
-                <p className="text-2xl font-bold">6,240</p>
+                <p className="text-2xl font-bold">{modules?.poultry?.eggProduction?.toLocaleString() || '0'}</p>
                 <p className="text-sm text-muted-foreground">Daily average</p>
               </div>
               <div className="bg-muted rounded-lg p-4">
                 <h4 className="font-medium mb-2">FCR</h4>
-                <p className="text-2xl font-bold">2.1</p>
+                <p className="text-2xl font-bold">{modules?.poultry?.fcr || '0'}</p>
                 <p className="text-sm text-muted-foreground">Feed conversion</p>
               </div>
             </div>
@@ -113,26 +127,26 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-muted rounded-lg p-4">
                 <h4 className="font-medium mb-2">Cattle</h4>
-                <p className="text-2xl font-bold">245</p>
+                <p className="text-2xl font-bold">{modules?.livestock?.cattle?.toLocaleString() || '0'}</p>
                 <p className="text-sm text-muted-foreground">Active animals</p>
               </div>
               <div className="bg-muted rounded-lg p-4">
                 <h4 className="font-medium mb-2">Milk Production</h4>
-                <p className="text-2xl font-bold">1,840L</p>
+                <p className="text-2xl font-bold">{modules?.livestock?.milkProduction?.toLocaleString() || '0'}L</p>
                 <p className="text-sm text-muted-foreground">Daily average</p>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="text-center">
-                <p className="text-lg font-semibold">98</p>
+                <p className="text-lg font-semibold">{modules?.livestock?.goats?.toLocaleString() || '0'}</p>
                 <p className="text-sm text-muted-foreground">Goats</p>
               </div>
               <div className="text-center">
-                <p className="text-lg font-semibold">156</p>
+                <p className="text-lg font-semibold">{modules?.livestock?.sheep?.toLocaleString() || '0'}</p>
                 <p className="text-sm text-muted-foreground">Sheep</p>
               </div>
               <div className="text-center">
-                <p className="text-lg font-semibold">24</p>
+                <p className="text-lg font-semibold">{modules?.livestock?.pigs?.toLocaleString() || '0'}</p>
                 <p className="text-sm text-muted-foreground">Pigs</p>
               </div>
             </div>
@@ -148,22 +162,22 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="bg-muted rounded-lg p-4">
                 <h4 className="font-medium mb-2">Active Ponds</h4>
-                <p className="text-2xl font-bold">6</p>
-                <p className="text-sm text-muted-foreground">Out of 8 total</p>
+                <p className="text-2xl font-bold">{modules?.fishery?.activePonds || '0'}</p>
+                <p className="text-sm text-muted-foreground">Out of {modules?.fishery?.totalPonds || '0'} total</p>
               </div>
               <div className="bg-muted rounded-lg p-4">
                 <h4 className="font-medium mb-2">Fish Stock</h4>
-                <p className="text-2xl font-bold">12,500</p>
+                <p className="text-2xl font-bold">{modules?.fishery?.fishStock?.toLocaleString() || '0'}</p>
                 <p className="text-sm text-muted-foreground">Total fish</p>
               </div>
               <div className="bg-muted rounded-lg p-4">
                 <h4 className="font-medium mb-2">Harvest</h4>
-                <p className="text-2xl font-bold">1,250kg</p>
+                <p className="text-2xl font-bold">{modules?.fishery?.monthlyHarvest?.toLocaleString() || '0'}kg</p>
                 <p className="text-sm text-muted-foreground">This month</p>
               </div>
               <div className="bg-muted rounded-lg p-4">
                 <h4 className="font-medium mb-2">Water Quality</h4>
-                <p className="text-2xl font-bold">Good</p>
+                <p className="text-2xl font-bold">{modules?.fishery?.waterQuality || 'Unknown'}</p>
                 <p className="text-sm text-muted-foreground">All ponds</p>
               </div>
             </div>

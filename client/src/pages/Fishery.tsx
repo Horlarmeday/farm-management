@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Fish, Plus, Search, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,22 +8,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { LoadingTable } from "@/components/ui/loading-card";
 import CreatePondForm from "@/components/forms/CreatePondForm";
+import { usePonds } from "@/hooks/useFishery";
 
 export default function Fishery() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   
-  // Mock data for demonstration
-  const ponds = [
-    { id: 1, name: "Pond A1", location: "North Field", species: "Tilapia", status: "active", size: 100 },
-    { id: 2, name: "Pond B2", location: "South Field", species: "Catfish", status: "active", size: 150 },
-    { id: 3, name: "Pond C3", location: "East Field", species: "Carp", status: "maintenance", size: 120 },
-  ];
-  
-  const isLoading = false;
+  // Fetch ponds data
+  const { data: pondsResponse, isLoading, error } = usePonds();
+  const ponds = pondsResponse?.data || [];
 
   if (isLoading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-full mx-auto px-6 py-6">
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
@@ -54,7 +49,7 @@ export default function Fishery() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-full mx-auto px-6 py-6">
       {/* Page Header */}
       <div className="mb-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -111,10 +106,15 @@ export default function Fishery() {
                   <p className="text-muted-foreground mb-4">
                     Start by adding your first fish pond
                   </p>
-                  <Button className="farm-button-primary">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add First Pond
-                  </Button>
+                  <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+                    <DialogTrigger asChild>
+                      <Button className="farm-button-primary">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add First Pond
+                      </Button>
+                    </DialogTrigger>
+                    <CreatePondForm onSuccess={() => setIsCreateOpen(false)} />
+                  </Dialog>
                 </CardContent>
               </Card>
             ) : (
@@ -128,7 +128,11 @@ export default function Fishery() {
                           {pond.type} • {pond.speciesStocked}
                         </p>
                       </div>
-                      <Badge variant="default">Active</Badge>
+                      <Badge 
+                        variant={pond.status === 'active' ? 'default' : 'secondary'}
+                      >
+                        {pond.status}
+                      </Badge>
                     </div>
                   </CardHeader>
                   <CardContent>
@@ -142,16 +146,13 @@ export default function Fishery() {
                         <p className="text-lg font-semibold">{pond.location || 'Not specified'}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Stock Count</p>
-                        <p className="text-lg font-semibold">{pond.initialStockCount || 'Unknown'}</p>
+                        <p className="text-sm text-muted-foreground">Depth</p>
+                        <p className="text-lg font-semibold">{pond.depthM || 'Unknown'} m</p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Stocking Date</p>
+                        <p className="text-sm text-muted-foreground">Water Source</p>
                         <p className="text-lg font-semibold">
-                          {pond.stockingDate 
-                            ? new Date(pond.stockingDate).toLocaleDateString()
-                            : 'Not set'
-                          }
+                          {pond.waterSource || 'Not specified'}
                         </p>
                       </div>
                     </div>

@@ -27,6 +27,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { getInventoryCategoryOptions, getUnitOptions } from '@/lib/formUtils';
 import { createInventoryItemFormSchema } from '@/lib/schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -128,11 +129,11 @@ export default function CreateInventoryItemForm() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="feed">Feed</SelectItem>
-                        <SelectItem value="medicine">Medicine</SelectItem>
-                        <SelectItem value="equipment">Equipment</SelectItem>
-                        <SelectItem value="supplies">Supplies</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
+                        {getInventoryCategoryOptions().map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -152,11 +153,11 @@ export default function CreateInventoryItemForm() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="kg">Kilograms</SelectItem>
-                        <SelectItem value="lbs">Pounds</SelectItem>
-                        <SelectItem value="pieces">Pieces</SelectItem>
-                        <SelectItem value="liters">Liters</SelectItem>
-                        <SelectItem value="bags">Bags</SelectItem>
+                        {getUnitOptions().map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />

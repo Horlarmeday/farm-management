@@ -2,6 +2,7 @@
 export * from './api.types';
 export * from './asset.types';
 export * from './common.types';
+export * from './farm.types';
 export * from './finance.types';
 export * from './fishery.types';
 export * from './inventory.types';

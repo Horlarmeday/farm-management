@@ -1,14 +1,20 @@
 import { Router } from 'express';
 import { PoultryController } from '../controllers/PoultryController';
 import { authenticate } from '../middleware/auth.middleware';
+import { requireFarmAccessWithRole } from '../middleware/farm-auth.middleware';
 import { validate } from '../middleware/joiValidation.middleware';
 import { poultryValidations } from '../validations/poultry.validations';
+import { FarmRole } from '@kuyash/shared';
 
 const router: Router = Router();
 const poultryController = new PoultryController();
 
 // Apply authentication to all routes
 router.use(authenticate);
+
+// Apply farm access middleware to all routes
+// All poultry operations require at least WORKER role
+router.use(requireFarmAccessWithRole([FarmRole.WORKER, FarmRole.MANAGER, FarmRole.OWNER]));
 
 // Bird Batch Management Routes
 router.post(

@@ -3,7 +3,7 @@ import { Bell, Leaf, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { useAuth } from "@/App";
+import { useAuth } from "@/hooks/useAuth";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,15 +21,30 @@ const navigation = [
   { name: "Finance", href: "/finance" },
   { name: "HR", href: "/hr" },
   { name: "Reports", href: "/reports" },
+  { name: "Notifications", href: "/notifications" },
 ];
 
 export default function Navbar() {
   const [location] = useLocation();
-  const { logout } = useAuth();
+  const { user, logout, isLoggingOut } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+  };
+
+  const getUserInitials = (firstName?: string, lastName?: string) => {
+    if (!firstName && !lastName) return 'U';
+    const initials = `${firstName?.[0] || ''}${lastName?.[0] || ''}`;
+    return initials.toUpperCase() || 'U';
+  };
+
+  const getFullName = (firstName?: string, lastName?: string) => {
+    return `${firstName || ''} ${lastName || ''}`.trim() || 'User';
+  };
 
   return (
     <nav className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-full mx-auto px-6">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
@@ -60,33 +75,39 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-5 w-5" />
-              <Badge className="absolute -top-1 -right-1 h-2 w-2 p-0 bg-red-500">
-                <span className="sr-only">New notifications</span>
-              </Badge>
-            </Button>
+            <Link href="/notifications">
+              <Button variant="ghost" size="icon" className="relative">
+                <Bell className="h-5 w-5" />
+                <Badge className="absolute -top-1 -right-1 h-2 w-2 p-0 bg-red-500">
+                  <span className="sr-only">New notifications</span>
+                </Badge>
+              </Button>
+            </Link>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center space-x-2">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=32&h=32" />
+                    <AvatarImage src="" />
                     <AvatarFallback>
-                      <User className="h-4 w-4" />
+                      {user ? getUserInitials(user.firstName, user.lastName) : <User className="h-4 w-4" />}
                     </AvatarFallback>
                   </Avatar>
                   <span className="text-sm font-medium hidden sm:block">
-                    John Smith
+                    {user ? getFullName(user.firstName, user.lastName) : 'User'}
                   </span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem>Profile</DropdownMenuItem>
                 <DropdownMenuItem>Settings</DropdownMenuItem>
-                <DropdownMenuItem onClick={logout} className="text-red-600 hover:text-red-700">
+                <DropdownMenuItem 
+                  onClick={handleLogout} 
+                  className="text-red-600 hover:text-red-700"
+                  disabled={isLoggingOut}
+                >
                   <LogOut className="mr-2 h-4 w-4" />
-                  Logout
+                  {isLoggingOut ? 'Logging out...' : 'Logout'}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

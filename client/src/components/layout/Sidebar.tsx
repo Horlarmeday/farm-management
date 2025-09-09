@@ -8,6 +8,7 @@ import {
   Package, 
   DollarSign, 
   FileText,
+  Bell,
   Menu,
   X
 } from "lucide-react";
@@ -24,6 +25,7 @@ const navigation = [
   { name: "Inventory", href: "/inventory", icon: Package },
   { name: "Finance", href: "/finance", icon: DollarSign },
   { name: "Reports", href: "/reports", icon: FileText },
+  { name: "Notifications", href: "/notifications", icon: Bell },
 ];
 
 export default function Sidebar() {

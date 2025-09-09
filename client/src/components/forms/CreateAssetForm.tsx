@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { getAssetCategoryOptions, getAssetConditionOptions, getMaintenanceScheduleOptions } from "@/lib/formUtils";
 
 interface CreateAssetFormProps {
   onSuccess?: () => void;
@@ -103,12 +104,11 @@ export default function CreateAssetForm({ onSuccess }: CreateAssetFormProps) {
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="machinery">Machinery</SelectItem>
-                <SelectItem value="vehicles">Vehicles</SelectItem>
-                <SelectItem value="tools">Tools</SelectItem>
-                <SelectItem value="equipment">Equipment</SelectItem>
-                <SelectItem value="infrastructure">Infrastructure</SelectItem>
-                <SelectItem value="technology">Technology</SelectItem>
+                {getAssetCategoryOptions().map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -215,11 +215,11 @@ export default function CreateAssetForm({ onSuccess }: CreateAssetFormProps) {
                 <SelectValue placeholder="Select condition" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="excellent">Excellent</SelectItem>
-                <SelectItem value="good">Good</SelectItem>
-                <SelectItem value="fair">Fair</SelectItem>
-                <SelectItem value="poor">Poor</SelectItem>
-                <SelectItem value="needs_repair">Needs Repair</SelectItem>
+                {getAssetConditionOptions().map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -231,11 +231,11 @@ export default function CreateAssetForm({ onSuccess }: CreateAssetFormProps) {
                 <SelectValue placeholder="Select schedule" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="weekly">Weekly</SelectItem>
-                <SelectItem value="monthly">Monthly</SelectItem>
-                <SelectItem value="quarterly">Quarterly</SelectItem>
-                <SelectItem value="biannually">Bi-annually</SelectItem>
-                <SelectItem value="annually">Annually</SelectItem>
+                {getMaintenanceScheduleOptions().map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
