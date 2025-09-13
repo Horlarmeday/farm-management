@@ -44,6 +44,7 @@ export const generateTokens = (user: User): TokenResponse => {
     userId: user.id,
     email: user.email,
     role: user.role?.name || 'worker',
+    roleId: Number(user.role?.id) || 1,
   };
 
   const accessToken = generateAccessToken(payload);

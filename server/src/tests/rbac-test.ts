@@ -1,17 +1,17 @@
 import { FarmRole } from '@kuyash/shared';
 import request from 'supertest';
 import { app } from '../app';
-import { TestDataManager } from './utils';
+import { TestUtils } from './utils';
 
 describe('RBAC Middleware Tests', () => {
-  let testManager: TestDataManager;
+  let testManager: TestUtils;
   let ownerToken: string;
   let managerToken: string;
   let workerToken: string;
   let farmId: string;
 
   beforeAll(async () => {
-    testManager = new TestDataManager();
+    testManager = new TestUtils();
     await testManager.setup();
 
     // Create test farm and users with different roles

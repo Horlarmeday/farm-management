@@ -30,7 +30,7 @@ export class InvitationController {
     param('invitationId').isUUID().withMessage('Valid invitation ID is required')
   ];
 
-  createInvitation = async (req: Request, res: Response): Promise<void> => {
+  createInvitation = async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -40,7 +40,7 @@ export class InvitationController {
 
       const { inviteeEmail, role, inviteeName, message } = req.body;
       const farmId = req.headers['x-farm-id'] as string;
-      const userId = req.user?.id;
+      const userId = (req as any).user?.id;
 
       if (!farmId) {
         res.status(400).json({ error: 'Farm ID is required' });
@@ -81,7 +81,7 @@ export class InvitationController {
     }
   };
 
-  getInvitationDetails = async (req: Request, res: Response): Promise<void> => {
+  getInvitationDetails = async (req: Request, res: Response) => {
     try {
       const { token } = req.params;
 
@@ -107,7 +107,7 @@ export class InvitationController {
           role: invitation.role,
           message: invitation.message,
           invitedBy: {
-            name: invitation.invitedBy.name,
+            name: `${invitation.invitedBy.firstName} ${invitation.invitedBy.lastName}`.trim(),
             email: invitation.invitedBy.email
           },
           expiresAt: invitation.expiresAt,
@@ -120,7 +120,7 @@ export class InvitationController {
     }
   };
 
-  acceptInvitation = async (req: Request, res: Response): Promise<void> => {
+  acceptInvitation = async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -129,7 +129,7 @@ export class InvitationController {
       }
 
       const { token } = req.params;
-      const userId = req.user?.id;
+      const userId = (req as any).user?.id;
 
       if (!userId) {
         res.status(401).json({ error: 'User not authenticated' });
@@ -157,7 +157,7 @@ export class InvitationController {
     }
   };
 
-  declineInvitation = async (req: Request, res: Response): Promise<void> => {
+  declineInvitation = async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -176,10 +176,10 @@ export class InvitationController {
     }
   };
 
-  getFarmInvitations = async (req: Request, res: Response): Promise<void> => {
+  getFarmInvitations = async (req: Request, res: Response) => {
     try {
       const farmId = req.headers['x-farm-id'] as string;
-      const userId = req.user?.id;
+      const userId = (req as any).user?.id;
 
       if (!farmId) {
         res.status(400).json({ error: 'Farm ID is required' });
@@ -202,7 +202,7 @@ export class InvitationController {
           status: inv.status,
           message: inv.message,
           invitedBy: {
-            name: inv.invitedBy.name,
+            name: `${inv.invitedBy.firstName} ${inv.invitedBy.lastName}`.trim(),
             email: inv.invitedBy.email
           },
           expiresAt: inv.expiresAt,
@@ -215,9 +215,9 @@ export class InvitationController {
     }
   };
 
-  getUserInvitations = async (req: Request, res: Response): Promise<void> => {
+  getUserInvitations = async (req: Request, res: Response) => {
     try {
-      const userEmail = req.user?.email;
+      const userEmail = (req as any).user?.email;
 
       if (!userEmail) {
         res.status(401).json({ error: 'User not authenticated' });
@@ -235,7 +235,7 @@ export class InvitationController {
           role: inv.role,
           message: inv.message,
           invitedBy: {
-            name: inv.invitedBy.name,
+            name: `${inv.invitedBy.firstName} ${inv.invitedBy.lastName}`.trim(),
             email: inv.invitedBy.email
           },
           expiresAt: inv.expiresAt,
@@ -248,7 +248,7 @@ export class InvitationController {
     }
   };
 
-  cancelInvitation = async (req: Request, res: Response): Promise<void> => {
+  cancelInvitation = async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -257,7 +257,7 @@ export class InvitationController {
       }
 
       const { invitationId } = req.params;
-      const userId = req.user?.id;
+      const userId = (req as any).user?.id;
 
       if (!userId) {
         res.status(401).json({ error: 'User not authenticated' });

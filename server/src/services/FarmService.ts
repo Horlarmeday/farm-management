@@ -4,7 +4,7 @@ import { Farm } from '@/entities/Farm';
 import { FarmUser } from '@/entities/FarmUser';
 import { FarmInvitation } from '@/entities/FarmInvitation';
 import { User } from '@/entities/User';
-import { ApiResponse } from '@kuyash/shared';
+import { ApiResponse, FarmRole } from '@kuyash/shared';
 
 export class FarmService {
   private farmRepository: Repository<Farm>;
@@ -32,14 +32,16 @@ export class FarmService {
       return {
         success: true,
         data: farmUsers,
-        message: 'User farms retrieved successfully'
+        message: 'User farms retrieved successfully',
+        timestamp: new Date().toISOString()
       };
     } catch (error) {
       console.error('Error getting user farms:', error);
       return {
         success: false,
         message: 'Failed to retrieve user farms',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString()
       };
     }
   }
@@ -57,21 +59,24 @@ export class FarmService {
       if (!farm) {
         return {
           success: false,
-          message: 'Farm not found'
+          message: 'Farm not found',
+          timestamp: new Date().toISOString()
         };
       }
 
       return {
         success: true,
         data: farm,
-        message: 'Farm retrieved successfully'
+        message: 'Farm retrieved successfully',
+        timestamp: new Date().toISOString()
       };
     } catch (error) {
       console.error('Error getting farm by ID:', error);
       return {
         success: false,
         message: 'Failed to retrieve farm',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString()
       };
     }
   }
@@ -89,25 +94,27 @@ export class FarmService {
       const savedFarm = await this.farmRepository.save(farm);
 
       // Add the creator as the owner
-      const farmUser = this.farmUserRepository.create({
-        farmId: savedFarm.id,
-        userId: ownerId,
-        role: 'owner',
-        isActive: true
-      });
+        const farmUser = this.farmUserRepository.create({
+          farmId: savedFarm.id,
+          userId: ownerId,
+          role: FarmRole.OWNER,
+          isActive: true
+        });
       await this.farmUserRepository.save(farmUser);
 
       return {
         success: true,
         data: savedFarm,
-        message: 'Farm created successfully'
+        message: 'Farm created successfully',
+        timestamp: new Date().toISOString()
       };
     } catch (error) {
       console.error('Error creating farm:', error);
       return {
         success: false,
         message: 'Failed to create farm',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString()
       };
     }
   }
@@ -122,7 +129,8 @@ export class FarmService {
       if (!farm) {
         return {
           success: false,
-          message: 'Farm not found'
+          message: 'Farm not found',
+          timestamp: new Date().toISOString()
         };
       }
 
@@ -132,14 +140,16 @@ export class FarmService {
       return {
         success: true,
         data: updatedFarm,
-        message: 'Farm updated successfully'
+        message: 'Farm updated successfully',
+        timestamp: new Date().toISOString()
       };
     } catch (error) {
       console.error('Error updating farm:', error);
       return {
         success: false,
         message: 'Failed to update farm',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString()
       };
     }
   }
@@ -154,7 +164,8 @@ export class FarmService {
       if (!farm) {
         return {
           success: false,
-          message: 'Farm not found'
+          message: 'Farm not found',
+          timestamp: new Date().toISOString()
         };
       }
 
@@ -162,14 +173,16 @@ export class FarmService {
 
       return {
         success: true,
-        message: 'Farm deleted successfully'
+        message: 'Farm deleted successfully',
+        timestamp: new Date().toISOString()
       };
     } catch (error) {
       console.error('Error deleting farm:', error);
       return {
         success: false,
         message: 'Failed to delete farm',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString()
       };
     }
   }

@@ -1,6 +1,6 @@
 import { ApiError } from '@/utils/ApiError';
 import { NextFunction, Request, Response } from 'express';
-import Joi from 'joi';
+import * as Joi from 'joi';
 
 export interface ValidationSchema {
   body?: Joi.ObjectSchema;
@@ -9,7 +9,7 @@ export interface ValidationSchema {
 }
 
 export const validate = (schema: ValidationSchema) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
     const validationErrors: string[] = [];
 
     // Validate request body
@@ -46,7 +46,7 @@ export const validate = (schema: ValidationSchema) => {
     }
 
     if (validationErrors.length > 0) {
-      throw new ApiError(400, 'Validation Error', validationErrors.join('; '));
+      throw new ApiError(400, `Validation Error: ${validationErrors.join('; ')}`);
     }
 
     next();

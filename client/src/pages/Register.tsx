@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,7 +18,7 @@ export default function Register() {
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
   const { login } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,7 +60,7 @@ export default function Register() {
         password: formData.password,
       });
       
-      navigate('/dashboard');
+      setLocation('/dashboard');
     } catch (err) {
       setError('Registration failed. Please try again.');
     } finally {
@@ -165,9 +165,13 @@ export default function Register() {
           
           <div className="mt-4 text-center text-sm">
             Already have an account?{' '}
-            <Link to="/login" className="text-blue-600 hover:text-blue-500">
+            <button
+              type="button"
+              onClick={() => setLocation('/login')}
+              className="text-blue-600 hover:text-blue-500 underline"
+            >
               Sign in
-            </Link>
+            </button>
           </div>
         </CardContent>
       </Card>

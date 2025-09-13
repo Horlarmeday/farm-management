@@ -152,6 +152,13 @@ export class AuthService {
   }
 
   /**
+   * Verify email with token
+   */
+  static async verifyEmail(token: string): Promise<ApiResponse<void>> {
+    return apiClient.get<void>(`/api/auth/verify-email/${token}`);
+  }
+
+  /**
    * Check if user is authenticated
    */
   static isAuthenticated(): boolean {

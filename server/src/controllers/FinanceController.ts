@@ -1,4 +1,4 @@
-import { ApiResponse } from '@kuyash/shared';
+import { ApiResponse, FinanceTransactionType } from '@kuyash/shared';
 import { NextFunction, Request, Response } from 'express';
 import { FinanceService } from '../services/FinanceService';
 import { ServiceFactory } from '../services/ServiceFactory';
@@ -13,78 +13,302 @@ export class FinanceController {
   }
 
   // Financial Transactions
-  createTransaction = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  async createTransaction(req: Request, res: Response) {
     try {
-      const transaction = await this.financeService.createTransaction({
-        ...req.body,
-        recordedById: req.user!.id,
-      });
+      const userId = req.user?.id;
+      const { farmId, ...transactionData } = req.body;
+
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          message: 'User ID is required',
+          timestamp: new Date().toISOString()
+        });
+        return;
+      }
+
+      if (!farmId) {
+        res.status(400).json({
+          success: false,
+          message: 'Farm ID is required',
+          timestamp: new Date().toISOString()
+        });
+        return;
+      }
+
+      const completeTransactionData = {
+        ...transactionData,
+        farmId,
+        createdById: userId,
+        recordedById: userId
+      };
+
+      const transaction = await this.financeService.createTransaction(completeTransactionData);
 
       res.status(201).json({
         success: true,
-        message: 'Financial transaction created successfully',
         data: transaction,
-      } as ApiResponse<typeof transaction>);
+        message: 'Transaction created successfully',
+        timestamp: new Date().toISOString()
+      });
     } catch (error) {
-      next(error);
+      console.error('Error creating transaction:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create transaction',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString()
+      });
     }
-  };
+  }
 
-  getTransactions = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  async getTransactions(req: Request, res: Response) {
     try {
-      const { type, category, accountId, startDate, endDate, search } = req.query;
+      const userId = req.user?.id;
+      const farmId = req.farm?.id;
 
-      const transactions = await this.financeService.getTransactions({
-        type: type as any,
-        category: category as any,
-        accountId: accountId as string,
-        startDate: startDate ? new Date(startDate as string) : undefined,
-        endDate: endDate ? new Date(endDate as string) : undefined,
-        search: search as string,
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          message: 'User ID is required',
+          timestamp: new Date().toISOString()
+        });
+        return;
+      }
+
+      if (!farmId) {
+        res.status(400).json({
+          success: false,
+          message: 'Farm ID is required',
+          timestamp: new Date().toISOString()
+        });
+        return;
+      }
+
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const offset = (page - 1) * limit;
+      const type = req.query.type as FinanceTransactionType;
+      const category = req.query.category as string;
+      const dateFrom = req.query.dateFrom as string;
+      const dateTo = req.query.dateTo as string;
+      const status = req.query.status as string;
+
+      const transactions = await this.financeService.getTransactionsByFarm(farmId, {
+        type,
+        category_id: category,
+        start_date: dateFrom,
+        end_date: dateTo,
+        limit,
+        page,
+        farm_id: farmId
       });
 
-      res.json({
+      // Get total count for pagination
+      const totalTransactions = await this.financeService.getTransactionsByFarm(farmId, {
+        type,
+        category_id: category,
+        start_date: dateFrom,
+        end_date: dateTo,
+        farm_id: farmId
+      });
+
+      const result = {
+        transactions,
+        total: totalTransactions.length
+      };
+
+      res.status(200).json({
         success: true,
-        message: 'Transactions retrieved successfully',
-        data: transactions,
-      } as ApiResponse<typeof transactions>);
+        data: result.transactions,
+        pagination: {
+          page,
+          limit,
+          total: result.total,
+          totalPages: Math.ceil(result.total / limit)
+        },
+        timestamp: new Date().toISOString()
+      });
     } catch (error) {
-      next(error);
+      console.error('Error fetching transactions:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch transactions',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString()
+      });
     }
-  };
+  }
 
-  getTransactionById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  async getTransactionById(req: Request, res: Response) {
     try {
+      const userId = req.user?.id;
+      const farmId = req.farm?.id;
       const { id } = req.params;
-      const transaction = await this.financeService.getTransactionById(id);
 
-      res.json({
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          message: 'User ID is required',
+          timestamp: new Date().toISOString()
+        });
+        return;
+      }
+
+      if (!farmId) {
+        res.status(400).json({
+          success: false,
+          message: 'Farm ID is required',
+          timestamp: new Date().toISOString()
+        });
+        return;
+      }
+
+      const transaction = await this.financeService.getTransactionByIdAndFarm(id, farmId);
+
+      if (!transaction) {
+        res.status(404).json({
+          success: false,
+          message: 'Transaction not found',
+          timestamp: new Date().toISOString()
+        });
+        return;
+      }
+
+      res.status(200).json({
         success: true,
+        data: transaction,
         message: 'Transaction retrieved successfully',
-        data: transaction,
-      } as ApiResponse<typeof transaction>);
+        timestamp: new Date().toISOString()
+      });
     } catch (error) {
-      next(error);
+      console.error('Error getting transaction by ID:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve transaction',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString()
+      });
     }
-  };
+  }
 
-  updateTransaction = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  async updateTransaction(req: Request, res: Response) {
     try {
+      const userId = req.user?.id;
+      const { farmId, ...updateData } = req.body;
       const { id } = req.params;
-      const transaction = await this.financeService.updateTransaction(id, req.body);
 
-      res.json({
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          message: 'User ID is required',
+          timestamp: new Date().toISOString()
+        });
+        return;
+      }
+
+      if (!farmId) {
+        res.status(400).json({
+          success: false,
+          message: 'Farm ID is required',
+          timestamp: new Date().toISOString()
+        });
+        return;
+      }
+
+      const completeUpdateData = {
+        ...updateData,
+        updatedById: userId
+      };
+
+      const transaction = await this.financeService.updateTransactionByFarm(id, completeUpdateData, farmId);
+
+      if (!transaction) {
+        res.status(404).json({
+          success: false,
+          error: 'Transaction not found',
+        });
+        return;
+      }
+
+      res.status(200).json({
         success: true,
-        message: 'Transaction updated successfully',
         data: transaction,
-      } as ApiResponse<typeof transaction>);
+        message: 'Transaction updated successfully',
+        timestamp: new Date().toISOString()
+      });
     } catch (error) {
-      next(error);
+      console.error('Error updating transaction:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update transaction',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString()
+      });
+    }
+  }
+
+  deleteTransaction = async (req: Request, res: Response) => {
+    try {
+      const userId = req.user?.id;
+      const farmId = req.farm?.id;
+      const { id } = req.params;
+      
+      if (!userId || !farmId) {
+        res.status(401).json({ error: 'User not authenticated or no farm selected' });
+        return;
+      }
+      
+      await this.financeService.deleteTransactionByFarm(id, farmId);
+
+      res.status(200).json({
+        success: true,
+        message: 'Transaction deleted successfully',
+      });
+    } catch (error) {
+      console.error('Error deleting transaction:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to delete transaction',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      });
     }
   };
+
+  async getCategories(req: Request, res: Response) {
+    try {
+      const farmId = req.query.farmId as string;
+
+      if (!farmId) {
+        res.status(400).json({
+          success: false,
+          message: 'Farm ID is required',
+          timestamp: new Date().toISOString()
+        });
+        return;
+      }
+
+      const categories = await this.financeService.getCategoriesByFarm(farmId);
+
+      res.status(200).json({
+        success: true,
+        data: categories,
+        message: 'Categories retrieved successfully',
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch categories',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString()
+      });
+    }
+  }
 
   // Account Management
-  createAccount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  createAccount = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const account = await this.financeService.createAccount({
         ...req.body,
@@ -101,7 +325,7 @@ export class FinanceController {
     }
   };
 
-  getAccounts = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getAccounts = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { type, isActive } = req.query;
 
@@ -120,7 +344,7 @@ export class FinanceController {
     }
   };
 
-  getAccountById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getAccountById = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
       const account = await this.financeService.getAccountById(id);
@@ -135,7 +359,7 @@ export class FinanceController {
     }
   };
 
-  updateAccount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  updateAccount = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
       const account = await this.financeService.updateAccount(id, req.body);
@@ -151,7 +375,7 @@ export class FinanceController {
   };
 
   // Invoice Management
-  createInvoice = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  createInvoice = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const invoice = await this.financeService.createInvoice({
         ...req.body,
@@ -168,7 +392,7 @@ export class FinanceController {
     }
   };
 
-  getInvoices = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getInvoices = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { status, customerId, startDate, endDate, overdue } = req.query;
 
@@ -190,7 +414,7 @@ export class FinanceController {
     }
   };
 
-  getInvoiceById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getInvoiceById = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
       const invoice = await this.financeService.getInvoiceById(id);
@@ -205,7 +429,7 @@ export class FinanceController {
     }
   };
 
-  updateInvoice = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  updateInvoice = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
       const invoice = await this.financeService.updateInvoice(id, req.body);
@@ -220,7 +444,7 @@ export class FinanceController {
     }
   };
 
-  sendInvoice = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  sendInvoice = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
       const invoice = await this.financeService.sendInvoice(id);
@@ -236,7 +460,7 @@ export class FinanceController {
   };
 
   // Payment Management
-  recordPayment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  recordPayment = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const payment = await this.financeService.recordPayment({
         ...req.body,
@@ -253,7 +477,7 @@ export class FinanceController {
     }
   };
 
-  getPayments = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getPayments = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { invoiceId, status, method, startDate, endDate } = req.query;
 
@@ -276,7 +500,7 @@ export class FinanceController {
   };
 
   // Budget Management
-  createBudget = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  createBudget = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const budget = await this.financeService.createBudget({
         ...req.body,
@@ -293,7 +517,7 @@ export class FinanceController {
     }
   };
 
-  getBudgets = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getBudgets = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { budgetPeriod, status, year } = req.query;
 
@@ -313,7 +537,7 @@ export class FinanceController {
     }
   };
 
-  getBudgetById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getBudgetById = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
       const budget = await this.financeService.getBudgetById(id);
@@ -328,7 +552,7 @@ export class FinanceController {
     }
   };
 
-  updateBudgetActuals = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  updateBudgetActuals = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
       const budget = await this.financeService.updateBudgetActuals(id);
@@ -348,7 +572,7 @@ export class FinanceController {
     req: Request,
     res: Response,
     next: NextFunction,
-  ): Promise<void> => {
+  ) => {
     try {
       const { startDate, endDate } = req.query;
 
@@ -360,6 +584,7 @@ export class FinanceController {
         new Date(startDate as string),
         new Date(endDate as string),
         req.user!.id,
+        req.farm?.id!,
       );
 
       res.json({
@@ -376,7 +601,7 @@ export class FinanceController {
     req: Request,
     res: Response,
     next: NextFunction,
-  ): Promise<void> => {
+  ) => {
     try {
       const { id } = req.params;
       const report = await this.financeService.getProfitLossReportById(id);
@@ -395,12 +620,12 @@ export class FinanceController {
     req: Request,
     res: Response,
     next: NextFunction,
-  ): Promise<void> => {
+  ) => {
     try {
       const { date } = req.query;
 
       const reportDate = date ? new Date(date as string) : new Date();
-      const report = await this.financeService.generateCashFlowReport(reportDate, req.user!.id);
+      const report = await this.financeService.generateCashFlowReport(reportDate, req.user!.id, req.farm?.id!);
 
       res.json({
         success: true,
@@ -413,11 +638,12 @@ export class FinanceController {
   };
 
   // Analytics
-  getFinancialOverview = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getFinancialOverview = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { startDate, endDate } = req.query;
 
       const overview = await this.financeService.getFinancialOverview(
+        req.farm?.id!,
         startDate ? new Date(startDate as string) : undefined,
         endDate ? new Date(endDate as string) : undefined,
       );

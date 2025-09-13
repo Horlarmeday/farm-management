@@ -1,15 +1,24 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { DollarSign, Plus, Search, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { LoadingTable } from "@/components/ui/loading-card";
 import { useFinanceDashboardSummary, useFinancialTransactions } from "@/hooks/useFinance";
+import TransactionForm from "@/components/forms/TransactionForm";
+import TransactionList from "@/components/finance/TransactionList";
 
 export default function Finance() {
+  const [isTransactionDialogOpen, setIsTransactionDialogOpen] = useState(false);
   const { data: dashboardSummary, isLoading: summaryLoading, error: summaryError } = useFinanceDashboardSummary();
   const { data: transactions, isLoading: transactionsLoading } = useFinancialTransactions({ limit: 10 });
+
+  const handleTransactionSuccess = () => {
+    setIsTransactionDialogOpen(false);
+  };
 
   if (summaryLoading || transactionsLoading) {
     return (
@@ -57,10 +66,23 @@ export default function Finance() {
             </p>
           </div>
           <div className="flex space-x-3">
-            <Button className="farm-button-primary">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Transaction
-            </Button>
+            <Dialog open={isTransactionDialogOpen} onOpenChange={setIsTransactionDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="farm-button-primary">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Transaction
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Record New Transaction</DialogTitle>
+                </DialogHeader>
+                <TransactionForm 
+                  onSuccess={handleTransactionSuccess}
+                  onCancel={() => setIsTransactionDialogOpen(false)}
+                />
+              </DialogContent>
+            </Dialog>
             <Button variant="outline">
               Generate Report
             </Button>
@@ -125,55 +147,17 @@ export default function Finance() {
 
       <Tabs defaultValue="sales" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="sales">Sales</TabsTrigger>
-          <TabsTrigger value="expenses">Expenses</TabsTrigger>
+          <TabsTrigger value="sales">All Transactions</TabsTrigger>
+          <TabsTrigger value="expenses">Transaction History</TabsTrigger>
           <TabsTrigger value="reports">Reports</TabsTrigger>
         </TabsList>
 
         <TabsContent value="sales" className="space-y-4">
-          <div className="flex items-center space-x-2">
-            <Search className="h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search sales..."
-              className="max-w-sm"
-            />
-          </div>
-
-          <Card>
-            <CardContent className="p-8 text-center">
-              <h3 className="text-lg font-semibold mb-2">Sales Records</h3>
-              <p className="text-muted-foreground mb-4">
-                Track all sales transactions and revenue
-              </p>
-              <Button className="farm-button-primary">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Sale Record
-              </Button>
-            </CardContent>
-          </Card>
+          <TransactionList className="w-full" />
         </TabsContent>
 
         <TabsContent value="expenses" className="space-y-4">
-          <div className="flex items-center space-x-2">
-            <Search className="h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search expenses..."
-              className="max-w-sm"
-            />
-          </div>
-
-          <Card>
-            <CardContent className="p-8 text-center">
-              <h3 className="text-lg font-semibold mb-2">Expense Records</h3>
-              <p className="text-muted-foreground mb-4">
-                Track all operational expenses and costs
-              </p>
-              <Button className="farm-button-primary">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Expense Record
-              </Button>
-            </CardContent>
-          </Card>
+          <TransactionList className="w-full" />
         </TabsContent>
 
         <TabsContent value="reports" className="space-y-4">

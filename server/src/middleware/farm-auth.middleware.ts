@@ -1,14 +1,16 @@
 import { Request, Response, NextFunction } from 'express';
-import { AppDataSource } from '@/config/database';
-import { FarmUser } from '@/entities/FarmUser';
-import { Farm } from '@/entities/Farm';
-import { ApiError } from '@/utils/ApiError';
+import { AppDataSource } from '../config/database';
+import { FarmUser } from '../entities/FarmUser';
+import { Farm } from '../entities/Farm';
+import { User as UserEntity } from '../entities/User';
+import { ApiError } from '../utils/ApiError';
 import { FarmRole } from '@kuyash/shared';
 
 // Extend Express Request interface for farm context
 declare global {
   namespace Express {
     interface Request {
+      user?: UserEntity;
       farmUser?: FarmUser;
       farm?: Farm;
       farmRole?: FarmRole;
@@ -69,7 +71,7 @@ export const requireFarmAccess = async (
  * Checks if user has required farm role
  */
 export const requireFarmRole = (requiredRoles: FarmRole | FarmRole[]) => {
-  return (req: Request, res: Response, next: NextFunction): void => {
+  return (req: Request, res: Response, next: NextFunction) => {
     if (!req.farmUser || !req.farmRole) {
       throw new ApiError(401, 'Farm access required');
     }
@@ -88,7 +90,7 @@ export const requireFarmRole = (requiredRoles: FarmRole | FarmRole[]) => {
  * Farm owner authorization middleware
  * Checks if user is the owner of the farm
  */
-export const requireFarmOwner = (req: Request, res: Response, next: NextFunction): void => {
+export const requireFarmOwner = (req: Request, res: Response, next: NextFunction) => {
   if (!req.farmUser || !req.farmRole) {
     throw new ApiError(401, 'Farm access required');
   }
@@ -104,7 +106,7 @@ export const requireFarmOwner = (req: Request, res: Response, next: NextFunction
  * Farm manager or owner authorization middleware
  * Checks if user is a manager or owner of the farm
  */
-export const requireFarmManagerOrOwner = (req: Request, res: Response, next: NextFunction): void => {
+export const requireFarmManagerOrOwner = (req: Request, res: Response, next: NextFunction) => {
   if (!req.farmUser || !req.farmRole) {
     throw new ApiError(401, 'Farm access required');
   }
@@ -162,7 +164,7 @@ export const optionalFarmAccess = async (
 /**
  * Middleware to ensure farm is active
  */
-export const requireActiveFarm = (req: Request, res: Response, next: NextFunction): void => {
+export const requireActiveFarm = (req: Request, res: Response, next: NextFunction) => {
   if (!req.farm) {
     throw new ApiError(401, 'Farm context required');
   }
@@ -190,7 +192,7 @@ export const requireFarmAccessWithRole = (requiredRoles: FarmRole | FarmRole[]) 
  * Middleware to check if user can manage farm users
  * Only owners and managers can manage farm users
  */
-export const requireFarmUserManagement = (req: Request, res: Response, next: NextFunction): void => {
+export const requireFarmUserManagement = (req: Request, res: Response, next: NextFunction) => {
   if (!req.farmUser || !req.farmRole) {
     throw new ApiError(401, 'Farm access required');
   }

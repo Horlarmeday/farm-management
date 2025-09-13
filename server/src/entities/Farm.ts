@@ -5,6 +5,7 @@ import { FarmUser } from './FarmUser';
 import { Animal } from './Animal';
 import { Asset } from './Asset';
 import { BirdBatch } from './BirdBatch';
+import { Budget } from './Budget';
 import { FinancialTransaction } from './FinancialTransaction';
 import { InventoryItem } from './InventoryItem';
 import { Location } from './Location';
@@ -77,4 +78,7 @@ export class Farm extends BaseEntity {
 
   @OneToMany(() => Task, (task) => task.farm)
   tasks!: Task[];
+
+  @OneToMany(() => Budget, (budget) => budget.farm)
+  budgets!: Budget[];
 }

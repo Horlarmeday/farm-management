@@ -5,7 +5,7 @@ import { User } from './User';
 @Entity('departments')
 export class Department extends BaseEntity {
   @Column({ type: 'varchar', length: 255 })
-  name: string;
+  name!: string;
 
   @Column({ type: 'text', nullable: true })
   description?: string;
@@ -17,7 +17,7 @@ export class Department extends BaseEntity {
   budget?: number;
 
   @Column({ type: 'boolean', default: true })
-  isActive: boolean;
+  isActive!: boolean;
 
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'manager_id' })
@@ -27,5 +27,5 @@ export class Department extends BaseEntity {
   managerId?: string;
 
   @OneToMany(() => User, (user) => user.department)
-  employees: User[];
+  employees!: User[];
 }

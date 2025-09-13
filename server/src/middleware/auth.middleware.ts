@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
-import { AppDataSource } from '@/config/database';
-import { User as UserEntity } from '@/entities/User';
-import { Role } from '@/entities/Role';
-import { Permission } from '@/entities/Permission';
-import { verifyAccessToken, extractBearerToken } from '@/utils/jwt';
-import { ApiError } from '@/utils/ApiError';
+import { AppDataSource } from '../config/database';
+import { User as UserEntity } from '../entities/User';
+import { Role } from '../entities/Role';
+import { Permission } from '../entities/Permission';
+import { verifyAccessToken, extractBearerToken } from '../utils/jwt';
+import { ApiError } from '../utils/ApiError';
 import { JwtPayload } from '@kuyash/shared';
 
 // Extend Express Request interface

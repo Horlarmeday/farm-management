@@ -19,6 +19,7 @@ import { BirdSale } from '../entities/BirdSale';
 import { BreedingRecord } from '../entities/BreedingRecord';
 import { EggProductionLog } from '../entities/EggProductionLog';
 import { FinancialTransaction } from '../entities/FinancialTransaction';
+import { FinancialCategory } from '../entities/FinancialCategory';
 import { FishFeedingLog } from '../entities/FishFeedingLog';
 import { FishHarvestLog } from '../entities/FishHarvestLog';
 import { FishSamplingLog } from '../entities/FishSamplingLog';
@@ -48,7 +49,7 @@ import { WeightRecord } from '../entities/WeightRecord';
 import { AnimalFeedingLog } from '../entities/AnimalFeedingLog';
 import { AssetDepreciation } from '../entities/AssetDepreciation';
 import { Attendance } from '../entities/Attendance';
-import { Budget } from '../entities/Budget';
+import { Budget, BudgetCategory } from '../entities/Budget';
 import { BudgetItem } from '../entities/BudgetItem';
 import { CashFlow } from '../entities/CashFlow';
 import { CostCenter } from '../entities/CostCenter';
@@ -145,12 +146,14 @@ export const AppDataSource = new DataSource({
 
     // Finance entities
     FinancialTransaction,
+    FinancialCategory,
     Account,
     Invoice,
     InvoiceItem,
     Payment,
     Receipt,
     Budget,
+    BudgetCategory,
     BudgetItem,
     CostCenter,
     ProfitLossReport,

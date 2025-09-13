@@ -9,6 +9,9 @@ import Navbar from '@/components/layout/Navbar';
 import FarmSelection from '@/components/farm/FarmSelection';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
+import ForgotPassword from '@/pages/auth/ForgotPassword';
+import PasswordReset from '@/pages/auth/PasswordReset';
+import EmailVerification from '@/pages/auth/EmailVerification';
 import Dashboard from '@/pages/Dashboard';
 import Inventory from '@/pages/Inventory';
 import Finance from '@/pages/Finance';
@@ -55,6 +58,18 @@ const AppContent: React.FC = () => {
           <Route
             path="/register"
             element={!user ? <Register /> : <Navigate to="/" replace />}
+          />
+          <Route
+            path="/forgot-password"
+            element={!user ? <ForgotPassword /> : <Navigate to="/" replace />}
+          />
+          <Route
+            path="/reset-password/:token"
+            element={!user ? <PasswordReset /> : <Navigate to="/" replace />}
+          />
+          <Route
+            path="/verify-email/:token"
+            element={<EmailVerification />}
           />
           <Route
             path="/select-farm"

@@ -1,64 +1,178 @@
-import { Entity, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  OneToMany,
+  Index,
+} from 'typeorm';
 import { BaseEntity } from './BaseEntity';
+import { Farm } from './Farm';
 import { User } from './User';
-import { BudgetItem } from './BudgetItem';
+import { FinancialCategory } from './FinancialCategory';
 
 export enum BudgetPeriod {
-  MONTHLY = 'MONTHLY',
-  QUARTERLY = 'QUARTERLY',
-  YEARLY = 'YEARLY',
+  MONTHLY = 'monthly',
+  QUARTERLY = 'quarterly',
+  YEARLY = 'yearly',
 }
 
 export enum BudgetStatus {
-  DRAFT = 'DRAFT',
-  ACTIVE = 'ACTIVE',
-  COMPLETED = 'COMPLETED',
-  CANCELLED = 'CANCELLED',
+  DRAFT = 'draft',
+  ACTIVE = 'active',
+  COMPLETED = 'completed',
+  ARCHIVED = 'archived',
 }
 
 @Entity('budgets')
+@Index(['farm_id', 'period', 'start_date'], { unique: true })
 export class Budget extends BaseEntity {
   @Column({ type: 'varchar', length: 255 })
-  budgetName: string;
+  name!: string;
 
-  @Column({
-    type: 'enum',
-    enum: BudgetPeriod,
+  @Column({ type: 'text', nullable: true })
+  description?: string;
+
+  @Column({ type: 'enum', enum: BudgetPeriod })
+  period!: BudgetPeriod;
+
+  @Column({ type: 'date' })
+  start_date!: Date;
+
+  @Column({ type: 'date' })
+  end_date!: Date;
+
+  @Column({ type: 'enum', enum: BudgetStatus, default: BudgetStatus.DRAFT })
+  status!: BudgetStatus;
+
+  @Column({ type: 'decimal', precision: 15, scale: 2, default: 0 })
+  total_income_budget!: number;
+
+  @Column({ type: 'decimal', precision: 15, scale: 2, default: 0 })
+  total_expense_budget!: number;
+
+  @Column({ type: 'decimal', precision: 15, scale: 2, default: 0 })
+  total_income_actual!: number;
+
+  @Column({ type: 'decimal', precision: 15, scale: 2, default: 0 })
+  total_expense_actual!: number;
+
+  @Column({ type: 'simple-json', nullable: true })
+  notes?: Record<string, any>;
+
+  @Column({ type: 'boolean', default: true })
+  is_active!: boolean;
+
+  // Farm association for multi-tenant support
+  @ManyToOne(() => Farm, farm => farm.budgets, { nullable: false, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'farm_id' })
+  farm!: Farm;
+
+  @Column({ type: 'uuid' })
+  farm_id!: string;
+
+  // User tracking
+  @ManyToOne(() => User, { nullable: false, onDelete: 'RESTRICT' })
+  @JoinColumn({ name: 'created_by_id' })
+  created_by!: User;
+
+  @Column({ type: 'uuid' })
+  created_by_id!: string;
+
+  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'updated_by_id' })
+  updated_by?: User;
+
+  @Column({ type: 'uuid', nullable: true })
+  updated_by_id?: string;
+
+  // Relations
+  @OneToMany(() => BudgetCategory, budgetCategory => budgetCategory.budget, {
+    cascade: true,
+    eager: false,
   })
-  budgetPeriod: BudgetPeriod;
+  budget_categories!: BudgetCategory[];
 
-  @Column({ type: 'timestamp' })
-  startDate: Date;
+  // Computed properties
+  get net_budget(): number {
+    return Number(this.total_income_budget) - Number(this.total_expense_budget);
+  }
 
-  @Column({ type: 'timestamp' })
-  endDate: Date;
+  get net_actual(): number {
+    return Number(this.total_income_actual) - Number(this.total_expense_actual);
+  }
 
-  @Column({ type: 'decimal', precision: 12, scale: 2 })
-  totalBudget: number;
+  get variance(): number {
+    return this.net_actual - this.net_budget;
+  }
 
-  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
-  actualSpent: number;
+  get budget_utilization_percentage(): number {
+    if (Number(this.total_expense_budget) === 0) return 0;
+    return (Number(this.total_expense_actual) / Number(this.total_expense_budget)) * 100;
+  }
+}
 
-  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
-  remainingBudget: number;
+@Entity('budget_categories')
+@Index(['budget_id', 'category_id'], { unique: true })
+export class BudgetCategory extends BaseEntity {
+  @Column({ type: 'decimal', precision: 15, scale: 2, default: 0 })
+  budgeted_amount!: number;
 
-  @Column({
-    type: 'enum',
-    enum: BudgetStatus,
-    default: BudgetStatus.DRAFT,
-  })
-  status: BudgetStatus;
+  @Column({ type: 'decimal', precision: 15, scale: 2, default: 0 })
+  actual_amount!: number;
 
   @Column({ type: 'text', nullable: true })
   notes?: string;
 
-  @OneToMany(() => BudgetItem, (budgetItem) => budgetItem.budget)
-  budgetItems: BudgetItem[];
+  @Column({ type: 'boolean', default: true })
+  is_active!: boolean;
 
-  @ManyToOne(() => User)
+  // Budget association
+  @ManyToOne(() => Budget, budget => budget.budget_categories, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'budget_id' })
+  budget!: Budget;
+
+  @Column({ type: 'uuid' })
+  budget_id!: string;
+
+  // Category association
+  @ManyToOne(() => FinancialCategory, { nullable: false, onDelete: 'RESTRICT' })
+  @JoinColumn({ name: 'category_id' })
+  category!: FinancialCategory;
+
+  @Column({ type: 'uuid' })
+  category_id!: string;
+
+  // User tracking
+  @ManyToOne(() => User, { nullable: false, onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'created_by_id' })
-  createdBy: User;
+  created_by!: User;
 
-  @Column({ type: 'varchar', length: 255 })
-  createdById: string;
+  @Column({ type: 'uuid' })
+  created_by_id!: string;
+
+  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'updated_by_id' })
+  updated_by?: User;
+
+  @Column({ type: 'uuid', nullable: true })
+  updated_by_id?: string;
+
+  // Computed properties
+  get variance(): number {
+    return Number(this.actual_amount) - Number(this.budgeted_amount);
+  }
+
+  get variance_percentage(): number {
+    if (Number(this.budgeted_amount) === 0) return 0;
+    return (this.variance / Number(this.budgeted_amount)) * 100;
+  }
+
+  get utilization_percentage(): number {
+    if (Number(this.budgeted_amount) === 0) return 0;
+    return (Number(this.actual_amount) / Number(this.budgeted_amount)) * 100;
+  }
 }

@@ -20,7 +20,7 @@ export class BudgetItem extends BaseEntity {
   @Column({ type: 'text', nullable: true })
   notes?: string;
 
-  @ManyToOne(() => Budget, (budget) => budget.budgetItems)
+  @ManyToOne(() => Budget)
   @JoinColumn({ name: 'budget_id' })
   budget: Budget;
 

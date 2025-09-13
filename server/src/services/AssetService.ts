@@ -76,7 +76,7 @@ export class AssetService {
     // Record asset purchase expense
     await this.financeService.createTransaction({
       type: FinanceTransactionType.EXPENSE,
-      category: 'equipment',
+      category_id: 'equipment',
       amount: assetData.purchasePrice,
       description: `Asset purchase - ${assetData.name}`,
       date: assetData.purchaseDate,
@@ -165,7 +165,7 @@ export class AssetService {
     if (disposalData.disposalValue > 0) {
       await this.financeService.createTransaction({
         type: FinanceTransactionType.INCOME,
-        category: 'other_income',
+        category_id: 'other_income',
         amount: disposalData.disposalValue,
         description: `Asset disposal - ${asset.name}`,
         date: disposalData.disposalDate,
@@ -243,7 +243,7 @@ export class AssetService {
     // Record maintenance expense
     await this.financeService.createTransaction({
       type: FinanceTransactionType.EXPENSE,
-      category: 'maintenance',
+      category_id: 'maintenance',
       amount: completionData.actualCost,
       description: `Maintenance - ${maintenance.asset.name}: ${maintenance.description}`,
       date: completionData.completionDate,
@@ -347,7 +347,7 @@ export class AssetService {
     // Record production expense
     await this.financeService.createTransaction({
       type: FinanceTransactionType.EXPENSE,
-      category: 'other_expense',
+      category_id: 'other_expense',
       amount: productionData.totalCost,
       description: `Production cost - ${productionData.productName}`,
       date: productionData.productionDate,
@@ -395,7 +395,7 @@ export class AssetService {
     // Record sales income
     await this.financeService.createTransaction({
       type: FinanceTransactionType.INCOME,
-      category: 'service_income',
+      category_id: 'service_income',
       amount: saleData.totalAmount,
       description: `${production.productName} sale - ${saleData.quantitySold} ${production.unit}`,
       date: saleData.saleDate,
@@ -465,7 +465,7 @@ export class AssetService {
     if (dispatchData.transportCost && dispatchData.transportCost > 0) {
       await this.financeService.createTransaction({
         type: FinanceTransactionType.EXPENSE,
-        category: 'transport',
+        category_id: 'transport',
         amount: dispatchData.transportCost,
         description: `Transport cost for ${production.productName} dispatch to ${dispatchData.destination}`,
         date: dispatchData.dispatchDate,

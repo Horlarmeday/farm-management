@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { FarmService } from '@/services/FarmService';
-import { AuthenticatedRequest } from '@/middleware/auth.middleware';
+import { FarmService } from '../services/FarmService';
 
 export class FarmController {
   private farmService: FarmService;
@@ -12,9 +11,9 @@ export class FarmController {
   /**
    * Get farms for the authenticated user
    */
-  getUserFarms = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+  getUserFarms = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const userId = req.user?.id;
+      const userId = (req as any).user?.id;
       
       if (!userId) {
         res.status(401).json({
@@ -44,10 +43,10 @@ export class FarmController {
   /**
    * Get farm by ID
    */
-  getFarmById = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+  getFarmById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { id } = req.params;
-      const userId = req.user?.id;
+      const userId = (req as any).user?.id;
       
       if (!userId) {
         res.status(401).json({
@@ -87,9 +86,9 @@ export class FarmController {
   /**
    * Create a new farm
    */
-  createFarm = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+  createFarm = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const userId = req.user?.id;
+      const userId = (req as any).user?.id;
       
       if (!userId) {
         res.status(401).json({
@@ -120,10 +119,10 @@ export class FarmController {
   /**
    * Update farm
    */
-  updateFarm = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+  updateFarm = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { id } = req.params;
-      const userId = req.user?.id;
+      const userId = (req as any).user?.id;
       
       if (!userId) {
         res.status(401).json({
@@ -164,10 +163,10 @@ export class FarmController {
   /**
    * Delete farm
    */
-  deleteFarm = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+  deleteFarm = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { id } = req.params;
-      const userId = req.user?.id;
+      const userId = (req as any).user?.id;
       
       if (!userId) {
         res.status(401).json({

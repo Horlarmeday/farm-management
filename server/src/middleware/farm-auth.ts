@@ -1,41 +1,36 @@
 import { Request, Response, NextFunction } from 'express';
 import { FarmRole } from '@kuyash/shared';
 
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    email: string;
-    farmId?: string;
-    farmRole?: FarmRole;
-  };
-}
-
 /**
  * Middleware to require farm access with specific roles
  * @param allowedRoles - Array of roles that are allowed to access the endpoint
  */
 export const requireFarmAccess = (allowedRoles: FarmRole[]) => {
-  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    const { user } = req;
+  return (req: Request, res: Response, next: NextFunction) => {
+    const farmUser = (req as any).farmUser;
 
-    if (!user) {
-      return res.status(401).json({ error: 'Authentication required' });
+    if (!farmUser) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
     }
 
-    if (!user.farmId) {
-      return res.status(400).json({ error: 'Farm selection required' });
+    if (!farmUser.farmId) {
+      res.status(400).json({ error: 'Farm selection required' });
+      return;
     }
 
-    if (!user.farmRole) {
-      return res.status(403).json({ error: 'No farm role assigned' });
+    if (!farmUser.farmRole) {
+      res.status(403).json({ error: 'No farm role assigned' });
+      return;
     }
 
-    if (!allowedRoles.includes(user.farmRole)) {
-      return res.status(403).json({ 
+    if (!allowedRoles.includes(farmUser.farmRole)) {
+      res.status(403).json({ 
         error: 'Insufficient permissions',
         required: allowedRoles,
-        current: user.farmRole
+        current: farmUser.farmRole
       });
+      return;
     }
 
     next();

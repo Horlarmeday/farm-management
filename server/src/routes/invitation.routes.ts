@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { InvitationController } from '../controllers/invitation.controller';
-import { authenticateToken } from '../middleware/auth';
+import { authenticate } from '../middleware/auth.middleware';
 import { requireFarmAccess } from '../middleware/farm-auth';
+import { FarmRole } from '@kuyash/shared';
 
 const router = Router();
 const invitationController = new InvitationController();
@@ -11,7 +12,7 @@ router.get('/invitation/:token', invitationController.getInvitationDetails);
 
 // Public route - accept invitation by token (user must be authenticated)
 router.post('/invitation/:token/accept', 
-  authenticateToken,
+  authenticate,
   InvitationController.acceptInvitationValidation,
   invitationController.acceptInvitation
 );
@@ -23,13 +24,13 @@ router.post('/invitation/:token/decline',
 );
 
 // Protected routes - require authentication
-router.use(authenticateToken);
+router.use(authenticate);
 
 // Get user's pending invitations
 router.get('/user/invitations', invitationController.getUserInvitations);
 
 // Farm-specific routes - require farm access
-router.use(requireFarmAccess(['owner', 'manager']));
+router.use(requireFarmAccess([FarmRole.OWNER, FarmRole.MANAGER]));
 
 // Create invitation (only owners and managers can invite)
 router.post('/farm/invitations',

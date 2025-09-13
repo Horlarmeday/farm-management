@@ -14,42 +14,42 @@ export enum TemplateType {
 @Entity('notification_templates')
 export class NotificationTemplate extends BaseEntity {
   @Column({ type: 'varchar', length: 255 })
-  name: string;
+  name!: string;
 
   @Column({
     type: 'enum',
     enum: NotificationType,
   })
-  notificationType: NotificationType;
+  notificationType!: NotificationType;
 
   @Column({
     type: 'enum',
     enum: TemplateType,
   })
-  templateType: TemplateType;
+  templateType!: TemplateType;
 
   @Column({ type: 'varchar', length: 255 })
-  subject: string;
+  subject!: string;
 
   @Column({ type: 'text' })
-  content: string;
+  content!: string;
 
   @Column({ type: 'simple-json', nullable: true })
   variables?: Record<string, string>;
 
   @Column({ type: 'boolean', default: true })
-  isActive: boolean;
+  isActive!: boolean;
 
   @Column({ type: 'text', nullable: true })
   description?: string;
 
   @OneToMany(() => Notification, (notification) => notification.template)
-  notifications: Notification[];
+  notifications!: Notification[];
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'created_by_id' })
-  createdBy: User;
+  createdBy!: User;
 
   @Column({ type: 'varchar', length: 255 })
-  createdById: string;
+  createdById!: string;
 }

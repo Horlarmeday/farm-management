@@ -6,34 +6,34 @@ import { BaseEntity } from './BaseEntity';
 @Entity('asset_depreciations')
 export class AssetDepreciation extends BaseEntity {
   @Column({ type: 'decimal', precision: 12, scale: 2 })
-  originalValue: number;
+  originalValue!: number;
 
   @Column({ type: 'decimal', precision: 12, scale: 2 })
-  residualValue: number;
+  residualValue!: number;
 
   @Column({ type: 'int' })
-  usefulLifeYears: number;
+  usefulLifeYears!: number;
 
   @Column({
     type: 'enum',
     enum: DepreciationMethod,
   })
-  depreciationMethod: DepreciationMethod;
+  depreciationMethod!: DepreciationMethod;
 
   @Column({ type: 'decimal', precision: 12, scale: 2 })
-  annualDepreciation: number;
+  annualDepreciation!: number;
 
   @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
-  accumulatedDepreciation: number;
+  accumulatedDepreciation!: number;
 
   @Column({ type: 'decimal', precision: 12, scale: 2 })
-  currentValue: number;
+  currentValue!: number;
 
   @Column({ type: 'date' })
-  depreciationStartDate: Date;
+  depreciationStartDate!: Date;
 
   @Column({ type: 'date' })
-  depreciationEndDate: Date;
+  depreciationEndDate!: Date;
 
   @Column({ type: 'date', nullable: true })
   depreciationDate?: Date;
@@ -49,8 +49,8 @@ export class AssetDepreciation extends BaseEntity {
 
   @ManyToOne(() => Asset)
   @JoinColumn({ name: 'asset_id' })
-  asset: Asset;
+  asset!: Asset;
 
   @Column({ type: 'varchar', length: 255 })
-  assetId: string;
+  assetId!: string;
 }

@@ -88,6 +88,26 @@ export default function Login() {
               )}
             </Button>
           </form>
+          
+          <div className="mt-4 text-center space-y-2">
+            <button
+              type="button"
+              onClick={() => setLocation("/forgot-password")}
+              className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline"
+            >
+              Forgot your password?
+            </button>
+            <div className="text-sm text-muted-foreground">
+              Don't have an account?{" "}
+              <button
+                type="button"
+                onClick={() => setLocation("/register")}
+                className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline"
+              >
+                Sign up
+              </button>
+            </div>
+          </div>
           <div className="mt-6 text-center text-sm text-muted-foreground">
             <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
               <p className="font-medium text-blue-700 dark:text-blue-300">Demo Credentials:</p>

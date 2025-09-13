@@ -1,7 +1,7 @@
-import { config } from '@/config';
-import { initializeDatabase } from '@/config/database';
-import { generalRateLimiter } from '@/middleware/rateLimiter.middleware';
-import { ApiError } from '@/utils/ApiError';
+import { config } from './config';
+import { initializeDatabase } from './config/database';
+import { generalRateLimiter } from './middleware/rateLimiter.middleware';
+import { ApiError } from './utils/ApiError';
 import { ApiResponse } from '@kuyash/shared';
 import compression from 'compression';
 import cors from 'cors';
@@ -11,22 +11,23 @@ import morgan from 'morgan';
 import 'reflect-metadata';
 
 // Import User type and extend Express Request interface
-import { User } from '@/entities/User';
-import '@/middleware/auth.middleware';
+import { User } from './entities/User';
+import './middleware/auth.middleware';
 
 // Import routes
-import assetRoutes from '@/routes/asset.routes';
-import authRoutes from '@/routes/auth.routes';
-import farmRoutes from '@/routes/farm.routes';
-import financeRoutes from '@/routes/finance.routes';
-import fisheryRoutes from '@/routes/fishery.routes';
-import inventoryRoutes from '@/routes/inventory.routes';
-import invitationRoutes from '@/routes/invitation.routes';
-import livestockRoutes from '@/routes/livestock.routes';
-import notificationRoutes from '@/routes/notification.routes';
-import poultryRoutes from '@/routes/poultry.routes';
-import reportingRoutes from '@/routes/reporting.routes';
-import userRoutes from '@/routes/user.routes';
+// import assetRoutes from './routes/asset.routes';
+import authRoutes from './routes/auth.routes';
+import farmRoutes from './routes/farm.routes';
+import fileRoutes from './routes/file.routes';
+import financeRoutes from './routes/finance.routes';
+import reportsRoutes from './routes/reports.routes';
+// import fisheryRoutes from './routes/fishery.routes';
+// import inventoryRoutes from './routes/inventory.routes';
+// import invitationRoutes from './routes/invitation.routes';
+// import livestockRoutes from './routes/livestock.routes';
+// import notificationRoutes from './routes/notification.routes';
+// import poultryRoutes from './routes/poultry.routes';
+// import userRoutes from './routes/user.routes';
 
 
 // Create Express app
@@ -49,7 +50,7 @@ app.use(
 );
 
 // Compression middleware
-app.use(compression());
+app.use(compression() as any);
 
 // Request logging
 if (config.isDevelopment) {
@@ -78,19 +79,20 @@ app.get('/health', (req: Request, res: Response) => {
   } as ApiResponse<any>);
 });
 
-// API routes
+// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/farms', farmRoutes);
-app.use('/api/inventory', inventoryRoutes);
+app.use('/api/files', fileRoutes);
+// app.use('/api/assets', assetRoutes);
 app.use('/api/finance', financeRoutes);
-app.use('/api/poultry', poultryRoutes);
-app.use('/api/livestock', livestockRoutes);
-app.use('/api/fishery', fisheryRoutes);
-app.use('/api/assets', assetRoutes);
-app.use('/api/notifications', notificationRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/reports', reportingRoutes);
-app.use('/api', invitationRoutes);
+app.use('/api/reports', reportsRoutes);
+// app.use('/api/fishery', fisheryRoutes);
+// app.use('/api/inventory', inventoryRoutes);
+// app.use('/api/livestock', livestockRoutes);
+// app.use('/api/poultry', poultryRoutes);
+// app.use('/api/notifications', notificationRoutes);
+// app.use('/api/users', userRoutes);
+// app.use('/api', invitationRoutes);
 
 
 // 404 handler

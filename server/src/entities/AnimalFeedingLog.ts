@@ -7,19 +7,19 @@ import { FeedType } from '@kuyash/shared';
 @Entity('animal_feeding_logs')
 export class AnimalFeedingLog extends BaseEntity {
   @Column({ type: 'timestamp' })
-  feedingTime: Date;
+  feedingTime!: Date;
 
   @Column({
     type: 'enum',
     enum: FeedType,
   })
-  feedType: FeedType;
+  feedType!: FeedType;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
-  quantity: number;
+  quantity!: number;
 
   @Column({ type: 'varchar', length: 50, default: 'kg' })
-  unit: string;
+  unit!: string;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
   costPerUnit?: number;
@@ -32,15 +32,15 @@ export class AnimalFeedingLog extends BaseEntity {
 
   @ManyToOne(() => Animal)
   @JoinColumn({ name: 'animal_id' })
-  animal: Animal;
+  animal!: Animal;
 
   @Column({ type: 'varchar', length: 255 })
-  animalId: string;
+  animalId!: string;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'fed_by_id' })
-  fedBy: User;
+  fedBy!: User;
 
   @Column({ type: 'varchar', length: 255 })
-  fedById: string;
+  fedById!: string;
 }

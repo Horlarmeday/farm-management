@@ -1,24 +1,29 @@
 import {
   AnimalType,
+  AnimalStatus,
   AssetStatus,
   AssetType,
   BirdStatus,
   BirdType,
-  InventoryType,
+  InventoryCategory,
+  PondType,
+  PondStatus,
   UserStatus,
 } from '@kuyash/shared';
 import request from 'supertest';
 import { app } from '../app';
-import { Animal } from '../entities/Animal';
-import { Asset } from '../entities/Asset';
-import { BirdBatch } from '../entities/BirdBatch';
-import { Department } from '../entities/Department';
-import { InventoryItem } from '../entities/InventoryItem';
-import { Location } from '../entities/Location';
-import { Permission } from '../entities/Permission';
-import { Pond } from '../entities/Pond';
-import { Role } from '../entities/Role';
 import { User } from '../entities/User';
+import { Role } from '../entities/Role';
+import { Permission } from '../entities/Permission';
+import { Department } from '../entities/Department';
+import { Location } from '../entities/Location';
+import { BirdBatch } from '../entities/BirdBatch';
+import { Animal } from '../entities/Animal';
+import { Pond } from '../entities/Pond';
+import { Asset } from '../entities/Asset';
+import { InventoryItem } from '../entities/InventoryItem';
+import { Farm } from '../entities/Farm';
+import { FarmUser } from '../entities/FarmUser';
 import { testDataSource } from './setup';
 
 export interface TestUser {
@@ -44,6 +49,9 @@ export interface TestData {
 
 export class TestUtils {
   private static testData: Partial<TestData> = {};
+  private testUsers: any[] = [];
+  private testFarms: any[] = [];
+  private testFarmUsers: any[] = [];
 
   static async createPermissions(): Promise<Permission[]> {
     const permissionRepo = testDataSource.getRepository(Permission);
@@ -56,40 +64,46 @@ export class TestUtils {
       {
         name: 'manage_inventory',
         description: 'Manage inventory',
-        resource: 'inventory',
+        module: 'inventory',
         action: 'manage',
+        isActive: true,
       },
       {
         name: 'manage_finance',
         description: 'Manage finance',
-        resource: 'finance',
+        module: 'finance',
         action: 'manage',
+        isActive: true,
       },
       {
         name: 'manage_poultry',
         description: 'Manage poultry',
-        resource: 'poultry',
+        module: 'poultry',
         action: 'manage',
+        isActive: true,
       },
       {
         name: 'manage_livestock',
         description: 'Manage livestock',
-        resource: 'livestock',
+        module: 'livestock',
         action: 'manage',
+        isActive: true,
       },
       {
         name: 'manage_fishery',
         description: 'Manage fishery',
-        resource: 'fishery',
+        module: 'fishery',
         action: 'manage',
+        isActive: true,
       },
-      { name: 'manage_assets', description: 'Manage assets', resource: 'assets', action: 'manage' },
-      { name: 'view_reports', description: 'View reports', resource: 'reports', action: 'read' },
+      { name: 'manage_assets', description: 'Manage assets', module: 'assets', action: 'manage', isActive: true },
+      { name: 'view_reports', description: 'View reports', module: 'reports', action: 'read', isActive: true },
       {
         name: 'create_reports',
         description: 'Create reports',
-        resource: 'reports',
+        module: 'reports',
         action: 'create',
+        isActive: true,
       },
     ];
 
@@ -108,26 +122,26 @@ export class TestUtils {
 
     const adminRole = roleRepo.create({
       name: 'admin',
-      displayName: 'Administrator',
       description: 'Full system access',
       permissions: permissions,
-      isDefault: false,
+      isActive: true,
+      isSystemRole: true,
     });
 
     const managerRole = roleRepo.create({
       name: 'manager',
-      displayName: 'Manager',
       description: 'Management access',
       permissions: permissions.filter((p) => !p.name.includes('delete')),
-      isDefault: false,
+      isActive: true,
+      isSystemRole: true,
     });
 
     const workerRole = roleRepo.create({
       name: 'worker',
-      displayName: 'Worker',
       description: 'Basic access',
-      permissions: permissions.filter((p) => p.action === 'read' || p.resource === 'inventory'),
-      isDefault: true,
+      permissions: permissions.filter((p) => p.action === 'read' || p.module === 'inventory'),
+      isActive: true,
+      isSystemRole: false,
     });
 
     return {
@@ -155,15 +169,14 @@ export class TestUtils {
     const locationRepo = testDataSource.getRepository(Location);
 
     const location = locationRepo.create({
-      name: 'Main Farm',
-      type: 'farm',
+      name: 'Test Location',
+      description: 'Test barn location',
       address: '123 Farm Road',
       city: 'Farm City',
       state: 'Farm State',
       country: 'Farm Country',
-      postalCode: '12345',
-      coordinates: { lat: 40.7128, lng: -74.006 },
       isActive: true,
+      farmId: 'test-farm-id',
     });
 
     this.testData.location = await locationRepo.save(location);
@@ -303,16 +316,16 @@ export class TestUtils {
 
     const animal = animalRepo.create({
       tagNumber: 'COW001',
-      type: AnimalType.CATTLE,
+      species: AnimalType.CATTLE,
       breed: 'Holstein',
       gender: 'female',
-      dateOfBirth: new Date('2020-01-01'),
-      acquisitionDate: new Date('2020-02-01'),
-      source: 'Test Farm',
-      weight: 500,
-      status: 'alive',
+      dateOfBirth: new Date('2022-01-15'),
+      acquisitionDate: new Date('2022-02-01'),
+      status: AnimalStatus.ACTIVE,
+      weight: 450,
       location,
       locationId: location.id,
+      farmId: 'test-farm-id',
     });
 
     this.testData.animal = await animalRepo.save(animal);
@@ -325,13 +338,14 @@ export class TestUtils {
 
     const pond = pondRepo.create({
       name: 'Test Pond 1',
-      type: 'earthen',
+      type: PondType.EARTHEN,
       size: 1000,
+      sizeUnit: 'm2',
       depth: 2.5,
+      status: PondStatus.ACTIVE,
       location,
       locationId: location.id,
-      waterSource: 'borehole',
-      isActive: true,
+      farmId: 'test-farm-id',
     });
 
     this.testData.pond = await pondRepo.save(pond);
@@ -343,8 +357,9 @@ export class TestUtils {
     const location = this.testData.location || (await this.createLocation());
 
     const asset = assetRepo.create({
+      assetCode: 'TRC001',
       name: 'Test Tractor',
-      assetType: AssetType.MACHINERY,
+      type: AssetType.MACHINERY,
       serialNumber: 'TRC001',
       purchaseDate: new Date(),
       purchasePrice: 50000,
@@ -354,6 +369,7 @@ export class TestUtils {
       locationId: location.id,
       manufacturer: 'Test Manufacturer',
       model: 'Test Model',
+      farmId: 'test-farm-id',
     });
 
     this.testData.asset = await assetRepo.save(asset);
@@ -363,19 +379,22 @@ export class TestUtils {
   static async createInventoryItem(): Promise<InventoryItem> {
     const inventoryRepo = testDataSource.getRepository(InventoryItem);
 
-    const inventoryItem = inventoryRepo.create({
-      name: 'Layer Feed',
-      description: 'High quality layer feed',
-      type: InventoryType.FEED,
+    const item = inventoryRepo.create({
+      name: 'Test Feed',
+      sku: 'FEED001',
+      category: InventoryCategory.FEED,
       unit: 'kg',
-      currentStock: 1000,
-      minimumStock: 100,
-      maximumStock: 2000,
-      unitCost: 0.5,
+      currentStock: 100,
+      minimumStock: 10,
+      reorderPoint: 15,
+      unitCost: 25.50,
+      expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+      location: 'Warehouse A',
       isActive: true,
+      farmId: 'test-farm-id',
     });
 
-    this.testData.inventoryItem = await inventoryRepo.save(inventoryItem);
+    this.testData.inventoryItem = await inventoryRepo.save(item);
     return this.testData.inventoryItem;
   }
 
@@ -458,5 +477,121 @@ export class TestUtils {
       patch: (path: string) => request(app).patch(path).set('Authorization', `Bearer ${token}`),
       delete: (path: string) => request(app).delete(path).set('Authorization', `Bearer ${token}`),
     };
+  }
+
+  // Instance methods for RBAC testing
+  async setup(): Promise<void> {
+    // Initialize test database connection if needed
+    if (!testDataSource.isInitialized) {
+      await testDataSource.initialize();
+    }
+  }
+
+  async createTestFarm(): Promise<any> {
+    const farmRepo = testDataSource.getRepository(Farm);
+    const farm = farmRepo.create({
+      name: 'Test Farm',
+      description: 'Test farm for RBAC testing',
+      address: '123 Test Street',
+      city: 'Test City',
+      state: 'Test State',
+      country: 'Test Country',
+      postalCode: '12345',
+      phone: '+1234567890',
+      email: 'testfarm@example.com',
+      isActive: true,
+      ownerId: 'test-owner-id'
+    });
+    const savedFarm = await farmRepo.save(farm);
+    this.testFarms.push(savedFarm);
+    return savedFarm;
+  }
+
+  async createTestUser(userData: { email: string }): Promise<any> {
+    const userRepo = testDataSource.getRepository(User);
+    const roleRepo = testDataSource.getRepository(Role);
+    
+    // Get or create a default role
+    let role = await roleRepo.findOne({ where: { name: 'worker' } });
+    if (!role) {
+      role = roleRepo.create({
+        name: 'worker',
+        description: 'Worker role',
+        permissions: []
+      });
+      role = await roleRepo.save(role);
+    }
+
+    const user = userRepo.create({
+      email: userData.email,
+      firstName: 'Test',
+      lastName: 'User',
+      password: 'password123',
+      roleId: role.id,
+      status: UserStatus.ACTIVE
+    });
+    const savedUser = await userRepo.save(user);
+    this.testUsers.push(savedUser);
+    return savedUser;
+  }
+
+  async addUserToFarm(userId: string, farmId: string, farmRole: any): Promise<void> {
+    const farmUserRepo = testDataSource.getRepository(FarmUser);
+    const farmUser = farmUserRepo.create({
+      userId,
+      farmId,
+      role: farmRole,
+      isActive: true
+    });
+    const savedFarmUser = await farmUserRepo.save(farmUser);
+    this.testFarmUsers.push(savedFarmUser);
+  }
+
+  generateToken(user: any): string {
+    const jwt = require('jsonwebtoken');
+    return jwt.sign(
+      { 
+        userId: user.id, 
+        email: user.email,
+        roleId: user.roleId
+      },
+      process.env.JWT_SECRET || 'test-secret',
+      { expiresIn: '1h' }
+    );
+  }
+
+  async cleanup(): Promise<void> {
+    const farmUserRepo = testDataSource.getRepository(FarmUser);
+    const farmRepo = testDataSource.getRepository(Farm);
+    const userRepo = testDataSource.getRepository(User);
+
+    // Clean up in reverse order
+    for (const farmUser of this.testFarmUsers) {
+      try {
+        await farmUserRepo.remove(farmUser);
+      } catch (error) {
+        // Ignore errors
+      }
+    }
+
+    for (const farm of this.testFarms) {
+      try {
+        await farmRepo.remove(farm);
+      } catch (error) {
+        // Ignore errors
+      }
+    }
+
+    for (const user of this.testUsers) {
+      try {
+        await userRepo.remove(user);
+      } catch (error) {
+        // Ignore errors
+      }
+    }
+
+    this.testUsers = [];
+    this.testFarms = [];
+    this.testFarmUsers = [];
   }
 }
