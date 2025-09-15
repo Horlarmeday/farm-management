@@ -1,4 +1,4 @@
-import { InvoiceStatus, PaymentMethod, TransactionType } from '@kuyash/shared';
+import { InvoiceStatus, PaymentMethod, TransactionType } from '../../../shared/src/types';
 import request from 'supertest';
 import { app } from '../app';
 import { TestData, TestUtils } from './utils';

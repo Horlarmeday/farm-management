@@ -1,7 +1,7 @@
 import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
 import { Animal } from './Animal';
-import { ProductionType } from '@kuyash/shared';
+import { ProductionType } from '../../../shared/src/types';
 
 @Entity('production_logs')
 export class ProductionLog extends BaseEntity {

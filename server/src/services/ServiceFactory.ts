@@ -8,6 +8,12 @@ import { NotificationService } from './NotificationService';
 import { PoultryService } from './PoultryService';
 import { ReportingService } from './ReportingService';
 import { UserService } from './UserService';
+import { IoTService } from './IoTService';
+import { WebSocketService } from './websocket.service';
+import { AlertEngineService } from './alert-engine.service';
+import { AnalyticsService } from './analytics.service';
+import { PushNotificationService } from './push-notification.service';
+import { IAnalyticsService } from '../interfaces/IAnalyticsService';
 
 /**
  * Service Factory to handle dependency injection and avoid circular dependencies
@@ -25,6 +31,11 @@ export class ServiceFactory {
   private livestockService: LivestockService | null = null;
   private poultryService: PoultryService | null = null;
   private reportingService: ReportingService | null = null;
+  private iotService: IoTService | null = null;
+  private webSocketService: WebSocketService | null = null;
+  private alertEngineService: AlertEngineService | null = null;
+  private analyticsService: IAnalyticsService | null = null;
+  private pushNotificationService: PushNotificationService | null = null;
 
   private constructor() {}
 
@@ -205,10 +216,100 @@ export class ServiceFactory {
     return this.reportingService;
   }
 
+  getIoTService(): IoTService | null {
+    if (!this.iotService) {
+      // IoTService depends on WebSocketService and AlertEngineService
+      const webSocketService = this.getWebSocketService();
+      const alertEngineService = this.getAlertEngineService();
+      
+      if (!webSocketService || !alertEngineService) {
+        console.warn('IoTService cannot be initialized without WebSocketService and AlertEngineService');
+        return null;
+      }
+      
+      this.iotService = new IoTService(webSocketService, alertEngineService);
+    }
+    return this.iotService;
+  }
+
+  getWebSocketService(): WebSocketService | null {
+    if (!this.webSocketService) {
+      // WebSocketService will be initialized with HTTP server in main app
+      console.warn('WebSocketService not yet initialized');
+      return null;
+    }
+    return this.webSocketService;
+  }
+
+  setWebSocketService(webSocketService: WebSocketService): void {
+    this.webSocketService = webSocketService;
+  }
+
+  getPushNotificationService(): PushNotificationService {
+    if (!this.pushNotificationService) {
+      this.pushNotificationService = new PushNotificationService();
+    }
+    return this.pushNotificationService;
+  }
+
+  getAlertEngineService(): AlertEngineService | null {
+    if (!this.alertEngineService) {
+      // AlertEngineService depends on WebSocketService and PushNotificationService
+      const webSocketService = this.getWebSocketService();
+      if (!webSocketService) {
+        console.warn('AlertEngineService cannot be initialized without WebSocketService');
+        return null;
+      }
+      const pushNotificationService = this.getPushNotificationService();
+      this.alertEngineService = new AlertEngineService(webSocketService, pushNotificationService);
+    }
+    return this.alertEngineService;
+  }
+
+  setAlertEngineService(alertEngineService: AlertEngineService): void {
+    this.alertEngineService = alertEngineService;
+  }
+
+  setPushNotificationService(pushNotificationService: PushNotificationService): void {
+    this.pushNotificationService = pushNotificationService;
+  }
+
+  setAnalyticsService(analyticsService: IAnalyticsService): void {
+    this.analyticsService = analyticsService;
+  }
+
+  getAnalyticsService(): IAnalyticsService {
+    if (!this.analyticsService) {
+      this.analyticsService = new AnalyticsService();
+      // Initialize the service asynchronously without blocking
+      setImmediate(() => {
+        this.analyticsService?.initialize().catch(error => {
+          console.error('Failed to initialize AnalyticsService:', error);
+        });
+      });
+    }
+    return this.analyticsService;
+  }
+
   /**
    * Clear all services (useful for testing)
    */
   clearServices(): void {
     this.services.clear();
+    this.fisheryService = null;
+    this.inventoryService = null;
+    this.financeService = null;
+    this.notificationService = null;
+    this.userService = null;
+    this.authService = null;
+    this.assetService = null;
+    this.livestockService = null;
+    this.poultryService = null;
+    this.reportingService = null;
+    this.iotService = null;
+    this.webSocketService = null;
+    this.alertEngineService = null;
+    this.analyticsService = null;
+    this.pushNotificationService = null;
   }
 }

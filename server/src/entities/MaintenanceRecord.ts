@@ -1,4 +1,4 @@
-import { MaintenanceStatus, MaintenanceType } from '@kuyash/shared';
+import { MaintenanceStatus, MaintenanceType } from '../../../shared/src/types';
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { Asset } from './Asset';
 import { BaseEntity } from './BaseEntity';

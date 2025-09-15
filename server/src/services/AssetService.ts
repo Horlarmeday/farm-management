@@ -6,7 +6,7 @@ import {
   MaintenanceStatus,
   MaintenanceType,
   PaymentMethod,
-} from '@kuyash/shared';
+} from '../../../shared/src/types';
 import { Repository } from 'typeorm';
 import { AppDataSource } from '../config/database';
 import { Asset } from '../entities/Asset';
@@ -15,6 +15,7 @@ import { AuxiliaryProduction } from '../entities/AuxiliaryProduction';
 import { MaintenanceLog } from '../entities/MaintenanceLog';
 import { MaintenanceRecord } from '../entities/MaintenanceRecord';
 import { BadRequestError, NotFoundError } from '../utils/errors';
+import { ErrorHandler, ValidationError, ConflictError } from '../utils/error-handler';
 import { FinanceService } from './FinanceService';
 import { InventoryService } from './InventoryService';
 import { NotificationService } from './NotificationService';
@@ -71,7 +72,10 @@ export class AssetService {
       accumulatedDepreciation: 0,
     });
 
-    const savedAsset = await this.assetRepository.save(asset);
+    const savedAsset = await ErrorHandler.handleDatabaseOperation(
+      () => this.assetRepository.save(asset),
+      'createAsset - save asset'
+    );
 
     // Record asset purchase expense
     await this.financeService.createTransaction({
@@ -124,22 +128,25 @@ export class AssetService {
   }
 
   async getAssetById(id: string): Promise<Asset> {
-    const asset = await this.assetRepository.findOne({
-      where: { id },
-      relations: ['maintenanceLogs'],
-    });
+    const asset = await ErrorHandler.handleDatabaseOperation(
+      () => this.assetRepository.findOne({
+        where: { id },
+        relations: ['maintenanceLogs'],
+      }),
+      'getAssetById - asset lookup'
+    );
 
-    if (!asset) {
-      throw new NotFoundError('Asset not found');
-    }
-
-    return asset;
+    ErrorHandler.validateExists(asset, 'Asset');
+    return asset!;
   }
 
   async updateAsset(id: string, updates: Partial<Asset>): Promise<Asset> {
     const asset = await this.getAssetById(id);
     Object.assign(asset, updates);
-    return this.assetRepository.save(asset);
+    return await ErrorHandler.handleDatabaseOperation(
+      () => this.assetRepository.save(asset),
+      'updateAsset - save asset'
+    );
   }
 
   async disposeAsset(
@@ -202,7 +209,10 @@ export class AssetService {
       cost: maintenanceData.estimatedCost || 0,
     });
 
-    return this.maintenanceRecordRepository.save(maintenanceRecord);
+    return await ErrorHandler.handleDatabaseOperation(
+      () => this.maintenanceRecordRepository.save(maintenanceRecord),
+      'scheduleMaintenance - save maintenance record'
+    );
   }
 
   async recordMaintenanceCompletion(
@@ -218,16 +228,17 @@ export class AssetService {
       recordedById: string;
     },
   ): Promise<MaintenanceRecord> {
-    const maintenance = await this.maintenanceRecordRepository.findOne({
-      where: { id: maintenanceId },
-      relations: ['asset'],
-    });
+    const maintenance = await ErrorHandler.handleDatabaseOperation(
+      () => this.maintenanceRecordRepository.findOne({
+        where: { id: maintenanceId },
+        relations: ['asset'],
+      }),
+      'recordMaintenanceCompletion - maintenance lookup'
+    );
 
-    if (!maintenance) {
-      throw new NotFoundError('Maintenance record not found');
-    }
+    ErrorHandler.validateExists(maintenance, 'Maintenance record');
 
-    Object.assign(maintenance, {
+    Object.assign(maintenance!, {
       ...completionData,
       status: MaintenanceStatus.COMPLETED,
       completedDate: completionData.completionDate,
@@ -238,30 +249,33 @@ export class AssetService {
       nextMaintenanceDate: completionData.nextMaintenanceDate,
     });
 
-    const savedMaintenance = await this.maintenanceRecordRepository.save(maintenance);
+    const savedMaintenance = await ErrorHandler.handleDatabaseOperation(
+      () => this.maintenanceRecordRepository.save(maintenance!),
+      'recordMaintenanceCompletion - save maintenance'
+    );
 
     // Record maintenance expense
     await this.financeService.createTransaction({
       type: FinanceTransactionType.EXPENSE,
       category_id: 'maintenance',
       amount: completionData.actualCost,
-      description: `Maintenance - ${maintenance.asset.name}: ${maintenance.description}`,
+      description: `Maintenance - ${maintenance!.asset.name}: ${maintenance!.description}`,
       date: completionData.completionDate,
       paymentMethod: PaymentMethod.CASH,
       referenceType: 'maintenance',
-      referenceId: maintenance.id,
+      referenceId: maintenance!.id,
       recordedById: completionData.recordedById,
     });
 
     // Update asset maintenance totals
-    await this.updateAsset(maintenance.assetId, {
+    await this.updateAsset(maintenance!.assetId, {
       totalMaintenanceCost:
-        (maintenance.asset.totalMaintenanceCost || 0) + completionData.actualCost,
+        (maintenance!.asset.totalMaintenanceCost || 0) + completionData.actualCost,
       lastMaintenanceDate: completionData.completionDate,
       nextMaintenanceDate: completionData.nextMaintenanceDate,
     });
 
-    return savedMaintenance;
+    return savedMaintenance as MaintenanceRecord;
   }
 
   async getMaintenanceRecords(
@@ -342,7 +356,10 @@ export class AssetService {
       notes: productionData.notes,
     });
 
-    const savedProduction = await this.auxiliaryProductionRepository.save(production);
+    const savedProduction = await ErrorHandler.handleDatabaseOperation(
+      () => this.auxiliaryProductionRepository.save(production),
+      'recordAuxiliaryProduction - save production'
+    );
 
     // Record production expense
     await this.financeService.createTransaction({
@@ -372,36 +389,40 @@ export class AssetService {
     notes?: string;
     recordedById: string;
   }): Promise<AuxiliaryProduction> {
-    const production = await this.auxiliaryProductionRepository.findOneBy({
-      id: saleData.productionId,
-    });
-    if (!production) {
-      throw new NotFoundError('Production record not found');
-    }
+    const production = await ErrorHandler.handleDatabaseOperation(
+      () => this.auxiliaryProductionRepository.findOneBy({
+        id: saleData.productionId,
+      }),
+      'recordAuxiliaryProductionSale - production lookup'
+    );
+    ErrorHandler.validateExists(production, 'Production record');
 
-    if (production.quantityRemaining < saleData.quantitySold) {
+    if (production!.quantityRemaining < saleData.quantitySold) {
       throw new BadRequestError(
-        `Insufficient quantity. Available: ${production.quantityRemaining}, Requested: ${saleData.quantitySold}`,
+        `Insufficient quantity. Available: ${production!.quantityRemaining}, Requested: ${saleData.quantitySold}`,
       );
     }
 
     // Update production record
-    production.quantityRemaining -= saleData.quantitySold;
-    production.totalSales = (production.totalSales || 0) + saleData.totalAmount;
-    production.quantitySold = (production.quantitySold || 0) + saleData.quantitySold;
+    production!.quantityRemaining -= saleData.quantitySold;
+    production!.totalSales = (production!.totalSales || 0) + saleData.totalAmount;
+    production!.quantitySold = (production!.quantitySold || 0) + saleData.quantitySold;
 
-    const updatedProduction = await this.auxiliaryProductionRepository.save(production);
+    const updatedProduction = await ErrorHandler.handleDatabaseOperation(
+      () => this.auxiliaryProductionRepository.save(production!),
+      'recordAuxiliaryProductionSale - save production'
+    );
 
     // Record sales income
     await this.financeService.createTransaction({
       type: FinanceTransactionType.INCOME,
-      category_id: 'service_income',
+      category_id: 'sales',
       amount: saleData.totalAmount,
-      description: `${production.productName} sale - ${saleData.quantitySold} ${production.unit}`,
+      description: `${production!.productName} sale - ${saleData.quantitySold} ${production!.unit}`,
       date: saleData.saleDate,
       paymentMethod: PaymentMethod.CASH,
       referenceType: 'production_sale',
-      referenceId: production.id,
+      referenceId: production!.id,
       recordedById: saleData.recordedById,
     });
 
@@ -442,24 +463,28 @@ export class AssetService {
     notes?: string;
     recordedById: string;
   }): Promise<AuxiliaryProduction> {
-    const production = await this.auxiliaryProductionRepository.findOneBy({
-      id: dispatchData.productionId,
-    });
+    const production = await ErrorHandler.handleDatabaseOperation(
+      () => this.auxiliaryProductionRepository.findOneBy({
+        id: dispatchData.productionId,
+      }),
+      'recordAuxiliaryDispatch - production lookup'
+    );
 
-    if (!production) {
-      throw new NotFoundError('Production record not found');
-    }
+    ErrorHandler.validateExists(production, 'Production record');
 
-    if (production.quantityRemaining < dispatchData.quantityDispatched) {
+    if (production!.quantityRemaining < dispatchData.quantityDispatched) {
       throw new BadRequestError(
-        `Insufficient quantity for dispatch. Available: ${production.quantityRemaining}, Requested: ${dispatchData.quantityDispatched}`,
+        `Insufficient quantity for dispatch. Available: ${production!.quantityRemaining}, Requested: ${dispatchData.quantityDispatched}`,
       );
     }
 
     // Update production record - track dispatch through quantityRemaining
-    production.quantityRemaining -= dispatchData.quantityDispatched;
+    production!.quantityRemaining -= dispatchData.quantityDispatched;
 
-    const updatedProduction = await this.auxiliaryProductionRepository.save(production);
+    const updatedProduction = await ErrorHandler.handleDatabaseOperation(
+      () => this.auxiliaryProductionRepository.save(production!),
+      'recordAuxiliaryDispatch - save production'
+    );
 
     // Record dispatch expense if transport cost is provided
     if (dispatchData.transportCost && dispatchData.transportCost > 0) {
@@ -467,11 +492,11 @@ export class AssetService {
         type: FinanceTransactionType.EXPENSE,
         category_id: 'transport',
         amount: dispatchData.transportCost,
-        description: `Transport cost for ${production.productName} dispatch to ${dispatchData.destination}`,
+        description: `Transport cost for ${production!.productName} dispatch to ${dispatchData.destination}`,
         date: dispatchData.dispatchDate,
         paymentMethod: PaymentMethod.CASH,
         referenceType: 'production_dispatch',
-        referenceId: production.id,
+        referenceId: production!.id,
         recordedById: dispatchData.recordedById,
       });
     }
@@ -507,7 +532,10 @@ export class AssetService {
       depreciationEndDate: new Date(),
     });
 
-    const savedDepreciation = await this.assetDepreciationRepository.save(depreciation);
+    const savedDepreciation = await ErrorHandler.handleDatabaseOperation(
+      () => this.assetDepreciationRepository.save(depreciation),
+      'calculateDepreciation - save depreciation'
+    );
 
     // Update asset book value
     await this.updateAsset(assetId, {

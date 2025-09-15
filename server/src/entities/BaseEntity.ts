@@ -12,20 +12,20 @@ export abstract class BaseEntity extends TypeOrmBaseEntity {
 
   @CreateDateColumn({
     type: 'timestamp',
-    default: () => 'CURRENT_TIMESTAMP(6)',
+    default: () => 'CURRENT_TIMESTAMP'
   })
-  createdAt!: Date;
+  createdAt: Date;
 
   @UpdateDateColumn({
     type: 'timestamp',
-    default: () => 'CURRENT_TIMESTAMP(6)',
-    onUpdate: 'CURRENT_TIMESTAMP(6)',
+    default: () => 'CURRENT_TIMESTAMP',
+    onUpdate: 'CURRENT_TIMESTAMP'
   })
-  updatedAt!: Date;
+  updatedAt: Date;
 
   @DeleteDateColumn({
     type: 'timestamp',
-    nullable: true,
+    nullable: true
   })
   deletedAt?: Date;
 }

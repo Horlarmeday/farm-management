@@ -619,4 +619,53 @@ export const notificationValidations = {
       )
       .optional(),
   }),
+
+  // Push Subscription Management
+  subscribeToPush: Joi.object({
+    endpoint: Joi.string().uri().required(),
+    keys: Joi.object({
+      p256dh: Joi.string().required(),
+      auth: Joi.string().required(),
+    }).required(),
+  }),
+
+  unsubscribeFromPush: Joi.object({
+    endpoint: Joi.string().uri().required(),
+  }),
+
+  // Notification Preferences
+  updateNotificationPreferences: Joi.object({
+    preferences: Joi.array().items(
+      Joi.object({
+        type: Joi.string().required(),
+        enabled: Joi.boolean().required(),
+        priority: Joi.string().valid('low', 'medium', 'high', 'critical').required(),
+      })
+    ).required(),
+  }),
+
+  // Test Notification
+  sendTestNotification: Joi.object({
+    farmId: Joi.string().uuid().required(),
+    type: Joi.string().valid('weather', 'livestock', 'crop', 'equipment', 'financial', 'iot_sensor').required(),
+    severity: Joi.string().valid('low', 'medium', 'high', 'critical').required(),
+    title: Joi.string().required(),
+    message: Joi.string().required(),
+    data: Joi.object().optional(),
+  }),
+
+  // Alert Rules Management
+  createAlertRule: Joi.object({
+    farmId: Joi.string().uuid().required(),
+    name: Joi.string().required(),
+    type: Joi.string().valid('sensor_threshold', 'weather_warning', 'livestock_health', 'crop_disease', 'equipment_failure', 'financial_threshold').required(),
+    conditions: Joi.array().required(),
+    severity: Joi.string().valid('low', 'medium', 'high', 'critical').required(),
+    cooldownMinutes: Joi.number().integer().min(1).required(),
+    actions: Joi.array().required(),
+  }),
+
+  deleteAlertRule: Joi.object({
+    ruleId: Joi.string().required(),
+  }),
 };

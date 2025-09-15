@@ -1,4 +1,4 @@
-import { FinanceTransactionType, PaymentStatus, PaymentMethod } from '@kuyash/shared';
+import { FinanceTransactionType, PaymentStatus, PaymentMethod } from '../../../shared/src/types';
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
 import { CostCenter } from './CostCenter';

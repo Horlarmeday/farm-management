@@ -1,7 +1,7 @@
 import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
 import { User } from './User';
-import { NotificationType } from '@kuyash/shared';
+import { NotificationType } from '../../../shared/src/types';
 
 @Entity('notification_subscriptions')
 export class NotificationSubscription extends BaseEntity {

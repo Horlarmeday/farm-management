@@ -1,4 +1,4 @@
-import { DepreciationMethod } from '@kuyash/shared';
+import { DepreciationMethod } from '../../../shared/src/types';
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { Asset } from './Asset';
 import { BaseEntity } from './BaseEntity';

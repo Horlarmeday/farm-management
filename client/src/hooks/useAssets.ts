@@ -5,7 +5,6 @@ import { AssetsService } from '@/services/assets.service';
 import type {
   Asset,
   MaintenanceLog,
-  AssetUsageLog,
   AssetType,
   AssetStatus,
   AssetCondition,
@@ -14,10 +13,9 @@ import type {
   CreateAssetRequest,
   UpdateAssetRequest,
   CreateMaintenanceLogRequest,
-  UpdateMaintenanceLogRequest,
-  AssetStats
-} from '../../../shared/src/types/asset.types';
-import type { PaginatedResponse, ApiResponse } from '../../../shared/src/types/api.types';
+  UpdateMaintenanceLogRequest
+} from '@/types/asset.types';
+import type { PaginatedResponse, ApiResponse } from '@/types/api.types';
 
 // Asset Management Hooks
 export const useAssets = (params?: Record<string, any>) => {

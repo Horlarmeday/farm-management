@@ -2,7 +2,7 @@ import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
 import { User } from './User';
 import { Payment } from './Payment';
-import { PaymentMethod } from '@kuyash/shared';
+import { PaymentMethod } from '../../../shared/src/types';
 
 @Entity('receipts')
 export class Receipt extends BaseEntity {

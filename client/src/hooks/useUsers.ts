@@ -32,8 +32,12 @@ export const userKeys = {
   permissions: () => [...userKeys.all, 'permissions'] as const,
   attendance: (userId?: string, startDate?: Date, endDate?: Date) => 
     [...userKeys.all, 'attendance', { userId, startDate, endDate }] as const,
+  attendanceStats: (params?: { userId?: string; department?: string; startDate?: string; endDate?: string }) => 
+    [...userKeys.all, 'attendanceStats', { params }] as const,
   payroll: (userId?: string, month?: number, year?: number) => 
     [...userKeys.all, 'payroll', { userId, month, year }] as const,
+  payrollSummary: (params?: { department?: string; year?: number; month?: number }) => 
+    [...userKeys.all, 'payrollSummary', { params }] as const,
   leave: (userId?: string) => [...userKeys.all, 'leave', { userId }] as const,
   stats: () => [...userKeys.all, 'stats'] as const,
 };
@@ -471,6 +475,29 @@ export const useUserStats = () => {
   return useQuery({
     queryKey: userKeys.stats(),
     queryFn: () => UsersService.getUserStats(),
+  });
+};
+
+export const usePayrollSummary = (params?: {
+  department?: string;
+  year?: number;
+  month?: number;
+}) => {
+  return useQuery({
+    queryKey: userKeys.payrollSummary(params),
+    queryFn: () => UsersService.getPayrollSummary(params),
+  });
+};
+
+export const useAttendanceStats = (params?: {
+  userId?: string;
+  department?: string;
+  startDate?: string;
+  endDate?: string;
+}) => {
+  return useQuery({
+    queryKey: userKeys.attendanceStats(params),
+    queryFn: () => UsersService.getAttendanceStats(params),
   });
 };
 

@@ -13,7 +13,7 @@ import {
   PoultryStats,
   BirdType,
   BirdStatus,
-} from '../../../shared/src/types/poultry.types';
+} from '@/types/poultry.types';
 import { PoultryService } from '../services/poultry.service';
 import { queryKeys } from '../lib/queryKeys';
 

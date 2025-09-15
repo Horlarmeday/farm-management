@@ -1,13 +1,11 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
-  CreateDateColumn,
-  UpdateDateColumn,
   ManyToOne,
   JoinColumn,
   OneToMany,
 } from 'typeorm';
+import { BaseEntity } from './BaseEntity';
 import { Farm } from './Farm';
 import { User } from './User';
 import { FinancialTransaction } from './FinancialTransaction';
@@ -46,9 +44,7 @@ export enum DefaultCategory {
 }
 
 @Entity('financial_categories')
-export class FinancialCategory {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+export class FinancialCategory extends BaseEntity {
 
   @Column({ type: 'varchar', length: 100 })
   name!: string;
@@ -90,11 +86,7 @@ export class FinancialCategory {
   @Column({ type: 'uuid', nullable: true })
   created_by_id?: string;
 
-  @CreateDateColumn()
-  created_at!: Date;
 
-  @UpdateDateColumn()
-  updated_at!: Date;
 
   // Relations
   @OneToMany(() => FinancialTransaction, transaction => transaction.category)

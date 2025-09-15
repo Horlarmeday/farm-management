@@ -17,10 +17,13 @@ import {
   useDeleteUser,
   useCreateDepartment,
   useUpdateDepartment,
-  useDeleteDepartment
+  useDeleteDepartment,
+  usePayrollSummary,
+  useAttendanceStats
 } from "@/hooks/useUsers";
 import { UserRole } from "../../../shared/src/types/user.types";
 import { getUserRoleOptions } from "@/lib/formUtils";
+import { formatNaira as formatCurrency } from '@/lib/currency';
 
 export default function HR() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -38,6 +41,8 @@ export default function HR() {
   
   const { data: departmentsData, isLoading: departmentsLoading } = useDepartments();
   const { data: statsData, isLoading: statsLoading } = useUserStats();
+  const { data: payrollSummary, isLoading: payrollLoading } = usePayrollSummary();
+  const { data: attendanceStats, isLoading: attendanceLoading } = useAttendanceStats();
   
   const deleteUserMutation = useDeleteUser();
   
@@ -45,7 +50,7 @@ export default function HR() {
   const departments = departmentsData?.data || [];
   const stats = statsData?.data;
   
-  const isLoading = usersLoading || departmentsLoading || statsLoading;
+  const isLoading = usersLoading || departmentsLoading || statsLoading || payrollLoading || attendanceLoading;
 
   if (isLoading) {
     return (
@@ -216,15 +221,21 @@ export default function HR() {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">8</div>
+                  <div className="text-2xl font-bold text-green-600">
+                    {attendanceStats?.data?.presentDays || 0}
+                  </div>
                   <div className="text-sm text-muted-foreground">Present</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-yellow-600">2</div>
+                  <div className="text-2xl font-bold text-yellow-600">
+                    {attendanceStats?.data?.lateDays || 0}
+                  </div>
                   <div className="text-sm text-muted-foreground">Late</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-red-600">1</div>
+                  <div className="text-2xl font-bold text-red-600">
+                    {attendanceStats?.data?.absentDays || 0}
+                  </div>
                   <div className="text-sm text-muted-foreground">Absent</div>
                 </div>
               </div>
@@ -240,11 +251,15 @@ export default function HR() {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <div className="text-2xl font-bold">$12,450</div>
+                  <div className="text-2xl font-bold">
+                    {formatCurrency(payrollSummary?.data?.totalGrossPay || 0)}
+                  </div>
                   <div className="text-sm text-muted-foreground">Total Monthly Payroll</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold">$3,200</div>
+                  <div className="text-2xl font-bold">
+                    {formatCurrency(payrollSummary?.data?.averageSalary || 0)}
+                  </div>
                   <div className="text-sm text-muted-foreground">Average Salary</div>
                 </div>
               </div>

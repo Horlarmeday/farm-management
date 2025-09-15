@@ -2,8 +2,9 @@ import { Repository, Between } from 'typeorm';
 import { AppDataSource } from '../config/database';
 import { FinancialTransaction } from '../entities/FinancialTransaction';
 import { FinancialCategory } from '../entities/FinancialCategory';
-import { FinanceTransactionType } from '@kuyash/shared';
+import { FinanceTransactionType } from '../../../shared/src/types';
 import { NotFoundError } from '../utils/errors';
+import { ErrorHandler, ValidationError } from '../utils/error-handler';
 
 export interface ProfitLossCalculation {
   totalIncome: number;
@@ -65,11 +66,12 @@ export class ReportsService {
     farmId: string,
     filters: PLReportFilters
   ): Promise<ProfitLossCalculation> {
+    // Validate date range
+    if (filters.startDate >= filters.endDate) {
+      throw new ValidationError('Start date must be before end date');
+    }
+
     try {
-      // Validate date range
-      if (filters.startDate >= filters.endDate) {
-        throw new Error('Start date must be before end date');
-      }
 
       // Get all transactions for the farm within the date range
       const queryBuilder = this.financialTransactionRepository
@@ -88,7 +90,10 @@ export class ReportsService {
         });
       }
 
-      const transactions = await queryBuilder.getMany();
+      const transactions = await ErrorHandler.handleDatabaseOperation(
+        () => queryBuilder.getMany(),
+        'calculateProfitLoss - transaction lookup'
+      );
 
       // Separate income and expense transactions
       const incomeTransactions = transactions.filter(
@@ -126,8 +131,8 @@ export class ReportsService {
         },
       };
     } catch (error) {
-      console.error('Error calculating P&L:', error);
-      throw new Error(`Failed to calculate P&L: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      ErrorHandler.logError(error as Error, 'calculateProfitLoss');
+      throw error;
     }
   }
 
@@ -142,15 +147,18 @@ export class ReportsService {
       const startDate = new Date(year, 0, 1); // January 1st
       const endDate = new Date(year, 11, 31, 23, 59, 59); // December 31st
 
-      const transactions = await this.financialTransactionRepository
-        .createQueryBuilder('transaction')
-        .leftJoinAndSelect('transaction.category', 'category')
-        .where('transaction.farmId = :farmId', { farmId })
-        .andWhere('transaction.transactionDate BETWEEN :startDate AND :endDate', {
-          startDate,
-          endDate,
-        })
-        .getMany();
+      const transactions = await ErrorHandler.handleDatabaseOperation(
+        () => this.financialTransactionRepository
+          .createQueryBuilder('transaction')
+          .leftJoinAndSelect('transaction.category', 'category')
+          .where('transaction.farmId = :farmId', { farmId })
+          .andWhere('transaction.transactionDate BETWEEN :startDate AND :endDate', {
+            startDate,
+            endDate,
+          })
+          .getMany(),
+        'getMonthlyPLSummary - transaction lookup'
+      );
 
       const monthlyData: MonthlyPLSummary[] = [];
 
@@ -185,8 +193,8 @@ export class ReportsService {
 
       return monthlyData;
     } catch (error) {
-      console.error('Error getting monthly P&L summary:', error);
-      throw new Error(`Failed to get monthly P&L summary: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      ErrorHandler.logError(error as Error, 'getMonthlyPLSummary');
+      throw error;
     }
   }
 
@@ -261,15 +269,18 @@ export class ReportsService {
     filters: PLReportFilters
   ): Promise<CategoryBreakdown[]> {
     try {
-      const transactions = await this.financialTransactionRepository
-        .createQueryBuilder('transaction')
-        .leftJoinAndSelect('transaction.category', 'category')
-        .where('transaction.farmId = :farmId', { farmId })
-        .andWhere('transaction.transactionDate BETWEEN :startDate AND :endDate', {
-          startDate: filters.startDate,
-          endDate: filters.endDate,
-        })
-        .getMany();
+      const transactions = await ErrorHandler.handleDatabaseOperation(
+        () => this.financialTransactionRepository
+          .createQueryBuilder('transaction')
+          .leftJoinAndSelect('transaction.category', 'category')
+          .where('transaction.farmId = :farmId', { farmId })
+          .andWhere('transaction.transactionDate BETWEEN :startDate AND :endDate', {
+            startDate: filters.startDate,
+            endDate: filters.endDate,
+          })
+          .getMany(),
+        'getCategoryBreakdown - transaction lookup'
+      );
 
       // Group transactions by category
       const categoryMap = new Map<string, {
@@ -308,8 +319,8 @@ export class ReportsService {
       // Sort by amount descending
       return breakdown.sort((a, b) => b.amount - a.amount);
     } catch (error) {
-      console.error('Error getting category breakdown:', error);
-      throw new Error(`Failed to get category breakdown: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      ErrorHandler.logError(error as Error, 'getCategoryBreakdown');
+      throw error;
     }
   }
 

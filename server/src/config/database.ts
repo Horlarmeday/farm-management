@@ -78,6 +78,15 @@ import { ReportSchedule } from '../entities/ReportSchedule';
 import { ReportTemplate } from '../entities/ReportTemplate';
 import { UserSession } from '../entities/UserSession';
 
+// Import Phase 3 entities
+import { PushSubscription } from '../entities/PushSubscription';
+import { NotificationPreference } from '../entities/NotificationPreference';
+import { IoTSensor } from '../entities/IoTSensor';
+import { SensorReading } from '../entities/SensorReading';
+import { Prediction } from '../entities/Prediction';
+import { SyncQueue } from '../entities/SyncQueue';
+import { OfflineData } from '../entities/OfflineData';
+
 // Create the data source
 export const AppDataSource = new DataSource({
   type: config.database.type as 'mysql',
@@ -182,6 +191,15 @@ export const AppDataSource = new DataSource({
     ReportTemplate,
     ReportSchedule,
     ReportExport,
+
+    // Phase 3 entities
+    PushSubscription,
+    NotificationPreference,
+    IoTSensor,
+    SensorReading,
+    Prediction,
+    SyncQueue,
+    OfflineData,
   ],
   migrations: ['src/database/migrations/*.ts'],
   subscribers: ['src/database/subscribers/*.ts'],

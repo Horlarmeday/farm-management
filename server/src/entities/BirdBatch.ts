@@ -3,7 +3,7 @@ import { BaseEntity } from './BaseEntity';
 import { Farm } from './Farm';
 import { User } from './User';
 import { Location } from './Location';
-import { BirdType, BirdStatus } from '@kuyash/shared';
+import { BirdType, BirdStatus } from '../../../shared/src/types';
 
 @Entity('bird_batches')
 export class BirdBatch extends BaseEntity {

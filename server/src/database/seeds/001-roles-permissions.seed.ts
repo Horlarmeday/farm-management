@@ -2,7 +2,7 @@ import { DataSource } from 'typeorm';
 import { Role } from '@/entities/Role';
 import { Permission } from '@/entities/Permission';
 import { User } from '@/entities/User';
-import { UserStatus } from '@kuyash/shared';
+import { UserStatus } from '../../../../shared/src/types';
 import * as bcrypt from 'bcryptjs';
 
 export const seedRolesAndPermissions = async (dataSource: DataSource): Promise<void> => {

@@ -8,7 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LoadingTable } from "@/components/ui/loading-card";
 import CreateInventoryItemForm from "@/components/forms/CreateInventoryItemForm";
 import { useInventoryItems, useInventoryTransactions, useStockAlerts } from "@/hooks/useInventory";
-import { InventoryCategory } from "../../../shared/src/types";
+import { InventoryCategory, TransactionType } from '@/types/inventory.types';
+import { formatNaira as formatCurrency } from '@/lib/currency';
 
 export default function Inventory() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -167,12 +168,12 @@ export default function Inventory() {
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Unit Cost</p>
-                        <p className="text-lg font-semibold">${item.standardCost?.toFixed(2) || '0.00'}</p>
+                        <p className="text-lg font-semibold">{formatCurrency(item.standardCost || 0)}</p>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Total Value</p>
                         <p className="text-lg font-semibold">
-                          ${((item.currentStock * (item.standardCost || 0))).toFixed(2)}
+                          {formatCurrency(item.currentStock * (item.standardCost || 0))}
                         </p>
                       </div>
                     </div>
@@ -212,13 +213,13 @@ export default function Inventory() {
                   <CardHeader>
                     <div className="flex justify-between items-start">
                       <div>
-                        <CardTitle className="text-lg">{transaction.item?.name || 'Unknown Item'}</CardTitle>
+                        <CardTitle className="text-lg">Transaction ID: {transaction.id}</CardTitle>
                         <p className="text-sm text-muted-foreground">
                           {transaction.type} • {new Date(transaction.createdAt).toLocaleDateString()}
                         </p>
                       </div>
-                      <Badge variant={transaction.type === 'purchase' || transaction.type === 'return' ? 'default' : 'secondary'}>
-                        {transaction.type === 'purchase' || transaction.type === 'return' ? 'Stock In' : 'Stock Out'}
+                      <Badge variant={transaction.type === TransactionType.IN || transaction.type === TransactionType.RETURN ? 'default' : 'secondary'}>
+                        {transaction.type === TransactionType.IN || transaction.type === TransactionType.RETURN ? 'Stock In' : 'Stock Out'}
                       </Badge>
                     </div>
                   </CardHeader>
@@ -230,11 +231,11 @@ export default function Inventory() {
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Unit Price</p>
-                        <p className="text-lg font-semibold">${transaction.unitPrice?.toFixed(2) || '0.00'}</p>
+                        <p className="text-lg font-semibold">{formatCurrency(transaction.unitCost || 0)}</p>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Total Amount</p>
-                        <p className="text-lg font-semibold">${transaction.totalAmount?.toFixed(2) || '0.00'}</p>
+                        <p className="text-lg font-semibold">{formatCurrency(transaction.totalCost || 0)}</p>
                       </div>
                     </div>
                     {transaction.notes && (
@@ -272,16 +273,16 @@ export default function Inventory() {
                       <div>
                         <CardTitle className="text-lg flex items-center gap-2">
                           <AlertTriangle className="h-5 w-5 text-orange-500" />
-                          {alert.item?.name || 'Unknown Item'}
+                          Alert for Item ID: {alert.itemId}
                         </CardTitle>
                         <p className="text-sm text-muted-foreground">
-                          {alert.alertType.replace('_', ' ').toUpperCase()}
+                          {alert.type.replace('_', ' ').toUpperCase()}
                         </p>
                       </div>
                       <Badge 
                         variant={
-                          alert.severity === 'critical' ? 'destructive' :
-                          alert.severity === 'high' ? 'secondary' : 'default'
+                          alert.severity === 'high' ? 'destructive' :
+                          alert.severity === 'medium' ? 'secondary' : 'default'
                         }
                       >
                         {alert.severity.toUpperCase()}
@@ -294,11 +295,11 @@ export default function Inventory() {
                       <div className="grid grid-cols-2 gap-4 mt-4">
                         <div>
                           <p className="text-sm text-muted-foreground">Current Stock</p>
-                          <p className="text-lg font-semibold">{alert.currentStock}</p>
+                          <p className="text-lg font-semibold">Check Item</p>
                         </div>
                         <div>
                           <p className="text-sm text-muted-foreground">Threshold</p>
-                          <p className="text-lg font-semibold">{alert.threshold}</p>
+                          <p className="text-lg font-semibold">-</p>
                         </div>
                       </div>
                       <div className="flex gap-2 mt-4">

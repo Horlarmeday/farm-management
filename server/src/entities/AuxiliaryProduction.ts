@@ -1,4 +1,4 @@
-import { AuxiliaryProductType } from '@kuyash/shared/src/types/asset.types';
+import { AuxiliaryProductType } from '../../../shared/src/types/asset.types';
 import { Column, Entity } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
 

@@ -2,36 +2,37 @@ import { config } from './config';
 import { initializeDatabase } from './config/database';
 import { generalRateLimiter } from './middleware/rateLimiter.middleware';
 import { ApiError } from './utils/ApiError';
-import { ApiResponse } from '@kuyash/shared';
+import { ErrorHandler, AppError } from './utils/error-handler';
+import { ApiResponse } from '../../shared/src/types/api.types';
 import compression from 'compression';
 import cors from 'cors';
 import express, { Application, NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import { createServer } from 'http';
+import { WebSocketService } from './services/websocket.service';
+import { PushNotificationService } from './services/push-notification.service';
+import { AlertEngineService } from './services/alert-engine.service';
+import { AnalyticsService } from './services/analytics.service';
+import { ServiceFactory } from './services/ServiceFactory';
 import 'reflect-metadata';
 
 // Import User type and extend Express Request interface
 import { User } from './entities/User';
 import './middleware/auth.middleware';
 
-// Import routes
-// import assetRoutes from './routes/asset.routes';
-import authRoutes from './routes/auth.routes';
-import farmRoutes from './routes/farm.routes';
-import fileRoutes from './routes/file.routes';
-import financeRoutes from './routes/finance.routes';
-import reportsRoutes from './routes/reports.routes';
-// import fisheryRoutes from './routes/fishery.routes';
-// import inventoryRoutes from './routes/inventory.routes';
-// import invitationRoutes from './routes/invitation.routes';
-// import livestockRoutes from './routes/livestock.routes';
-// import notificationRoutes from './routes/notification.routes';
-// import poultryRoutes from './routes/poultry.routes';
-// import userRoutes from './routes/user.routes';
+// Routes will be imported dynamically after service initialization
 
 
-// Create Express app
+// Create Express app and HTTP server
 const app: Application = express();
+const server = createServer(app);
+
+// Initialize services
+let webSocketService: WebSocketService;
+let pushNotificationService: PushNotificationService;
+let alertEngineService: AlertEngineService;
+let analyticsService: AnalyticsService;
 
 // Trust proxy for accurate IP addresses
 app.set('trust proxy', 1);
@@ -64,7 +65,9 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Apply general rate limiting
-app.use(generalRateLimiter);
+if (config.isProduction) {
+  app.use(generalRateLimiter);
+}
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
@@ -79,79 +82,7 @@ app.get('/health', (req: Request, res: Response) => {
   } as ApiResponse<any>);
 });
 
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/farms', farmRoutes);
-app.use('/api/files', fileRoutes);
-// app.use('/api/assets', assetRoutes);
-app.use('/api/finance', financeRoutes);
-app.use('/api/reports', reportsRoutes);
-// app.use('/api/fishery', fisheryRoutes);
-// app.use('/api/inventory', inventoryRoutes);
-// app.use('/api/livestock', livestockRoutes);
-// app.use('/api/poultry', poultryRoutes);
-// app.use('/api/notifications', notificationRoutes);
-// app.use('/api/users', userRoutes);
-// app.use('/api', invitationRoutes);
-
-
-// 404 handler
-app.use('*', (req: Request, res: Response) => {
-  res.status(404).json({
-    success: false,
-    message: 'Route not found',
-    error: `Cannot ${req.method} ${req.originalUrl}`,
-  } as ApiResponse<null>);
-});
-
-// Global error handler
-app.use((error: Error | ApiError, req: Request, res: Response, next: NextFunction) => {
-  let statusCode = 500;
-  let message = 'Internal Server Error';
-  let stack: string | undefined;
-
-  if (error instanceof ApiError) {
-    statusCode = error.statusCode;
-    message = error.message;
-  } else if (error.name === 'ValidationError') {
-    statusCode = 400;
-    message = error.message;
-  } else if (error.name === 'CastError') {
-    statusCode = 400;
-    message = 'Invalid data format';
-  } else if (error.name === 'JsonWebTokenError') {
-    statusCode = 401;
-    message = 'Invalid token';
-  } else if (error.name === 'TokenExpiredError') {
-    statusCode = 401;
-    message = 'Token expired';
-  } else if (error.name === 'UnauthorizedError') {
-    statusCode = 401;
-    message = 'Unauthorized';
-  }
-
-  // Include stack trace in development
-  if (config.isDevelopment) {
-    stack = error.stack;
-  }
-
-  // Log error
-  console.error(`[ERROR] ${req.method} ${req.originalUrl}`, {
-    error: error.message,
-    stack: error.stack,
-    user: req.user ? (req.user as any).id : undefined,
-    ip: req.ip,
-    userAgent: req.get('User-Agent'),
-  });
-
-  res.status(statusCode).json({
-    success: false,
-    message,
-    error: error.message,
-    stack,
-    timestamp: new Date().toISOString(),
-  } as ApiResponse<null>);
-});
+// Routes will be set up after service initialization in startServer function
 
 // Initialize database and start server
 const startServer = async (): Promise<void> => {
@@ -159,15 +90,111 @@ const startServer = async (): Promise<void> => {
     // Initialize database
     await initializeDatabase();
 
+    // Initialize real-time services
+    webSocketService = new WebSocketService(server);
+    pushNotificationService = new PushNotificationService();
+    analyticsService = new AnalyticsService();
+    await analyticsService.initialize();
+    alertEngineService = new AlertEngineService(webSocketService, pushNotificationService);
+
+    // Set services in ServiceFactory for dependency injection
+    const serviceFactory = ServiceFactory.getInstance();
+    serviceFactory.setWebSocketService(webSocketService);
+    serviceFactory.setPushNotificationService(pushNotificationService);
+    serviceFactory.setAnalyticsService(analyticsService);
+    serviceFactory.setAlertEngineService(alertEngineService);
+
+    console.log('✅ Real-time services initialized and registered in ServiceFactory');
+
+    // Now import and set up routes after services are initialized
+    const authRoutes = (await import('./routes/auth.routes')).default;
+    const farmRoutes = (await import('./routes/farm.routes')).default;
+    const fileRoutes = (await import('./routes/file.routes')).default;
+    const financeRoutes = (await import('./routes/finance.routes')).default;
+    const reportsRoutes = (await import('./routes/reports.routes')).default;
+    const inventoryRoutes = (await import('./routes/inventory.routes')).default;
+    const livestockRoutes = (await import('./routes/livestock.routes')).default;
+    const notificationRoutes = (await import('./routes/notifications.routes')).default;
+    const cropRoutes = (await import('./routes/crop.routes')).default;
+    const iotRoutes = (await import('./routes/iot.routes')).default;
+    const analyticsRoutes = (await import('./routes/analytics.routes')).default;
+    const testRoutes = (await import('./routes/test.routes')).default;
+    const healthRoutes = (await import('./routes/health.routes')).default;
+
+    app.use('/api/auth', authRoutes);
+    app.use('/api/farms', farmRoutes);
+    app.use('/api/files', fileRoutes);
+    app.use('/api/finance', financeRoutes);
+    app.use('/api/reports', reportsRoutes);
+    app.use('/api/inventory', inventoryRoutes);
+    app.use('/api/livestock', livestockRoutes);
+    app.use('/api/notifications', notificationRoutes);
+    app.use('/api/crops', cropRoutes);
+    app.use('/api/iot', iotRoutes);
+    app.use('/api/analytics', analyticsRoutes);
+    app.use('/api/test', testRoutes);
+    app.use('/api/health', healthRoutes);
+
+    console.log('✅ Routes initialized after services are ready');
+
+    // 404 handler - must be after all routes
+    app.use('*', (req: Request, res: Response) => {
+      res.status(404).json({
+        success: false,
+        message: 'Route not found',
+        error: `Cannot ${req.method} ${req.originalUrl}`,
+      } as ApiResponse<null>);
+    });
+
+    // Global error handler - must be last
+    app.use((error: Error | ApiError | AppError, req: Request, res: Response, next: NextFunction) => {
+      const context = `${req.method} ${req.originalUrl}`;
+      
+      // Log error with context
+      ErrorHandler.logError(error, context);
+      
+      // Convert to standardized API response
+      const apiResponse = ErrorHandler.toApiResponse(error, context);
+      
+      // Determine status code
+      let statusCode = 500;
+      if (error instanceof AppError) {
+        statusCode = error.statusCode;
+      } else if (error instanceof ApiError) {
+        statusCode = error.statusCode;
+      } else if (error.name === 'ValidationError') {
+        statusCode = 400;
+      } else if (error.name === 'CastError') {
+        statusCode = 400;
+      } else if (error.name === 'JsonWebTokenError') {
+        statusCode = 401;
+      } else if (error.name === 'TokenExpiredError') {
+        statusCode = 401;
+      } else if (error.name === 'UnauthorizedError') {
+        statusCode = 401;
+      }
+      
+      // Add development-specific information
+       const response = {
+         ...apiResponse,
+         ...(config.isDevelopment && { stack: error.stack })
+       };
+       
+       res.status(statusCode).json(response);
+    });
+
     // Start server
     const PORT = config.port || 3000;
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`🌐 Environment: ${config.environment}`);
       console.log(
         `📊 Database: ${config.database.host}:${config.database.port}/${config.database.name}`,
       );
       console.log(`🔴 Redis: ${config.redis.host}:${config.redis.port}`);
+      console.log(`🔌 WebSocket server ready`);
+      console.log(`🔔 Push notification service ready`);
+      console.log(`🚨 Alert engine monitoring active`);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);
@@ -178,11 +205,17 @@ const startServer = async (): Promise<void> => {
 // Handle graceful shutdown
 process.on('SIGTERM', () => {
   console.log('🛑 SIGTERM received, shutting down gracefully...');
+  if (alertEngineService) {
+    alertEngineService.stopMonitoring();
+  }
   process.exit(0);
 });
 
 process.on('SIGINT', () => {
   console.log('🛑 SIGINT received, shutting down gracefully...');
+  if (alertEngineService) {
+    alertEngineService.stopMonitoring();
+  }
   process.exit(0);
 });
 
@@ -198,5 +231,5 @@ process.on('uncaughtException', (error) => {
   process.exit(1);
 });
 
-export { app, startServer };
+export { app, server, startServer, webSocketService, pushNotificationService, alertEngineService, analyticsService };
 export default app;

@@ -1,6 +1,6 @@
 import { Entity, Column } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
-import { AccountType } from '@kuyash/shared';
+import { AccountType } from '../../../shared/src/types';
 
 @Entity('accounts')
 export class Account extends BaseEntity {

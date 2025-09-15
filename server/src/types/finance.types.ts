@@ -67,8 +67,8 @@ export interface TransactionResponse {
     id: string;
     name: string;
   };
-  created_at: Date;
-  updated_at: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface GetTransactionsResponse {
@@ -91,6 +91,6 @@ export interface CategoryResponse {
   icon?: string;
   farm_id?: string;
   created_by?: string;
-  created_at: Date;
-  updated_at: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }

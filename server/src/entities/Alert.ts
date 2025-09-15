@@ -1,4 +1,4 @@
-import { AlertSeverity, AlertStatus, AlertType } from '@kuyash/shared';
+import { AlertSeverity, AlertStatus, AlertType } from '../../../shared/src/types';
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
 import { User } from './User';

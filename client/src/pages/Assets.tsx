@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAssets } from "@/hooks/useAssets";
-import { AssetType, AssetStatus } from "@/../../shared/src/types/asset.types";
+import { AssetType, AssetStatus } from "@/types/asset.types";
+import { formatNaira as formatCurrency } from "@/lib/currency";
 
 export default function Assets() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -154,10 +155,10 @@ export default function Assets() {
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="text-2xl">{getTypeIcon(asset.category)}</span>
+                        <span className="text-2xl">{getTypeIcon(asset.type)}</span>
                         <div>
                           <CardTitle className="text-lg">{asset.name}</CardTitle>
-                          <p className="text-sm text-muted-foreground">{asset.model || asset.category}</p>
+                          <p className="text-sm text-muted-foreground">{asset.model || asset.type}</p>
                         </div>
                       </div>
                       <Badge className={getStatusColor(asset.status)}>
@@ -169,17 +170,17 @@ export default function Assets() {
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Calendar className="h-4 w-4" />
-                        <span>Purchased: {new Date(asset.purchaseDate).toLocaleDateString()}</span>
+                        <span>Purchased: {asset.purchaseDate ? new Date(asset.purchaseDate).toLocaleDateString() : 'N/A'}</span>
                       </div>
                       {asset.location && (
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <MapPin className="h-4 w-4" />
-                          <span>{asset.location.name || 'Unknown Location'}</span>
+                          <span>{asset.location || 'Unknown Location'}</span>
                         </div>
                       )}
                       <div className="pt-2">
                         <p className="text-sm font-medium">
-                          Value: ${asset.purchasePrice?.toLocaleString() || 'N/A'}
+                          Value: {formatCurrency(asset.purchasePrice || 0)}
                         </p>
                         {asset.serialNumber && (
                           <p className="text-xs text-muted-foreground">

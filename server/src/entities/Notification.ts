@@ -1,4 +1,4 @@
-import { DeliveryChannel, NotificationStatus, NotificationType, Priority } from '@kuyash/shared';
+import { DeliveryChannel, NotificationStatus, NotificationType, Priority } from '../../../shared/src/types';
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
 import { NotificationTemplate } from './NotificationTemplate';

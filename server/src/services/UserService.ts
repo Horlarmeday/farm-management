@@ -6,7 +6,7 @@ import {
   NotificationType,
   PayrollStatus,
   UserStatus,
-} from '@kuyash/shared';
+} from '../../../shared/src/types';
 import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
 import * as jwt from 'jsonwebtoken';
@@ -23,6 +23,7 @@ import { Role } from '../entities/Role';
 import { User } from '../entities/User';
 import { UserSession } from '../entities/UserSession';
 import { BadRequestError, NotFoundError, UnauthorizedError } from '../utils/errors';
+import { ErrorHandler, ValidationError, ConflictError } from '../utils/error-handler';
 import { NotificationService } from './NotificationService';
 import { ServiceFactory } from './ServiceFactory';
 
@@ -94,23 +95,27 @@ export class UserService {
   }
 
   async getUserById(id: string): Promise<User> {
-    const user = await this.userRepository.findOne({
-      where: { id },
-      relations: ['role', 'department', 'attendances', 'payrolls', 'leaves'],
-    });
+    const user = await ErrorHandler.handleDatabaseOperation(
+      () => this.userRepository.findOne({
+        where: { id },
+        relations: ['role', 'department', 'attendances', 'payrolls', 'leaves'],
+      }),
+      'getUserById - user lookup'
+    );
 
-    if (!user) {
-      throw new NotFoundError('User not found');
-    }
+    ErrorHandler.validateExists(user, 'User');
 
-    return user;
+    return user!;
   }
 
   async getUserByEmail(email: string): Promise<User | null> {
-    return this.userRepository.findOne({
-      where: { email },
-      relations: ['role', 'department'],
-    });
+    return ErrorHandler.handleDatabaseOperation(
+      () => this.userRepository.findOne({
+        where: { email },
+        relations: ['role', 'department'],
+      }),
+      'getUserByEmail - user lookup'
+    );
   }
 
   async getUserByUsername(username: string): Promise<User | null> {
@@ -268,9 +273,12 @@ export class UserService {
   }
 
   async resetPassword(token: string, newPassword: string): Promise<void> {
-    const resetToken = await this.passwordResetTokenRepository.findOne({
-      where: { token, expiresAt: { $gt: new Date() } as any },
-    });
+    const resetToken = await ErrorHandler.handleDatabaseOperation(
+      () => this.passwordResetTokenRepository.findOne({
+        where: { token, expiresAt: { $gt: new Date() } as any },
+      }),
+      'resetPassword - token lookup'
+    );
 
     if (!resetToken) {
       throw new BadRequestError('Invalid or expired reset token');
@@ -280,7 +288,10 @@ export class UserService {
     await this.updateUser(resetToken.userId, { password: hashedPassword });
 
     // Remove used token
-    await this.passwordResetTokenRepository.remove(resetToken);
+    await ErrorHandler.handleDatabaseOperation(
+      () => this.passwordResetTokenRepository.remove(resetToken),
+      'resetPassword - remove token'
+    );
   }
 
   // Role Management
@@ -297,7 +308,10 @@ export class UserService {
       isActive: roleData.isActive !== false,
     });
 
-    return this.roleRepository.save(role);
+    return ErrorHandler.handleDatabaseOperation(
+      () => this.roleRepository.save(role),
+      'createRole - save role'
+    );
   }
 
   async getRoles(filters?: { isActive?: boolean; level?: number }): Promise<Role[]> {
@@ -315,22 +329,26 @@ export class UserService {
   }
 
   async getRoleById(id: string): Promise<Role> {
-    const role = await this.roleRepository.findOne({
-      where: { id },
-      relations: ['users'],
-    });
+    const role = await ErrorHandler.handleDatabaseOperation(
+      () => this.roleRepository.findOne({
+        where: { id },
+        relations: ['users'],
+      }),
+      'getRoleById - role lookup'
+    );
 
-    if (!role) {
-      throw new NotFoundError('Role not found');
-    }
+    ErrorHandler.validateExists(role, 'Role');
 
-    return role;
+    return role!;
   }
 
   async updateRole(id: string, updates: Partial<Role>): Promise<Role> {
     const role = await this.getRoleById(id);
     Object.assign(role, updates);
-    return this.roleRepository.save(role);
+    return ErrorHandler.handleDatabaseOperation(
+      () => this.roleRepository.save(role),
+      'updateRole - save role'
+    );
   }
 
   // Department Management

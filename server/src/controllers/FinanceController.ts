@@ -1,4 +1,4 @@
-import { ApiResponse, FinanceTransactionType } from '@kuyash/shared';
+import { ApiResponse, FinanceTransactionType } from '../../../shared/src/types';
 import { NextFunction, Request, Response } from 'express';
 import { FinanceService } from '../services/FinanceService';
 import { ServiceFactory } from '../services/ServiceFactory';

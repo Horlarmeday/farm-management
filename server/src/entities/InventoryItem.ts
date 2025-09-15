@@ -2,7 +2,7 @@ import { Entity, Column, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
 import { Farm } from './Farm';
 import { InventoryTransaction } from './InventoryTransaction';
-import { InventoryCategory } from '@kuyash/shared';
+import { InventoryCategory } from '../../../shared/src/types';
 
 @Entity('inventory_items')
 export class InventoryItem extends BaseEntity {

@@ -5,7 +5,7 @@ import { User } from './entities/User';
 import { Asset } from './entities/Asset';
 import { Location } from './entities/Location';
 import { Role } from './entities/Role';
-import { FarmRole, AssetType, UserStatus } from '@kuyash/shared';
+import { FarmRole, AssetType, UserStatus } from '../../shared/src/types';
 import { In } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 

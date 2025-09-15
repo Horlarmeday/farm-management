@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { InvitationService, CreateInvitationRequest, AcceptInvitationRequest } from '../services/invitation.service';
-import { FarmRole } from '@kuyash/shared';
+import { FarmRole } from '../../../shared/src/types';
 import { body, param, validationResult } from 'express-validator';
 
 export class InvitationController {

@@ -6,7 +6,7 @@ import {
   PaymentMethod,
   ProductionType,
   TransactionType,
-} from '@kuyash/shared';
+} from '../../../shared/src/types';
 import { Repository } from 'typeorm';
 import { AppDataSource } from '../config/database';
 import { Animal } from '../entities/Animal';

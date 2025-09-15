@@ -4,7 +4,7 @@ import {
   Status,
   UserResponse,
   UserStatus,
-} from '@kuyash/shared';
+} from '../../../shared/src/types';
 import { Repository } from 'typeorm';
 import { AppDataSource } from '../config/database';
 import { Role } from '../entities/Role';

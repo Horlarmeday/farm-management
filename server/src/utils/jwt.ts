@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { config } from '@/config';
 import { User } from '@/entities/User';
-import { JwtPayload } from '@kuyash/shared';
+import { JwtPayload } from '../../../shared/src/types';
 
 export interface TokenResponse {
   accessToken: string;

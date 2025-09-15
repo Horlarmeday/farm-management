@@ -4,7 +4,7 @@ import { FarmUser } from '../entities/FarmUser';
 import { Farm } from '../entities/Farm';
 import { User as UserEntity } from '../entities/User';
 import { ApiError } from '../utils/ApiError';
-import { FarmRole } from '@kuyash/shared';
+import { FarmRole } from '../../../shared/src/types';
 
 // Extend Express Request interface for farm context
 declare global {

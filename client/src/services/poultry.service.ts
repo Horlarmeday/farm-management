@@ -12,8 +12,8 @@ import {
   PoultryStats,
   BirdType,
   BirdStatus,
-} from '../../../shared/src/types/poultry.types';
-import { ApiResponse, PaginatedResponse } from '../../../shared/src/types/api.types';
+} from '@/types/poultry.types';
+import { ApiResponse, PaginatedResponse } from '@/types/api.types';
 import { apiClient } from './api';
 
 export class PoultryService {

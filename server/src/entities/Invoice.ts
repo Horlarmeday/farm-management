@@ -1,4 +1,4 @@
-import { InvoiceStatus } from '@kuyash/shared';
+import { InvoiceStatus } from '../../../shared/src/types';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
 import { InvoiceItem } from './InvoiceItem';

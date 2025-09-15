@@ -1,4 +1,4 @@
-import { ApiResponse, PondStatus, PondType } from '@kuyash/shared';
+import { ApiResponse, PondStatus, PondType } from '../../../shared/src/types';
 import { NextFunction, Request, Response } from 'express';
 import { FisheryService } from '../services/FisheryService';
 import { ServiceFactory } from '../services/ServiceFactory';

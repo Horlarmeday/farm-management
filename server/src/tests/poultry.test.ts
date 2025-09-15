@@ -1,4 +1,4 @@
-import { BirdStatus, BirdType } from '@kuyash/shared';
+import { BirdStatus, BirdType } from '../../../shared/src/types';
 import request from 'supertest';
 import { app } from '../app';
 import { TestData, TestUtils } from './utils';

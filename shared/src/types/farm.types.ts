@@ -21,10 +21,14 @@ export interface Farm {
   updatedAt: Date;
 }
 
+// Export type for runtime usage
+export type FarmType = Farm;
+
 export interface FarmUser {
   id: string;
   farmId: string;
   userId: string;
+  farm?: Farm;
   role: FarmRole;
   isActive: boolean;
   joinedAt?: Date;

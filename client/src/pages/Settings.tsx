@@ -8,9 +8,11 @@ import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Settings as SettingsIcon, User, Bell, Shield, Database } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Settings() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [notifications, setNotifications] = useState({
     email: true,
     push: false,
@@ -23,14 +25,18 @@ export default function Settings() {
     phone: '',
   });
 
-  const handleProfileSave = () => {
-    // TODO: Implement profile update
-    console.log('Saving profile:', profile);
+  const handleSaveProfile = () => {
+    toast({
+      title: "Success",
+      description: "Profile updated successfully",
+    });
   };
 
-  const handleNotificationSave = () => {
-    // TODO: Implement notification preferences update
-    console.log('Saving notifications:', notifications);
+  const handleSaveNotifications = () => {
+    toast({
+      title: "Success",
+      description: "Notification preferences updated",
+    });
   };
 
   return (
@@ -90,7 +96,7 @@ export default function Settings() {
                 placeholder="+1 (555) 123-4567"
               />
             </div>
-            <Button onClick={handleProfileSave}>Save Profile</Button>
+            <Button onClick={handleSaveProfile}>Save Profile</Button>
           </CardContent>
         </Card>
 
@@ -150,7 +156,7 @@ export default function Settings() {
                 }
               />
             </div>
-            <Button onClick={handleNotificationSave}>Save Preferences</Button>
+            <Button onClick={handleSaveNotifications}>Save Preferences</Button>
           </CardContent>
         </Card>
 

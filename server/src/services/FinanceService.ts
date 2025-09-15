@@ -4,7 +4,7 @@ import {
   InvoiceStatus,
   PaymentMethod,
   PaymentStatus,
-} from '@kuyash/shared';
+} from '../../../shared/src/types';
 import { Repository, IsNull, Between } from 'typeorm';
 import { AppDataSource } from '../config/database';
 import { Account } from '../entities/Account';

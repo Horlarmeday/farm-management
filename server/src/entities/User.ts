@@ -1,4 +1,4 @@
-import { UserStatus } from '@kuyash/shared';
+import { UserStatus } from '../../../shared/src/types';
 import * as bcrypt from 'bcryptjs';
 import {
   BeforeInsert,
@@ -24,6 +24,8 @@ import { PayrollRecord } from './PayrollRecord';
 import { Role } from './Role';
 import { Task } from './Task';
 import { FarmUser } from './FarmUser';
+import { PushSubscription } from './PushSubscription';
+import { NotificationPreference } from './NotificationPreference';
 
 @Entity('users')
 export class User extends BaseEntity {
@@ -183,6 +185,12 @@ export class User extends BaseEntity {
 
   @OneToMany(() => FarmUser, (farmUser) => farmUser.user)
   farmUsers!: FarmUser[];
+
+  @OneToMany(() => PushSubscription, (pushSubscription) => pushSubscription.user)
+  pushSubscriptions!: PushSubscription[];
+
+  @OneToMany(() => NotificationPreference, (notificationPreference) => notificationPreference.user)
+  notificationPreferences!: NotificationPreference[];
 
   // Computed properties
   get fullName(): string {

@@ -19,14 +19,14 @@ import {
   IncomeCategory,
   ExpenseCategory,
   CreateTransactionRequest
-} from '../../../../shared/src/types/finance.types';
+} from '@/types/finance.types';
 
 // Form validation schema
 const transactionSchema = z.object({
   type: z.nativeEnum(FinanceTransactionType),
   category: z.string().min(1, 'Category is required'),
   amount: z.number().min(0.01, 'Amount must be greater than 0'),
-  currency: z.string().default('USD'),
+  currency: z.string().default('NGN'),
   description: z.string().min(1, 'Description is required'),
   date: z.string().min(1, 'Date is required'),
   paymentMethod: z.nativeEnum(PaymentMethod),
@@ -86,7 +86,7 @@ export default function TransactionForm({ onSuccess, onCancel }: TransactionForm
     resolver: zodResolver(transactionSchema),
     defaultValues: {
       type: FinanceTransactionType.EXPENSE,
-      currency: 'USD',
+      currency: 'NGN',
       date: new Date().toISOString().split('T')[0],
       paymentMethod: PaymentMethod.CASH,
       category: '',
@@ -206,7 +206,7 @@ export default function TransactionForm({ onSuccess, onCancel }: TransactionForm
                 name="amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Amount (USD)</FormLabel>
+                    <FormLabel>Amount (NGN)</FormLabel>
                     <FormControl>
                       <Input
                         type="number"

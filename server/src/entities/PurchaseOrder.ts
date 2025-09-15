@@ -1,4 +1,4 @@
-import { PurchaseOrderStatus } from '@kuyash/shared';
+import { PurchaseOrderStatus } from '../../../shared/src/types';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
 import { PurchaseOrderItem } from './PurchaseOrderItem';

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import rateLimit from 'express-rate-limit';
-import { ApiResponse } from '@kuyash/shared';
+import { ApiResponse } from '../../../shared/src/types';
 
 /**
  * Rate limiter middleware factory

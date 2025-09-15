@@ -1,7 +1,7 @@
 import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
 import { ProfitLossReport } from './ProfitLossReport';
-import { FinanceTransactionType } from '@kuyash/shared';
+import { FinanceTransactionType } from '../../../shared/src/types';
 
 @Entity('profit_loss_items')
 export class ProfitLossItem extends BaseEntity {

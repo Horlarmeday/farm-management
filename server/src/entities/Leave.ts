@@ -1,4 +1,4 @@
-import { LeaveStatus, LeaveType } from '@kuyash/shared';
+import { LeaveStatus, LeaveType } from '../../../shared/src/types';
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
 import { User } from './User';

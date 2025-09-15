@@ -1,4 +1,4 @@
-import { InventoryCategory, PurchaseOrderStatus, TransactionType } from '@kuyash/shared';
+import { InventoryCategory, PurchaseOrderStatus, TransactionType } from '../../../shared/src/types';
 import { Repository } from 'typeorm';
 import { AppDataSource } from '../config/database';
 import { InventoryItem } from '../entities/InventoryItem';

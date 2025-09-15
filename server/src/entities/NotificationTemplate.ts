@@ -2,7 +2,7 @@ import { Entity, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
 import { User } from './User';
 import { Notification } from './Notification';
-import { NotificationType } from '@kuyash/shared';
+import { NotificationType } from '../../../shared/src/types';
 
 export enum TemplateType {
   EMAIL = 'email',

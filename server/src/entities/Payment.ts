@@ -1,7 +1,7 @@
 import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
 import { Invoice } from './Invoice';
-import { PaymentStatus, PaymentMethod } from '@kuyash/shared';
+import { PaymentStatus, PaymentMethod } from '../../../shared/src/types';
 
 @Entity('payments')
 export class Payment extends BaseEntity {

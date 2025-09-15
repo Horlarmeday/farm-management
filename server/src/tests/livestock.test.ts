@@ -1,4 +1,4 @@
-import { AnimalType } from '@kuyash/shared';
+import { AnimalType } from '../../../shared/src/types';
 import request from 'supertest';
 import { app } from '../app';
 import { TestData, TestUtils } from './utils';

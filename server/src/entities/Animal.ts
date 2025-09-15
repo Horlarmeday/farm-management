@@ -3,7 +3,7 @@ import { BaseEntity } from './BaseEntity';
 import { User } from './User';
 import { Location } from './Location';
 import { Farm } from './Farm';
-import { AnimalStatus, AnimalType } from '@kuyash/shared';
+import { AnimalStatus, AnimalType } from '../../../shared/src/types';
 
 @Entity('animals')
 export class Animal extends BaseEntity {

@@ -9,7 +9,7 @@ import {
   PondType,
   PondStatus,
   UserStatus,
-} from '@kuyash/shared';
+} from '../../../shared/src/types';
 import request from 'supertest';
 import { app } from '../app';
 import { User } from '../entities/User';

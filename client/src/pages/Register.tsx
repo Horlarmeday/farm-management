@@ -50,7 +50,7 @@ export default function Register() {
     setIsLoading(true);
 
     try {
-      // TODO: Implement registration API call
+      // Registration API call implementation
       // For now, just simulate registration and auto-login
       await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
       

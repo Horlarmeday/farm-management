@@ -71,7 +71,7 @@ class ApiClient {
   private refreshPromise: Promise<string> | null = null;
 
   constructor() {
-    this.baseURL = 'http://localhost:5000';
+    this.baseURL = 'http://localhost:5058';
   }
 
   private async refreshToken(): Promise<string> {

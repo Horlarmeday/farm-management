@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { ApiResponse } from '@kuyash/shared';
+import { ApiResponse } from '../../../shared/src/types';
 
 // Simple in-memory cache for development
 // In production, this should be replaced with Redis

@@ -1,4 +1,4 @@
-import { Link, useLocation } from "wouter";
+import { Link, useLocation } from "react-router-dom";
 import { Bell, Leaf, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -13,19 +13,21 @@ import {
 
 const navigation = [
   { name: "Dashboard", href: "/" },
+  { name: "Real-Time", href: "/real-time" },
+  { name: "Analytics", href: "/analytics" },
+  { name: "IoT Sensors", href: "/iot-sensors" },
   { name: "Poultry", href: "/poultry" },
   { name: "Livestock", href: "/livestock" },
   { name: "Fishery", href: "/fishery" },
   { name: "Assets", href: "/assets" },
   { name: "Inventory", href: "/inventory" },
   { name: "Finance", href: "/finance" },
-  { name: "HR", href: "/hr" },
   { name: "Reports", href: "/reports" },
   { name: "Notifications", href: "/notifications" },
 ];
 
 export default function Navbar() {
-  const [location] = useLocation();
+  const location = useLocation();
   const { user, logout, isLoggingOut } = useAuth();
 
   const handleLogout = () => {
@@ -47,7 +49,7 @@ export default function Navbar() {
       <div className="max-w-full mx-auto px-6">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
-            <Link href="/" className="flex items-center space-x-2">
+            <Link to="/" className="flex items-center space-x-2">
               <Leaf className="h-8 w-8 text-primary" />
               <span className="text-xl font-bold text-gray-900 dark:text-white">
                 Kuyash FMS
@@ -58,11 +60,11 @@ export default function Navbar() {
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-4">
               {navigation.map((item) => (
-                <Link key={item.name} href={item.href}>
+                <Link key={item.name} to={item.href}>
                   <Button
-                    variant={location === item.href ? "default" : "ghost"}
+                    variant={location.pathname === item.href ? "default" : "ghost"}
                     className={
-                      location === item.href
+                      location.pathname === item.href
                         ? "bg-primary/10 text-primary hover:bg-primary/20"
                         : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                     }
@@ -75,7 +77,7 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center space-x-4">
-            <Link href="/notifications">
+            <Link to="/notifications">
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="h-5 w-5" />
                 <Badge className="absolute -top-1 -right-1 h-2 w-2 p-0 bg-red-500">

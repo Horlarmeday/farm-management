@@ -2,7 +2,7 @@ import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
 import { Animal } from './Animal';
 import { User } from './User';
-import { FeedType } from '@kuyash/shared';
+import { FeedType } from '../../../shared/src/types';
 
 @Entity('animal_feeding_logs')
 export class AnimalFeedingLog extends BaseEntity {

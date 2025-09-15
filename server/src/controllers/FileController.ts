@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { StorageFactory } from '../services/storage/StorageFactory';
-import { ApiResponse } from '@kuyash/shared';
+import { ApiResponse } from '../../../shared/src/types';
 import path from 'path';
 
 export class FileController {

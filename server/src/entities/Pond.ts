@@ -2,7 +2,7 @@ import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
 import { Farm } from './Farm';
 import { Location } from './Location';
-import { PondType, PondStatus } from '@kuyash/shared';
+import { PondType, PondStatus } from '../../../shared/src/types';
 
 @Entity('ponds')
 export class Pond extends BaseEntity {

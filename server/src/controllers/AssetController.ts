@@ -1,4 +1,4 @@
-import { ApiResponse } from '@kuyash/shared';
+import { ApiResponse } from '../../../shared/src/types';
 import { NextFunction, Request, Response } from 'express';
 import { AssetService } from '../services/AssetService';
 import { ServiceFactory } from '../services/ServiceFactory';

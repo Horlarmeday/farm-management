@@ -4,7 +4,7 @@ import { authenticate } from '../middleware/auth.middleware';
 import { requireFarmAccessWithRole } from '../middleware/farm-auth.middleware';
 import { validate } from '../middleware/joiValidation.middleware';
 import { poultryValidations } from '../validations/poultry.validations';
-import { FarmRole } from '@kuyash/shared';
+import { FarmRole } from '../../../shared/src/types';
 
 const router: Router = Router();
 const poultryController = new PoultryController();

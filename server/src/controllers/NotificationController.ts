@@ -1,4 +1,4 @@
-import { ApiResponse } from '@kuyash/shared';
+import { ApiResponse } from '../../../shared/src/types';
 import { NextFunction, Request, Response } from 'express';
 import { NotificationService } from '../services/NotificationService';
 import { ServiceFactory } from '../services/ServiceFactory';
@@ -567,6 +567,81 @@ export class NotificationController {
         message: 'User preferences retrieved successfully',
         data: preferences,
       } as ApiResponse<typeof preferences>);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  // Push Notification Subscriptions
+  subscribeToPush = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const subscription = await this.notificationService.subscribeToPush(
+        req.user!.id,
+        req.body
+      );
+
+      res.status(201).json({
+        success: true,
+        message: 'Push notification subscription created successfully',
+        data: subscription,
+      } as ApiResponse<typeof subscription>);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  unsubscribeFromPush = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      await this.notificationService.unsubscribeFromPush(
+        req.user!.id,
+        req.body.endpoint
+      );
+
+      res.json({
+        success: true,
+        message: 'Push notification subscription removed successfully',
+      } as ApiResponse<null>);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getPushSubscriptions = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const subscriptions = await this.notificationService.getPushSubscriptions(req.user!.id);
+
+      res.json({
+        success: true,
+        message: 'Push subscriptions retrieved successfully',
+        data: subscriptions,
+      } as ApiResponse<typeof subscriptions>);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  sendTestNotification = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      await this.notificationService.sendTestNotification(req.user!.id);
+
+      res.json({
+        success: true,
+        message: 'Test notification sent successfully',
+      } as ApiResponse<null>);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getAlertRules = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const rules = await this.notificationService.getAlertRules();
+
+      res.json({
+        success: true,
+        message: 'Alert rules retrieved successfully',
+        data: rules,
+      } as ApiResponse<typeof rules>);
     } catch (error) {
       next(error);
     }

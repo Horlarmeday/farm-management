@@ -4,7 +4,7 @@ import {
   FinanceTransactionType,
   PaymentMethod,
   TransactionType,
-} from '@kuyash/shared';
+} from '../../../shared/src/types';
 import { Repository } from 'typeorm';
 import { AppDataSource } from '../config/database';
 import { BirdBatch } from '../entities/BirdBatch';

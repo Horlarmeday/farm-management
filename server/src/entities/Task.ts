@@ -1,4 +1,4 @@
-import { TaskPriority, TaskStatus } from '@kuyash/shared';
+import { TaskPriority, TaskStatus } from '../../../shared/src/types';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
 import { Farm } from './Farm';

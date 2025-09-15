@@ -7,8 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Building2, Users, Plus, AlertCircle } from 'lucide-react';
 import { useUserFarms } from '@/hooks/useFarm';
-import { FarmRole } from '../../../../shared/src/types/farm.types';
-import { FarmUser, Farm } from '../../../../shared/src/types/farm.types';
+import { FarmRole, FarmUser, Farm } from '@/types/farm.types';
 import { toast } from 'sonner';
 
 interface FarmSelectionProps {
@@ -159,7 +158,7 @@ const FarmSelection: React.FC<FarmSelectionProps> = ({ onFarmSelect }) => {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <CardTitle className="text-lg font-semibold text-gray-900 mb-1">
-                          Farm {farmUser.farmId}
+                          Farm {farmUser.farm?.name || farmUser.farmId}
                         </CardTitle>
                         <Badge 
                           variant="outline" 

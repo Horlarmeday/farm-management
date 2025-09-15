@@ -1,4 +1,4 @@
-import { InventoryType, TransactionType } from '@kuyash/shared';
+import { InventoryType, TransactionType } from '../../../shared/src/types';
 import request from 'supertest';
 import { app } from '../app';
 import { TestData, TestUtils } from './utils';

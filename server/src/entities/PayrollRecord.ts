@@ -1,7 +1,7 @@
 import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
 import { User } from './User';
-import { PayrollStatus } from '@kuyash/shared';
+import { PayrollStatus } from '../../../shared/src/types';
 
 @Entity('payroll_records')
 export class PayrollRecord extends BaseEntity {

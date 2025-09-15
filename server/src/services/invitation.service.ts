@@ -4,9 +4,10 @@ import { FarmInvitation, InvitationStatus } from '../entities/FarmInvitation';
 import { FarmUser } from '../entities/FarmUser';
 import { User } from '../entities/User';
 import { Farm } from '../entities/Farm';
-import { FarmRole } from '@kuyash/shared';
+import { FarmRole } from '../../../shared/src/types';
 import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
+import { ErrorHandler, NotFoundError, ValidationError, ConflictError, ForbiddenError } from '../utils/error-handler';
 
 export interface CreateInvitationRequest {
   farmId: string;
@@ -37,42 +38,55 @@ export class InvitationService {
 
   async createInvitation(data: CreateInvitationRequest): Promise<FarmInvitation> {
     // Check if farm exists
-    const farm = await this.farmRepo.findOne({ where: { id: data.farmId } });
-    if (!farm) {
-      throw new Error('Farm not found');
-    }
+    const farm = await ErrorHandler.handleDatabaseOperation(
+      () => this.farmRepo.findOne({ where: { id: data.farmId } }),
+      'sendInvitation - farm lookup'
+    );
+    ErrorHandler.validateExists(farm, 'Farm');
 
     // Check if inviter has permission (must be owner or manager)
-    const inviterFarmUser = await this.farmUserRepo.findOne({
-      where: { farmId: data.farmId, userId: data.invitedById, isActive: true }
-    });
+    const inviterFarmUser = await ErrorHandler.handleDatabaseOperation(
+      () => this.farmUserRepo.findOne({
+        where: { farmId: data.farmId, userId: data.invitedById, isActive: true }
+      }),
+      'sendInvitation - inviter lookup'
+    );
     
     if (!inviterFarmUser || (inviterFarmUser.role !== FarmRole.OWNER && inviterFarmUser.role !== FarmRole.MANAGER)) {
-      throw new Error('Insufficient permissions to send invitations');
+      throw new ForbiddenError('Insufficient permissions to send invitations');
     }
 
     // Check if user is already a member of the farm
-    const existingUser = await this.userRepo.findOne({ where: { email: data.inviteeEmail } });
+    const existingUser = await ErrorHandler.handleDatabaseOperation(
+      () => this.userRepo.findOne({ where: { email: data.inviteeEmail } }),
+      'sendInvitation - user lookup'
+    );
     if (existingUser) {
-      const existingMembership = await this.farmUserRepo.findOne({
-        where: { farmId: data.farmId, userId: existingUser.id }
-      });
+      const existingMembership = await ErrorHandler.handleDatabaseOperation(
+        () => this.farmUserRepo.findOne({
+          where: { farmId: data.farmId, userId: existingUser.id }
+        }),
+        'sendInvitation - membership lookup'
+      );
       if (existingMembership) {
-        throw new Error('User is already a member of this farm');
+        throw new ConflictError('User is already a member of this farm');
       }
     }
 
     // Check if there's already a pending invitation
-    const existingInvitation = await this.invitationRepo.findOne({
-      where: {
-        farmId: data.farmId,
-        inviteeEmail: data.inviteeEmail,
-        status: InvitationStatus.PENDING
-      }
-    });
+    const existingInvitation = await ErrorHandler.handleDatabaseOperation(
+      () => this.invitationRepo.findOne({
+        where: {
+          farmId: data.farmId,
+          inviteeEmail: data.inviteeEmail,
+          status: InvitationStatus.PENDING
+        }
+      }),
+      'sendInvitation - invitation lookup'
+    );
 
     if (existingInvitation) {
-      throw new Error('Invitation already sent to this email');
+      throw new ConflictError('Invitation already sent to this email');
     }
 
     // Create invitation
@@ -88,7 +102,10 @@ export class InvitationService {
     invitation.expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
     invitation.status = InvitationStatus.PENDING;
 
-    return await this.invitationRepo.save(invitation);
+    return await ErrorHandler.handleDatabaseOperation(
+      () => this.invitationRepo.save(invitation),
+      'sendInvitation - save invitation'
+    );
   }
 
   async getInvitationByToken(token: string): Promise<FarmInvitation | null> {
@@ -99,21 +116,27 @@ export class InvitationService {
   }
 
   async acceptInvitation(data: AcceptInvitationRequest): Promise<FarmUser> {
-    const invitation = await this.getInvitationByToken(data.token);
+    const invitation = await ErrorHandler.handleDatabaseOperation(
+      () => this.getInvitationByToken(data.token),
+      'acceptInvitation - invitation lookup'
+    );
     
     if (!invitation) {
-      throw new Error('Invalid invitation token');
+      throw new NotFoundError('Invalid invitation token');
     }
 
     if (invitation.status !== InvitationStatus.PENDING) {
-      throw new Error('Invitation is no longer valid');
+      throw new ValidationError('Invitation is no longer valid');
     }
 
     if (invitation.expiresAt < new Date()) {
       // Mark as expired
       invitation.status = InvitationStatus.EXPIRED;
-      await this.invitationRepo.save(invitation);
-      throw new Error('Invitation has expired');
+      await ErrorHandler.handleDatabaseOperation(
+        () => this.invitationRepo.save(invitation),
+        'acceptInvitation - mark expired'
+      );
+      throw new ValidationError('Invitation has expired');
     }
 
     // Check if user exists
@@ -128,12 +151,15 @@ export class InvitationService {
     }
 
     // Check if user is already a member
-    const existingMembership = await this.farmUserRepo.findOne({
-      where: { farmId: invitation.farmId, userId: data.userId }
-    });
+    const existingMembership = await ErrorHandler.handleDatabaseOperation(
+      () => this.farmUserRepo.findOne({
+        where: { farmId: invitation.farmId, userId: data.userId }
+      }),
+      'acceptInvitation - membership lookup'
+    );
 
     if (existingMembership) {
-      throw new Error('User is already a member of this farm');
+      throw new ConflictError('User is already a member of this farm');
     }
 
     // Create farm membership
@@ -152,10 +178,13 @@ export class InvitationService {
     invitation.acceptedById = data.userId;
 
     // Save both in a transaction
-    await AppDataSource.transaction(async (manager) => {
-      await manager.save(farmUser);
-      await manager.save(invitation);
-    });
+    await ErrorHandler.handleDatabaseOperation(
+      () => AppDataSource.transaction(async (manager) => {
+        await manager.save(farmUser);
+        await manager.save(invitation);
+      }),
+      'acceptInvitation - save transaction'
+    );
 
     return farmUser;
   }

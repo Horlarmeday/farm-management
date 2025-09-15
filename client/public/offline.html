@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - Farm Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .offline-container {
+            max-width: 500px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .offline-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .primary-button {
+            background: rgba(5, 150, 105, 0.8);
+            border-color: rgba(5, 150, 105, 1);
+        }
+
+        .primary-button:hover {
+            background: rgba(5, 150, 105, 1);
+        }
+
+        .status-indicator {
+            margin-top: 30px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            border-left: 4px solid #ef4444;
+        }
+
+        .status-indicator.online {
+            border-left-color: #10b981;
+        }
+
+        .status-text {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .features-list {
+            margin-top: 30px;
+            text-align: left;
+        }
+
+        .features-list h3 {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .features-list ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .features-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            opacity: 0.8;
+        }
+
+        .features-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        @media (max-width: 480px) {
+            .offline-container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .button-group {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            button {
+                width: 100%;
+                max-width: 200px;
+            }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-container">
+        <div class="offline-icon">
+            📡
+        </div>
+        
+        <h1>You're Offline</h1>
+        
+        <p>
+            Farm Manager is currently not available. Please check your internet connection and try again.
+        </p>
+        
+        <div class="button-group">
+            <button class="primary-button" onclick="tryReconnect()">
+                Try Again
+                <span id="loading" class="loading" style="display: none;"></span>
+            </button>
+            <button onclick="goHome()">
+                Go to Dashboard
+            </button>
+        </div>
+        
+        <div class="status-indicator" id="status">
+            <div class="status-text">🔴 Offline</div>
+        </div>
+        
+        <div class="features-list">
+            <h3>Available Offline Features:</h3>
+            <ul>
+                <li>View cached farm data</li>
+                <li>Browse livestock records</li>
+                <li>Check inventory items</li>
+                <li>Review financial reports</li>
+                <li>Access saved documents</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        let isRetrying = false;
+
+        // Check online status
+        function updateOnlineStatus() {
+            const status = document.getElementById('status');
+            const statusText = status.querySelector('.status-text');
+            
+            if (navigator.onLine) {
+                status.classList.add('online');
+                statusText.innerHTML = '🟢 Back Online';
+                
+                // Auto-redirect when back online
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } else {
+                status.classList.remove('online');
+                statusText.innerHTML = '🔴 Offline';
+            }
+        }
+
+        // Try to reconnect
+        async function tryReconnect() {
+            if (isRetrying) return;
+            
+            isRetrying = true;
+            const button = event.target;
+            const loading = document.getElementById('loading');
+            
+            button.disabled = true;
+            loading.style.display = 'inline-block';
+            
+            try {
+                // Try to fetch a small resource to test connectivity
+                const response = await fetch('/', { 
+                    method: 'HEAD',
+                    cache: 'no-cache'
+                });
+                
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    throw new Error('Still offline');
+                }
+            } catch (error) {
+                console.log('Still offline:', error);
+                
+                // Show feedback
+                button.textContent = 'Still Offline';
+                setTimeout(() => {
+                    button.textContent = 'Try Again';
+                    button.disabled = false;
+                    loading.style.display = 'none';
+                    isRetrying = false;
+                }, 2000);
+            }
+        }
+
+        // Go to home/dashboard
+        function goHome() {
+            window.location.href = '/';
+        }
+
+        // Listen for online/offline events
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+
+        // Initial status check
+        updateOnlineStatus();
+
+        // Periodic connectivity check
+        setInterval(() => {
+            if (!navigator.onLine) {
+                // Try a simple fetch to double-check connectivity
+                fetch('/', { method: 'HEAD', cache: 'no-cache' })
+                    .then(() => {
+                        // If fetch succeeds but navigator.onLine is false,
+                        // we might have connectivity
+                        updateOnlineStatus();
+                    })
+                    .catch(() => {
+                        // Confirmed offline
+                    });
+            }
+        }, 5000);
+
+        // Service worker message handling
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('message', (event) => {
+                if (event.data.type === 'CONNECTIVITY_RESTORED') {
+                    updateOnlineStatus();
+                }
+            });
+        }
+    </script>
+</body>
+</html>

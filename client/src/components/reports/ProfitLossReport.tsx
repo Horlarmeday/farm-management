@@ -124,14 +124,14 @@ export default function ProfitLossReport() {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-NG', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'NGN'
     }).format(amount);
   };
 
   const handleExport = (format: 'pdf' | 'csv') => {
-    console.log(`Exporting P&L report as ${format}`);
+    // Export functionality would be implemented here
   };
 
   const handlePrint = () => {

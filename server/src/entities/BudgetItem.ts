@@ -1,7 +1,7 @@
 import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
 import { Budget } from './Budget';
-import { ExpenseCategory } from '@kuyash/shared';
+import { ExpenseCategory } from '../../../shared/src/types';
 
 @Entity('budget_items')
 export class BudgetItem extends BaseEntity {

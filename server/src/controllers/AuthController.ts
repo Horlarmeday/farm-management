@@ -6,7 +6,7 @@ import {
   ForgotPasswordRequest,
   LoginRequest,
   ResetPasswordRequest,
-} from '@kuyash/shared';
+} from '../../../shared/src/types';
 import { NextFunction, Request, Response } from 'express';
 import { ServiceFactory } from '../services/ServiceFactory';
 

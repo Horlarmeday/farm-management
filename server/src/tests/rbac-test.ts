@@ -1,4 +1,4 @@
-import { FarmRole } from '@kuyash/shared';
+import { FarmRole } from '../../../shared/src/types';
 import request from 'supertest';
 import { app } from '../app';
 import { TestUtils } from './utils';

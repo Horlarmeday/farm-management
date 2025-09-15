@@ -1,7 +1,7 @@
 import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
 import { User } from './User';
-import { TaskPriority } from '@kuyash/shared';
+import { TaskPriority } from '../../../shared/src/types';
 
 export enum ReminderType {
   TASK = 'task',

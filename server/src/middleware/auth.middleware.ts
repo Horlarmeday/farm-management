@@ -5,7 +5,7 @@ import { Role } from '../entities/Role';
 import { Permission } from '../entities/Permission';
 import { verifyAccessToken, extractBearerToken } from '../utils/jwt';
 import { ApiError } from '../utils/ApiError';
-import { JwtPayload } from '@kuyash/shared';
+import { JwtPayload } from '../../../shared/src/types';
 
 // Extend Express Request interface
 declare global {

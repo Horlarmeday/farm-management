@@ -1,5 +1,5 @@
 import { Entity, Column, ManyToOne, JoinColumn, Index } from 'typeorm';
-import { FarmRole } from '@kuyash/shared';
+import { FarmRole } from '../../../shared/src/types';
 import { BaseEntity } from './BaseEntity';
 import { Farm } from './Farm';
 import { User } from './User';

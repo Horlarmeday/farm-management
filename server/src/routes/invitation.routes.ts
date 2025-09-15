@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { InvitationController } from '../controllers/invitation.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { requireFarmAccess } from '../middleware/farm-auth';
-import { FarmRole } from '@kuyash/shared';
+import { FarmRole } from '../../../shared/src/types';
 
 const router = Router();
 const invitationController = new InvitationController();

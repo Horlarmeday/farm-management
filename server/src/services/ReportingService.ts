@@ -1,4 +1,4 @@
-import { DeliveryChannel, NotificationType, BirdStatus, AnimalStatus, FinanceTransactionType } from '@kuyash/shared';
+import { DeliveryChannel, NotificationType, BirdStatus, AnimalStatus, FinanceTransactionType } from '../../../shared/src/types';
 import * as ExcelJS from 'exceljs';
 import * as fs from 'fs';
 import * as path from 'path';

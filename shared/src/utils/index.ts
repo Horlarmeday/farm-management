@@ -113,7 +113,7 @@ export const clamp = (value: number, min: number, max: number): number => {
 
 // Array utilities
 export const unique = <T>(array: T[]): T[] => {
-  return [...new Set(array)];
+  return Array.from(new Set(array));
 };
 
 export const groupBy = <T, K extends keyof T>(array: T[], key: K): Record<string, T[]> => {

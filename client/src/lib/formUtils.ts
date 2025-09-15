@@ -1,5 +1,5 @@
-import { InventoryCategory } from '@/../../shared/src/types/inventory.types';
-import type { ExpenseCategory } from '@/../../shared/src/types/finance.types';
+import { InventoryCategory } from '@/types/inventory.types';
+import type { ExpenseCategory } from '@/types/finance.types';
 
 // Convert InventoryCategory enum to dropdown options
 export const getInventoryCategoryOptions = () => {

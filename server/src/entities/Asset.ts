@@ -1,4 +1,4 @@
-import { AssetStatus, AssetType } from '@kuyash/shared';
+import { AssetStatus, AssetType } from '../../../shared/src/types';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
 import { Farm } from './Farm';

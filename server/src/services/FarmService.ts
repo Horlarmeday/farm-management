@@ -4,7 +4,7 @@ import { Farm } from '@/entities/Farm';
 import { FarmUser } from '@/entities/FarmUser';
 import { FarmInvitation } from '@/entities/FarmInvitation';
 import { User } from '@/entities/User';
-import { ApiResponse, FarmRole } from '@kuyash/shared';
+import { ApiResponse, FarmRole } from '../../../shared/src/types';
 
 export class FarmService {
   private farmRepository: Repository<Farm>;

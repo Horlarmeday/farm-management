@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { FarmRole } from '@kuyash/shared';
+import { FarmRole } from '../../../shared/src/types';
 
 /**
  * Middleware to require farm access with specific roles

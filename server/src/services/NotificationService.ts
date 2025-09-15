@@ -8,7 +8,7 @@ import {
   Priority,
   TaskPriority,
   TaskStatus,
-} from '@kuyash/shared';
+} from '../../../shared/src/types';
 import { Repository } from 'typeorm';
 import { AppDataSource } from '../config/database';
 import { Alert } from '../entities/Alert';
@@ -1083,5 +1083,47 @@ export class NotificationService {
         in_app: { sent: 0, delivered: 0, failed: 0 },
       },
     };
+  }
+
+  // Push Notification Methods
+  async subscribeToPush(userId: string, subscriptionData: any): Promise<any> {
+    const { PushNotificationService } = await import('./push-notification.service');
+    const pushService = new PushNotificationService();
+    return pushService.subscribeUser(userId, subscriptionData);
+  }
+
+  async unsubscribeFromPush(userId: string, endpoint: string): Promise<void> {
+    const { PushNotificationService } = await import('./push-notification.service');
+    const pushService = new PushNotificationService();
+    return pushService.unsubscribeUser(userId, endpoint);
+  }
+
+  async getPushSubscriptions(userId: string): Promise<any[]> {
+    const { PushNotificationService } = await import('./push-notification.service');
+    const pushService = new PushNotificationService();
+    return pushService.getUserSubscriptions(userId);
+  }
+
+  async sendTestNotification(userId: string): Promise<void> {
+    const { PushNotificationService } = await import('./push-notification.service');
+    const pushService = new PushNotificationService();
+    return pushService.sendNotificationToUser(userId, {
+      title: 'Test Notification',
+      body: 'This is a test notification from your farm management system.',
+      icon: '/icon-192x192.png',
+      badge: '/badge-72x72.png'
+    }, {
+      farmId: '',
+      userId,
+      type: 'system',
+      priority: 'medium'
+    });
+  }
+
+  async getAlertRules(): Promise<any[]> {
+    // Return alert rules from alert engine service
+    // TODO: Implement proper service injection pattern
+    // For now, return empty array - this would need to be implemented with proper DI
+    return [];
   }
 }

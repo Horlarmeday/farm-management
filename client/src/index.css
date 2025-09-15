@@ -117,4 +117,40 @@
   .text-balance {
     text-wrap: balance;
   }
+  
+  /* Sidebar layout utilities */
+  .sidebar-fixed {
+    @apply fixed inset-y-0 left-0 z-50;
+    width: 280px;
+    max-width: 280px;
+    min-width: 280px;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+    border-right: 1px solid rgba(226, 232, 240, 0.8);
+  }
+  
+  .main-content-offset {
+    min-height: 100vh;
+  }
+  
+  @media (min-width: 768px) {
+    .main-content-offset {
+      margin-left: 280px;
+      width: calc(100% - 280px);
+      min-height: 100vh;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    }
+  }
+  
+  @media (max-width: 767px) {
+    .main-content-offset {
+      margin-left: 0;
+      width: 100%;
+      min-height: 100vh;
+    }
+  }
+  
+  /* Prevent horizontal overflow */
+  .no-horizontal-overflow {
+    @apply overflow-x-hidden;
+  }
 }

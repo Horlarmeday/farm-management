@@ -15,8 +15,8 @@ import {
   CreateMaintenanceLogRequest,
   UpdateMaintenanceLogRequest,
   CreateAssetUsageLogRequest,
-} from '../../../shared/src/types/asset.types';
-import { ApiResponse, PaginatedResponse } from '../../../shared/src/types/api.types';
+} from '@/types/asset.types';
+import { ApiResponse, PaginatedResponse } from '@/types/api.types';
 
 export class AssetsService {
   // Asset Management

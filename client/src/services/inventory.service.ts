@@ -18,7 +18,7 @@ import {
   InventoryCategory,
   TransactionType,
   PurchaseOrderStatus
-} from '../../../shared/src/types';
+} from '@/types/inventory.types';
 
 export class InventoryService {
   // Inventory Items

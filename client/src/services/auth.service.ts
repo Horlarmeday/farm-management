@@ -96,7 +96,7 @@ export class AuthService {
       await apiClient.post('/api/auth/logout');
     } catch (error) {
       // Even if logout fails on server, clear local tokens
-      console.warn('Logout request failed:', error);
+      // Logout request failed - handled silently
     } finally {
       // Always clear local tokens
       TokenManager.clearTokens();

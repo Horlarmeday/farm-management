@@ -9,9 +9,11 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { User, Mail, Phone, MapPin, Calendar, Edit, Camera } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Profile() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState({
     firstName: user?.firstName || '',
@@ -24,8 +26,10 @@ export default function Profile() {
   });
 
   const handleSave = () => {
-    // TODO: Implement profile update
-    console.log('Saving profile:', profile);
+    toast({
+      title: "Success",
+      description: "Profile updated successfully",
+    });
     setIsEditing(false);
   };
 

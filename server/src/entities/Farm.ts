@@ -11,6 +11,8 @@ import { InventoryItem } from './InventoryItem';
 import { Location } from './Location';
 import { Pond } from './Pond';
 import { Task } from './Task';
+import { IoTSensor } from './IoTSensor';
+import { Prediction } from './Prediction';
 
 @Entity('farms')
 export class Farm extends BaseEntity {
@@ -81,4 +83,10 @@ export class Farm extends BaseEntity {
 
   @OneToMany(() => Budget, (budget) => budget.farm)
   budgets!: Budget[];
+
+  @OneToMany(() => IoTSensor, (sensor) => sensor.farm)
+  iotSensors!: IoTSensor[];
+
+  @OneToMany(() => Prediction, (prediction) => prediction.farm)
+  predictions!: Prediction[];
 }

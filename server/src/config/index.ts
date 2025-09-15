@@ -109,6 +109,11 @@ const envSchema = Joi.object({
   SMS_API_KEY: Joi.string().allow('').default(''),
   SMS_FROM: Joi.string().allow('').default(''),
 
+  // Push Notifications (VAPID)
+  VAPID_PUBLIC_KEY: Joi.string().allow('').default(''),
+  VAPID_PRIVATE_KEY: Joi.string().allow('').default(''),
+  VAPID_SUBJECT: Joi.string().default('mailto:admin@farmmanagement.com'),
+
   // Feature Flags
   FEATURE_AUDIT_LOGS: Joi.boolean().default(true),
   FEATURE_REAL_TIME_UPDATES: Joi.boolean().default(true),
@@ -270,6 +275,11 @@ export const config = {
       apiKey: envVars.SMS_API_KEY,
       from: envVars.SMS_FROM,
     },
+    vapid: {
+      publicKey: envVars.VAPID_PUBLIC_KEY,
+      privateKey: envVars.VAPID_PRIVATE_KEY,
+      subject: envVars.VAPID_SUBJECT,
+    },
   },
 
   // Feature Flags
@@ -300,6 +310,8 @@ if (config.isProduction) {
     'MAIL_HOST',
     'MAIL_USER',
     'MAIL_PASSWORD',
+    'VAPID_PUBLIC_KEY',
+    'VAPID_PRIVATE_KEY',
   ];
 
   const missingFields = productionRequiredFields.filter(

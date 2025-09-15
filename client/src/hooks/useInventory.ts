@@ -20,7 +20,7 @@ import {
   InventoryCategory,
   TransactionType,
   PurchaseOrderStatus
-} from '../../../shared/src/types';
+} from '@/types/inventory.types';
 
 // Inventory Items Hooks
 export function useInventoryItems(params?: {

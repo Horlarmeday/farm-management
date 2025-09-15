@@ -1,7 +1,7 @@
 import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
 import { Asset } from './Asset';
-import { MaintenanceType } from '@kuyash/shared';
+import { MaintenanceType } from '../../../shared/src/types';
 
 @Entity('maintenance_logs')
 export class MaintenanceLog extends BaseEntity {
