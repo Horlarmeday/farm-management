@@ -1,7 +1,7 @@
-import { ApiResponse } from '../../../shared/src/types';
 import { NextFunction, Request, Response } from 'express';
 import { PoultryService } from '../services/PoultryService';
 import { ServiceFactory } from '../services/ServiceFactory';
+import { ResponseHelper } from '../utils/response.helper';
 
 export class PoultryController {
   private poultryService: PoultryService;
@@ -19,11 +19,7 @@ export class PoultryController {
         createdById: req.user!.id,
       });
 
-      res.status(201).json({
-        success: true,
-        message: 'Bird batch created successfully',
-        data: batch,
-      } as ApiResponse<typeof batch>);
+      ResponseHelper.created(res, batch, 'Bird batch created successfully');
     } catch (error) {
       next(error);
     }
@@ -41,11 +37,7 @@ export class PoultryController {
         endDate: endDate ? new Date(endDate as string) : undefined,
       });
 
-      res.json({
-        success: true,
-        message: 'Bird batches retrieved successfully',
-        data: batches,
-      } as ApiResponse<typeof batches>);
+      ResponseHelper.success(res, batches, 'Bird batches retrieved successfully');
     } catch (error) {
       next(error);
     }
@@ -56,11 +48,7 @@ export class PoultryController {
       const { id } = req.params;
       const batch = await this.poultryService.getBirdBatchById(id);
 
-      res.json({
-        success: true,
-        message: 'Bird batch retrieved successfully',
-        data: batch,
-      } as ApiResponse<typeof batch>);
+      ResponseHelper.success(res, batch, 'Bird batch retrieved successfully');
     } catch (error) {
       next(error);
     }
@@ -71,11 +59,7 @@ export class PoultryController {
       const { id } = req.params;
       const batch = await this.poultryService.updateBirdBatch(id, req.body);
 
-      res.json({
-        success: true,
-        message: 'Bird batch updated successfully',
-        data: batch,
-      } as ApiResponse<typeof batch>);
+      ResponseHelper.success(res, batch, 'Bird batch updated successfully');
     } catch (error) {
       next(error);
     }
@@ -89,11 +73,7 @@ export class PoultryController {
         recordedById: req.user!.id,
       });
 
-      res.status(201).json({
-        success: true,
-        message: 'Feeding recorded successfully',
-        data: feedingLog,
-      } as ApiResponse<typeof feedingLog>);
+      ResponseHelper.created(res, feedingLog, 'Feeding recorded successfully');
     } catch (error) {
       next(error);
     }
@@ -109,11 +89,7 @@ export class PoultryController {
         endDate ? new Date(endDate as string) : undefined,
       );
 
-      res.json({
-        success: true,
-        message: 'Feeding logs retrieved successfully',
-        data: logs,
-      } as ApiResponse<typeof logs>);
+      ResponseHelper.success(res, logs, 'Feeding logs retrieved successfully');
     } catch (error) {
       next(error);
     }
@@ -127,11 +103,7 @@ export class PoultryController {
         recordedById: req.user!.id,
       });
 
-      res.status(201).json({
-        success: true,
-        message: 'Health event recorded successfully',
-        data: healthRecord,
-      } as ApiResponse<typeof healthRecord>);
+      ResponseHelper.created(res, healthRecord, 'Health event recorded successfully');
     } catch (error) {
       next(error);
     }
@@ -143,11 +115,7 @@ export class PoultryController {
 
       const records = await this.poultryService.getHealthRecords(batchId as string, type as string);
 
-      res.json({
-        success: true,
-        message: 'Health records retrieved successfully',
-        data: records,
-      } as ApiResponse<typeof records>);
+      ResponseHelper.success(res, records, 'Health records retrieved successfully');
     } catch (error) {
       next(error);
     }
@@ -163,11 +131,7 @@ export class PoultryController {
         recordedById: req.user!.id,
       });
 
-      res.status(201).json({
-        success: true,
-        message: 'Egg production recorded successfully',
-        data: production,
-      } as ApiResponse<typeof production>);
+      ResponseHelper.created(res, production, 'Egg production recorded successfully');
     } catch (error) {
       next(error);
     }
@@ -183,11 +147,7 @@ export class PoultryController {
         endDate ? new Date(endDate as string) : undefined,
       );
 
-      res.json({
-        success: true,
-        message: 'Egg production logs retrieved successfully',
-        data: logs,
-      } as ApiResponse<typeof logs>);
+      ResponseHelper.success(res, logs, 'Egg production logs retrieved successfully');
     } catch (error) {
       next(error);
     }
@@ -201,11 +161,7 @@ export class PoultryController {
         recordedById: req.user!.id,
       });
 
-      res.status(201).json({
-        success: true,
-        message: 'Sale recorded successfully',
-        data: sale,
-      } as ApiResponse<typeof sale>);
+      ResponseHelper.created(res, sale, 'Sale recorded successfully');
     } catch (error) {
       next(error);
     }
@@ -221,11 +177,7 @@ export class PoultryController {
         endDate ? new Date(endDate as string) : undefined,
       );
 
-      res.json({
-        success: true,
-        message: 'Sales retrieved successfully',
-        data: sales,
-      } as ApiResponse<typeof sales>);
+      ResponseHelper.success(res, sales, 'Sales retrieved successfully');
     } catch (error) {
       next(error);
     }
@@ -237,11 +189,7 @@ export class PoultryController {
       const { id } = req.params;
       const performance = await this.poultryService.getBatchPerformanceReport(id);
 
-      res.json({
-        success: true,
-        message: 'Batch performance retrieved successfully',
-        data: performance,
-      } as ApiResponse<typeof performance>);
+      ResponseHelper.success(res, performance, 'Batch performance retrieved successfully');
     } catch (error) {
       next(error);
     }

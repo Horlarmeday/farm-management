@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Service Worker Cache</title>
+</head>
+<body>
+    <h1>Service Worker Cache Clearer</h1>
+    <button onclick="clearCache()">Clear All Caches</button>
+    <button onclick="unregisterSW()">Unregister Service Worker</button>
+    <button onclick="reloadPage()">Reload Page</button>
+    <div id="status"></div>
+    
+    <script>
+        async function clearCache() {
+            const status = document.getElementById('status');
+            try {
+                const cacheNames = await caches.keys();
+                await Promise.all(cacheNames.map(name => caches.delete(name)));
+                status.innerHTML = '<p style="color: green;">✅ All caches cleared! Count: ' + cacheNames.length + '</p>';
+                console.log('Cleared caches:', cacheNames);
+            } catch (error) {
+                status.innerHTML = '<p style="color: red;">❌ Error: ' + error.message + '</p>';
+            }
+        }
+        
+        async function unregisterSW() {
+            const status = document.getElementById('status');
+            try {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                for (let registration of registrations) {
+                    await registration.unregister();
+                }
+                status.innerHTML = '<p style="color: green;">✅ Service Worker unregistered! Count: ' + registrations.length + '</p>';
+                console.log('Unregistered SWs:', registrations.length);
+            } catch (error) {
+                status.innerHTML = '<p style="color: red;">❌ Error: ' + error.message + '</p>';
+            }
+        }
+        
+        function reloadPage() {
+            window.location.reload(true);
+        }
+    </script>
+</body>
+</html>

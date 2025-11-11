@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, Suspense } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Card,
@@ -42,8 +42,8 @@ import { iotService } from '@/services/iot.service';
 import { IoTSensor, SensorType } from '@/types/iot';
 import { SensorCard } from '@/components/iot/SensorCard';
 import { SensorForm } from '@/components/iot/SensorForm';
-import { SensorReadings } from '@/components/iot/SensorReadings';
-import { SensorTrends } from '@/components/iot/SensorTrends';
+const SensorReadings = React.lazy(() => import('@/components/iot/SensorReadings').then(module => ({ default: module.SensorReadings })));
+const SensorTrends = React.lazy(() => import('@/components/iot/SensorTrends').then(module => ({ default: module.SensorTrends })));
 import { MobileIoTDashboard } from '@/components/mobile/MobileIoTDashboard';
 import { useResponsive } from '@/hooks/useResponsive';
 import { useCurrentFarmId } from '@/contexts/FarmContext';
@@ -232,7 +232,24 @@ export const IoTDashboard: React.FC = () => {
 
           <TabsContent value="readings">
             {selectedSensor ? (
-              <SensorReadings sensor={selectedSensor} />
+              <Suspense fallback={
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Sensor Readings</CardTitle>
+                    <CardDescription>
+                      Loading sensor readings...
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center text-muted-foreground py-8">
+                      <Activity className="h-12 w-12 mx-auto mb-4 animate-pulse" />
+                      <p>Loading readings...</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              }>
+                <SensorReadings sensor={selectedSensor} />
+              </Suspense>
             ) : (
               <Card>
                 <CardHeader>
@@ -253,7 +270,24 @@ export const IoTDashboard: React.FC = () => {
 
           <TabsContent value="trends">
             {selectedSensor ? (
-              <SensorTrends sensor={selectedSensor} />
+              <React.Suspense fallback={
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Trend Analysis</CardTitle>
+                    <CardDescription>
+                      Loading trend analysis...
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center text-muted-foreground py-8">
+                      <Activity className="h-12 w-12 mx-auto mb-4 animate-pulse" />
+                      <p>Loading charts...</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              }>
+                <SensorTrends sensor={selectedSensor} />
+              </React.Suspense>
             ) : (
               <Card>
                 <CardHeader>

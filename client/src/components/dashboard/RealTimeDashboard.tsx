@@ -196,12 +196,12 @@ const RealTimeDashboard: React.FC<RealTimeDashboardProps> = ({ farmId, className
                         <div>
                           <div className="font-medium capitalize">{type}</div>
                           <div className="text-sm text-muted-foreground">
-                            {latest.location}
+                            {latest.location ? `(${latest.location.x}, ${latest.location.y})` : 'Unknown location'}
                           </div>
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className={cn('font-semibold', getSensorStatusColor(latest.status))}>
+                        <div className="font-semibold">
                           {latest.value} {latest.unit}
                         </div>
                         <div className="text-xs text-muted-foreground">
@@ -261,7 +261,7 @@ const RealTimeDashboard: React.FC<RealTimeDashboardProps> = ({ farmId, className
                         </div>
                         <p className="text-sm font-medium">{alert.message}</p>
                         <p className="text-xs text-muted-foreground">
-                          {alert.type} • {alert.location}
+                          {alert.type}
                         </p>
                       </div>
                     </div>
@@ -335,22 +335,25 @@ const RealTimeDashboard: React.FC<RealTimeDashboardProps> = ({ farmId, className
       </Card>
 
       {/* Connection Details */}
-      {connectionState.lastActivity && (
+      {currentFarmId && (
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <span>Last activity:</span>
-              <span>{format(connectionState.lastActivity, 'MMM dd, yyyy HH:mm:ss')}</span>
+              <span>Connected to farm:</span>
+              <span className="font-medium">{currentFarmId}</span>
             </div>
-            {currentFarmId && (
-              <>
-                <Separator className="my-2" />
-                <div className="flex items-center justify-between text-sm text-muted-foreground">
-                  <span>Connected to farm:</span>
-                  <span className="font-medium">{currentFarmId}</span>
-                </div>
-              </>
-            )}
+            <Separator className="my-2" />
+            <div className="flex items-center justify-between text-sm text-muted-foreground">
+              <span>Connection status:</span>
+              <span className={cn('font-medium', {
+                'text-green-600': connectionState.isConnected,
+                'text-yellow-600': connectionState.isConnecting,
+                'text-red-600': !connectionState.isConnected && !connectionState.isConnecting
+              })}>
+                {connectionState.isConnecting ? 'Connecting...' : 
+                 connectionState.isConnected ? 'Connected' : 'Disconnected'}
+              </span>
+            </div>
           </CardContent>
         </Card>
       )}

@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
-import { DashboardService, DashboardStats, KPIData, ModuleStats, DashboardOverview } from '@/services/dashboard.service';
 import { queryKeys } from '@/lib/queryKeys';
+import { DashboardService } from '@/services/dashboard.service';
+import { useQuery } from '@tanstack/react-query';
 
 /**
  * Hook to fetch complete dashboard overview data
@@ -117,6 +117,42 @@ export function useTasks() {
   return useQuery({
     queryKey: queryKeys.dashboard.tasks(),
     queryFn: () => DashboardService.getTasks(),
+    staleTime: 1 * 60 * 1000, // 1 minute
+    gcTime: 10 * 60 * 1000, // 10 minutes
+  });
+}
+
+/**
+ * Hook to fetch inventory summary
+ */
+export function useInventorySummary() {
+  return useQuery({
+    queryKey: queryKeys.inventory.summary(),
+    queryFn: () => DashboardService.getInventorySummary(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+  });
+}
+
+/**
+ * Hook to fetch finance summary
+ */
+export function useFinanceSummary() {
+  return useQuery({
+    queryKey: queryKeys.finance.summary(),
+    queryFn: () => DashboardService.getFinanceSummary(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+  });
+}
+
+/**
+ * Hook to fetch tasks summary
+ */
+export function useTasksSummary() {
+  return useQuery({
+    queryKey: queryKeys.dashboard.tasks(),
+    queryFn: () => DashboardService.getTasksSummary(),
     staleTime: 1 * 60 * 1000, // 1 minute
     gcTime: 10 * 60 * 1000, // 10 minutes
   });

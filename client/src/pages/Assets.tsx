@@ -1,60 +1,77 @@
-import { useState } from "react";
-import { Wrench, Plus, Search, Filter, Calendar, MapPin, AlertCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useAssets } from "@/hooks/useAssets";
-import { AssetType, AssetStatus } from "@/types/asset.types";
-import { formatNaira as formatCurrency } from "@/lib/currency";
+import AssetForm from '@/components/forms/AssetForm';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useAssets } from '@/hooks/useAssets';
+import { formatNaira as formatCurrency } from '@/lib/currency';
+import { AssetStatus, AssetType } from '@/types/asset.types';
+import { AlertCircle, Calendar, Filter, MapPin, Plus, Search, Wrench } from 'lucide-react';
+import { useState } from 'react';
 
 export default function Assets() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedType, setSelectedType] = useState<AssetType | "all">("all");
-  const [selectedStatus, setSelectedStatus] = useState<AssetStatus | "all">("all");
-  
-  const { data: assets, isLoading, error } = useAssets({
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedType, setSelectedType] = useState<AssetType | 'all'>('all');
+  const [selectedStatus, setSelectedStatus] = useState<AssetStatus | 'all'>('all');
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+
+  const {
+    data: assets,
+    isLoading,
+    error,
+  } = useAssets({
     search: searchTerm,
-    type: selectedType === "all" ? undefined : selectedType,
-    status: selectedStatus === "all" ? undefined : selectedStatus,
+    type: selectedType === 'all' ? undefined : selectedType,
+    status: selectedStatus === 'all' ? undefined : selectedStatus,
   });
+
+  const handleAssetCreated = () => {
+    setIsCreateDialogOpen(false);
+  };
 
   const getStatusColor = (status: AssetStatus) => {
     switch (status) {
       case AssetStatus.ACTIVE:
-        return "bg-green-100 text-green-800";
+        return 'bg-green-100 text-green-800';
       case AssetStatus.MAINTENANCE:
-        return "bg-yellow-100 text-yellow-800";
+        return 'bg-yellow-100 text-yellow-800';
       case AssetStatus.INACTIVE:
-        return "bg-gray-100 text-gray-800";
+        return 'bg-gray-100 text-gray-800';
       case AssetStatus.DISPOSED:
-        return "bg-red-100 text-red-800";
+        return 'bg-red-100 text-red-800';
       case AssetStatus.LOST:
-        return "bg-orange-100 text-orange-800";
+        return 'bg-orange-100 text-orange-800';
       default:
-        return "bg-gray-100 text-gray-800";
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getTypeIcon = (type: AssetType) => {
     switch (type) {
       case AssetType.EQUIPMENT:
-        return "🔧";
+        return '🔧';
       case AssetType.MACHINERY:
-        return "🚜";
+        return '🚜';
       case AssetType.VEHICLE:
-        return "🚗";
+        return '🚗';
       case AssetType.BUILDING:
-        return "🏢";
+        return '🏢';
       case AssetType.LAND:
-        return "🌾";
+        return '🌾';
       case AssetType.TOOLS:
-        return "🔨";
+        return '🔨';
       case AssetType.TECHNOLOGY:
-        return "💻";
+        return '💻';
       default:
-        return "📦";
+        return '📦';
     }
   };
 
@@ -73,10 +90,23 @@ export default function Assets() {
             </p>
           </div>
           <div className="flex space-x-3">
-            <Button className="farm-button-primary">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Asset
-            </Button>
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="farm-button-primary">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Asset
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Add New Asset</DialogTitle>
+                </DialogHeader>
+                <AssetForm
+                  onSuccess={handleAssetCreated}
+                  onCancel={() => setIsCreateDialogOpen(false)}
+                />
+              </DialogContent>
+            </Dialog>
             <Button variant="outline">
               <Filter className="h-4 w-4 mr-2" />
               Filter
@@ -134,15 +164,17 @@ export default function Assets() {
       {/* Assets Grid */}
       {!isLoading && !error && assets && (
         <>
-          {assets.data.length === 0 ? (
+          {!assets.data || assets.data.length === 0 ? (
             <Card>
               <CardContent className="p-8 text-center">
                 <Wrench className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No Assets Found</h3>
                 <p className="text-muted-foreground mb-4">
-                  {searchTerm ? "No assets match your search criteria." : "Start by adding your first asset or equipment"}
+                  {searchTerm
+                    ? 'No assets match your search criteria.'
+                    : 'Start by adding your first asset or equipment'}
                 </p>
-                <Button className="farm-button-primary">
+                <Button className="farm-button-primary" onClick={() => setIsCreateDialogOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add First Asset
                 </Button>
@@ -150,7 +182,7 @@ export default function Assets() {
             </Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {assets.data.map((asset) => (
+              {assets.data?.map((asset) => (
                 <Card key={asset.id} className="hover:shadow-lg transition-shadow cursor-pointer">
                   <CardHeader>
                     <div className="flex items-start justify-between">
@@ -158,19 +190,24 @@ export default function Assets() {
                         <span className="text-2xl">{getTypeIcon(asset.type)}</span>
                         <div>
                           <CardTitle className="text-lg">{asset.name}</CardTitle>
-                          <p className="text-sm text-muted-foreground">{asset.model || asset.type}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {asset.model || asset.type}
+                          </p>
                         </div>
                       </div>
-                      <Badge className={getStatusColor(asset.status)}>
-                        {asset.status}
-                      </Badge>
+                      <Badge className={getStatusColor(asset.status)}>{asset.status}</Badge>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Calendar className="h-4 w-4" />
-                        <span>Purchased: {asset.purchaseDate ? new Date(asset.purchaseDate).toLocaleDateString() : 'N/A'}</span>
+                        <span>
+                          Purchased:{' '}
+                          {asset.purchaseDate
+                            ? new Date(asset.purchaseDate).toLocaleDateString()
+                            : 'N/A'}
+                        </span>
                       </div>
                       {asset.location && (
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -183,9 +220,7 @@ export default function Assets() {
                           Value: {formatCurrency(asset.purchasePrice || 0)}
                         </p>
                         {asset.serialNumber && (
-                          <p className="text-xs text-muted-foreground">
-                            S/N: {asset.serialNumber}
-                          </p>
+                          <p className="text-xs text-muted-foreground">S/N: {asset.serialNumber}</p>
                         )}
                       </div>
                     </div>

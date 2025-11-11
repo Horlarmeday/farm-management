@@ -1,0 +1,61 @@
+{
+  "timestamp": "2025-09-20T07:07:48.562Z",
+  "performanceScore": "100.0%",
+  "results": [
+    {
+      "name": "Users by Role and Status",
+      "records": 0,
+      "avgTime": "0.78ms",
+      "minTime": "0.25ms",
+      "maxTime": "2.37ms",
+      "performance": "Excellent"
+    },
+    {
+      "name": "Tasks by Farm and Assigned User",
+      "records": 0,
+      "avgTime": "0.52ms",
+      "minTime": "0.22ms",
+      "maxTime": "1.41ms",
+      "performance": "Excellent"
+    },
+    {
+      "name": "Animals by Farm and Species",
+      "records": 0,
+      "avgTime": "0.31ms",
+      "minTime": "0.16ms",
+      "maxTime": "0.75ms",
+      "performance": "Excellent"
+    },
+    {
+      "name": "Inventory Items by Category and Farm",
+      "records": 0,
+      "avgTime": "0.29ms",
+      "minTime": "0.19ms",
+      "maxTime": "0.60ms",
+      "performance": "Excellent"
+    },
+    {
+      "name": "Financial Transactions by Date Range",
+      "records": 0,
+      "avgTime": "0.34ms",
+      "minTime": "0.16ms",
+      "maxTime": "0.86ms",
+      "performance": "Excellent"
+    },
+    {
+      "name": "Production Logs by Animal and Date",
+      "records": 0,
+      "avgTime": "0.56ms",
+      "minTime": "0.16ms",
+      "maxTime": "2.08ms",
+      "performance": "Excellent"
+    }
+  ],
+  "summary": {
+    "totalQueries": 6,
+    "excellentQueries": 6,
+    "goodQueries": 0,
+    "acceptableQueries": 0,
+    "needsOptimization": 0
+  }
+}

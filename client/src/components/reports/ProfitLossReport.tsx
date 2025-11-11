@@ -70,7 +70,7 @@ interface ProfitLossData {
   };
 }
 
-export default function ProfitLossReport() {
+function ProfitLossReport() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: startOfMonth(new Date()),
     to: endOfMonth(new Date()),
@@ -399,3 +399,6 @@ export default function ProfitLossReport() {
     </div>
   );
 }
+
+export default ProfitLossReport;
+export { ProfitLossReport };

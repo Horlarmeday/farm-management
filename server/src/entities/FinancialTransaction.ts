@@ -1,10 +1,11 @@
 import { FinanceTransactionType, PaymentStatus, PaymentMethod } from '../../../shared/src/types';
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, BeforeInsert, BeforeUpdate, AfterLoad } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
 import { CostCenter } from './CostCenter';
 import { Farm } from './Farm';
 import { User } from './User';
 import { FinancialCategory } from './FinancialCategory';
+import { getEncryptionService } from '../services/encryption.service';
 
 @Entity('financial_transactions')
 export class FinancialTransaction extends BaseEntity {
@@ -14,8 +15,19 @@ export class FinancialTransaction extends BaseEntity {
   @Column({ type: 'enum', enum: FinanceTransactionType })
   type!: FinanceTransactionType;
 
-  @Column({ type: 'decimal', precision: 15, scale: 2 })
-  amount!: number;
+  @Column({ type: 'text' })
+  private _encryptedAmount!: string;
+
+  // Virtual property for amount
+  private _amount?: number;
+  
+  get amount(): number {
+    return this._amount ?? 0;
+  }
+  
+  set amount(value: number) {
+    this._amount = value;
+  }
 
   @ManyToOne(() => FinancialCategory, category => category.transactions, { nullable: false })
   @JoinColumn({ name: 'category_id' })
@@ -36,8 +48,19 @@ export class FinancialTransaction extends BaseEntity {
   @Column({ type: 'enum', enum: PaymentMethod, nullable: true })
   paymentMethod?: PaymentMethod;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  referenceNumber?: string;
+  @Column({ type: 'text', nullable: true })
+  private _encryptedReferenceNumber?: string;
+
+  // Virtual property for reference number
+  private _referenceNumber?: string;
+  
+  get referenceNumber(): string | undefined {
+    return this._referenceNumber;
+  }
+  
+  set referenceNumber(value: string | undefined) {
+    this._referenceNumber = value;
+  }
 
   @Column({ type: 'varchar', length: 50, nullable: true })
   referenceType?: 'invoice' | 'receipt' | 'order' | 'sale' | 'purchase' | 'manual';
@@ -94,4 +117,29 @@ export class FinancialTransaction extends BaseEntity {
 
   @Column({ type: 'varchar', length: 255 })
   farmId!: string;
+
+  // Encryption hooks
+  @BeforeInsert()
+  @BeforeUpdate()
+  encryptSensitiveData(): void {
+    const encryptionService = getEncryptionService();
+    if (this._amount !== undefined) {
+      this._encryptedAmount = encryptionService.encryptAmount(this._amount);
+    }
+    if (this._referenceNumber !== undefined) {
+      this._encryptedReferenceNumber = this._referenceNumber ? 
+        encryptionService.encrypt(this._referenceNumber) : undefined;
+    }
+  }
+
+  @AfterLoad()
+  decryptSensitiveData(): void {
+    const encryptionService = getEncryptionService();
+    if (this._encryptedAmount) {
+      this._amount = encryptionService.decryptAmount(this._encryptedAmount);
+    }
+    if (this._encryptedReferenceNumber) {
+      this._referenceNumber = encryptionService.decrypt(this._encryptedReferenceNumber);
+    }
+  }
 }

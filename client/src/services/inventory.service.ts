@@ -1,26 +1,27 @@
-import { apiClient } from './api';
 import {
-  InventoryItem,
-  InventoryTransaction,
-  StockAlert,
-  Supplier,
-  PurchaseOrder,
-  StockAdjustment,
-  InventoryStats,
   CreateInventoryItemRequest,
-  UpdateInventoryItemRequest,
   CreateInventoryTransactionRequest,
   CreatePurchaseOrderRequest,
-  UpdatePurchaseOrderRequest,
   CreateStockAdjustmentRequest,
   CreateSupplierRequest,
-  UpdateSupplierRequest,
   InventoryCategory,
+  InventoryItem,
+  InventoryStats,
+  InventoryTransaction,
+  PurchaseOrder,
+  PurchaseOrderStatus,
+  StockAdjustment,
+  StockAlert,
+  Supplier,
   TransactionType,
-  PurchaseOrderStatus
+  UpdateInventoryItemRequest,
+  UpdatePurchaseOrderRequest,
+  UpdateSupplierRequest,
 } from '@/types/inventory.types';
+import { apiClient } from './api';
 
 export class InventoryService {
+  private static readonly BASE_URL = '/api/inventory';
   // Inventory Items
   static async getInventoryItems(params?: {
     category?: InventoryCategory;
@@ -30,7 +31,7 @@ export class InventoryService {
     page?: number;
     limit?: number;
   }) {
-    const response = await apiClient.get<InventoryItem[]>('/api/inventory/items', { params });
+    const response = await apiClient.get<InventoryItem[]>(`${this.BASE_URL}/items`, params);
     if (!response.data) {
       throw new Error('Failed to fetch inventory items');
     }
@@ -38,7 +39,7 @@ export class InventoryService {
   }
 
   static async getInventoryItem(id: string) {
-    const response = await apiClient.get<InventoryItem>(`/api/inventory/items/${id}`);
+    const response = await apiClient.get<InventoryItem>(`${this.BASE_URL}/items/${id}`);
     if (!response.data) {
       throw new Error('Failed to fetch inventory item');
     }
@@ -46,7 +47,7 @@ export class InventoryService {
   }
 
   static async createInventoryItem(data: CreateInventoryItemRequest) {
-    const response = await apiClient.post<InventoryItem>('/api/inventory/items', data);
+    const response = await apiClient.post<InventoryItem>(`${this.BASE_URL}/items`, data);
     if (!response.data) {
       throw new Error('Failed to create inventory item');
     }
@@ -54,7 +55,7 @@ export class InventoryService {
   }
 
   static async updateInventoryItem(id: string, data: UpdateInventoryItemRequest) {
-    const response = await apiClient.put<InventoryItem>(`/api/inventory/items/${id}`, data);
+    const response = await apiClient.put<InventoryItem>(`${this.BASE_URL}/items/${id}`, data);
     if (!response.data) {
       throw new Error('Failed to update inventory item');
     }
@@ -62,7 +63,7 @@ export class InventoryService {
   }
 
   static async deleteInventoryItem(id: string) {
-    const response = await apiClient.delete(`/api/inventory/items/${id}`);
+    const response = await apiClient.delete(`${this.BASE_URL}/items/${id}`);
     return response.data;
   }
 
@@ -75,7 +76,10 @@ export class InventoryService {
     page?: number;
     limit?: number;
   }) {
-    const response = await apiClient.get<InventoryTransaction[]>('/api/inventory/transactions', { params });
+    const response = await apiClient.get<InventoryTransaction[]>(
+      `${this.BASE_URL}/transactions`,
+      params,
+    );
     if (!response.data) {
       throw new Error('Failed to fetch inventory transactions');
     }
@@ -83,7 +87,10 @@ export class InventoryService {
   }
 
   static async createInventoryTransaction(data: CreateInventoryTransactionRequest) {
-    const response = await apiClient.post<InventoryTransaction>('/api/inventory/transactions', data);
+    const response = await apiClient.post<InventoryTransaction>(
+      `${this.BASE_URL}/transactions`,
+      data,
+    );
     if (!response.data) {
       throw new Error('Failed to create inventory transaction');
     }
@@ -99,7 +106,7 @@ export class InventoryService {
     page?: number;
     limit?: number;
   }) {
-    const response = await apiClient.get<StockAlert[]>('/api/inventory/alerts', { params });
+    const response = await apiClient.get<StockAlert[]>(`${this.BASE_URL}/alerts`, params);
     if (!response.data) {
       throw new Error('Failed to fetch stock alerts');
     }
@@ -107,7 +114,7 @@ export class InventoryService {
   }
 
   static async acknowledgeStockAlert(id: string) {
-    const response = await apiClient.patch<StockAlert>(`/api/inventory/alerts/${id}/acknowledge`);
+    const response = await apiClient.patch<StockAlert>(`${this.BASE_URL}/alerts/${id}/acknowledge`);
     if (!response.data) {
       throw new Error('Failed to acknowledge stock alert');
     }
@@ -115,7 +122,9 @@ export class InventoryService {
   }
 
   static async resolveStockAlert(id: string, notes?: string) {
-    const response = await apiClient.patch<StockAlert>(`/api/inventory/alerts/${id}/resolve`, { notes });
+    const response = await apiClient.patch<StockAlert>(`${this.BASE_URL}/alerts/${id}/resolve`, {
+      notes,
+    });
     if (!response.data) {
       throw new Error('Failed to resolve stock alert');
     }
@@ -129,7 +138,7 @@ export class InventoryService {
     page?: number;
     limit?: number;
   }) {
-    const response = await apiClient.get<Supplier[]>('/api/inventory/suppliers', { params });
+    const response = await apiClient.get<Supplier[]>(`${this.BASE_URL}/suppliers`, params);
     if (!response.data) {
       throw new Error('Failed to fetch suppliers');
     }
@@ -137,7 +146,7 @@ export class InventoryService {
   }
 
   static async getSupplier(id: string) {
-    const response = await apiClient.get<Supplier>(`/api/inventory/suppliers/${id}`);
+    const response = await apiClient.get<Supplier>(`${this.BASE_URL}/suppliers/${id}`);
     if (!response.data) {
       throw new Error('Failed to fetch supplier');
     }
@@ -145,7 +154,7 @@ export class InventoryService {
   }
 
   static async createSupplier(data: CreateSupplierRequest) {
-    const response = await apiClient.post<Supplier>('/api/inventory/suppliers', data);
+    const response = await apiClient.post<Supplier>(`${this.BASE_URL}/suppliers`, data);
     if (!response.data) {
       throw new Error('Failed to create supplier');
     }
@@ -153,7 +162,7 @@ export class InventoryService {
   }
 
   static async updateSupplier(id: string, data: UpdateSupplierRequest) {
-    const response = await apiClient.put<Supplier>(`/api/inventory/suppliers/${id}`, data);
+    const response = await apiClient.put<Supplier>(`${this.BASE_URL}/suppliers/${id}`, data);
     if (!response.data) {
       throw new Error('Failed to update supplier');
     }
@@ -161,7 +170,7 @@ export class InventoryService {
   }
 
   static async deleteSupplier(id: string) {
-    const response = await apiClient.delete(`/api/inventory/suppliers/${id}`);
+    const response = await apiClient.delete(`${this.BASE_URL}/suppliers/${id}`);
     return response.data;
   }
 
@@ -174,7 +183,10 @@ export class InventoryService {
     page?: number;
     limit?: number;
   }) {
-    const response = await apiClient.get<PurchaseOrder[]>('/api/inventory/purchase-orders', { params });
+    const response = await apiClient.get<PurchaseOrder[]>(
+      `${this.BASE_URL}/purchase-orders`,
+      params,
+    );
     if (!response.data) {
       throw new Error('Failed to fetch purchase orders');
     }
@@ -182,7 +194,7 @@ export class InventoryService {
   }
 
   static async getPurchaseOrder(id: string) {
-    const response = await apiClient.get<PurchaseOrder>(`/api/inventory/purchase-orders/${id}`);
+    const response = await apiClient.get<PurchaseOrder>(`${this.BASE_URL}/purchase-orders/${id}`);
     if (!response.data) {
       throw new Error('Failed to fetch purchase order');
     }
@@ -190,7 +202,7 @@ export class InventoryService {
   }
 
   static async createPurchaseOrder(data: CreatePurchaseOrderRequest) {
-    const response = await apiClient.post<PurchaseOrder>('/api/inventory/purchase-orders', data);
+    const response = await apiClient.post<PurchaseOrder>(`${this.BASE_URL}/purchase-orders`, data);
     if (!response.data) {
       throw new Error('Failed to create purchase order');
     }
@@ -198,7 +210,10 @@ export class InventoryService {
   }
 
   static async updatePurchaseOrder(id: string, data: UpdatePurchaseOrderRequest) {
-    const response = await apiClient.put<PurchaseOrder>(`/api/inventory/purchase-orders/${id}`, data);
+    const response = await apiClient.put<PurchaseOrder>(
+      `${this.BASE_URL}/purchase-orders/${id}`,
+      data,
+    );
     if (!response.data) {
       throw new Error('Failed to update purchase order');
     }
@@ -206,15 +221,23 @@ export class InventoryService {
   }
 
   static async approvePurchaseOrder(id: string) {
-    const response = await apiClient.patch<PurchaseOrder>(`/api/inventory/purchase-orders/${id}/approve`);
+    const response = await apiClient.patch<PurchaseOrder>(
+      `${this.BASE_URL}/purchase-orders/${id}/approve`,
+    );
     if (!response.data) {
       throw new Error('Failed to approve purchase order');
     }
     return response.data;
   }
 
-  static async receivePurchaseOrder(id: string, items: Array<{ itemId: string; quantityReceived: number }>) {
-    const response = await apiClient.patch<PurchaseOrder>(`/api/inventory/purchase-orders/${id}/receive`, { items });
+  static async receivePurchaseOrder(
+    id: string,
+    items: Array<{ itemId: string; quantityReceived: number }>,
+  ) {
+    const response = await apiClient.patch<PurchaseOrder>(
+      `${this.BASE_URL}/purchase-orders/${id}/receive`,
+      { items },
+    );
     if (!response.data) {
       throw new Error('Failed to receive purchase order');
     }
@@ -230,7 +253,7 @@ export class InventoryService {
     page?: number;
     limit?: number;
   }) {
-    const response = await apiClient.get<StockAdjustment[]>('/api/inventory/adjustments', { params });
+    const response = await apiClient.get<StockAdjustment[]>(`${this.BASE_URL}/adjustments`, params);
     if (!response.data) {
       throw new Error('Failed to fetch stock adjustments');
     }
@@ -238,7 +261,7 @@ export class InventoryService {
   }
 
   static async createStockAdjustment(data: CreateStockAdjustmentRequest) {
-    const response = await apiClient.post<StockAdjustment>('/api/inventory/adjustments', data);
+    const response = await apiClient.post<StockAdjustment>(`${this.BASE_URL}/adjustments`, data);
     if (!response.data) {
       throw new Error('Failed to create stock adjustment');
     }
@@ -246,7 +269,9 @@ export class InventoryService {
   }
 
   static async approveStockAdjustment(id: string) {
-    const response = await apiClient.patch<StockAdjustment>(`/api/inventory/adjustments/${id}/approve`);
+    const response = await apiClient.patch<StockAdjustment>(
+      `${this.BASE_URL}/adjustments/${id}/approve`,
+    );
     if (!response.data) {
       throw new Error('Failed to approve stock adjustment');
     }
@@ -259,7 +284,7 @@ export class InventoryService {
     dateTo?: string;
     category?: InventoryCategory;
   }) {
-    const response = await apiClient.get<InventoryStats>('/api/inventory/stats', { params });
+    const response = await apiClient.get<InventoryStats>(`${this.BASE_URL}/stats`, params);
     if (!response.data) {
       throw new Error('Failed to fetch inventory statistics');
     }
@@ -267,7 +292,7 @@ export class InventoryService {
   }
 
   static async getLowStockItems() {
-    const response = await apiClient.get<InventoryItem[]>('/api/inventory/low-stock');
+    const response = await apiClient.get<InventoryItem[]>(`${this.BASE_URL}/low-stock`);
     if (!response.data) {
       throw new Error('Failed to fetch low stock items');
     }
@@ -275,7 +300,7 @@ export class InventoryService {
   }
 
   static async getExpiringItems(days: number = 30) {
-    const response = await apiClient.get<InventoryItem[]>('/api/inventory/expiring', { params: { days } });
+    const response = await apiClient.get<InventoryItem[]>(`${this.BASE_URL}/expiring`, { days });
     if (!response.data) {
       throw new Error('Failed to fetch expiring items');
     }
@@ -283,7 +308,11 @@ export class InventoryService {
   }
 
   static async getInventoryValuation() {
-    const response = await apiClient.get<{ totalValue: number; itemCount: number; categories: Record<string, number> }>('/api/inventory/valuation');
+    const response = await apiClient.get<{
+      totalValue: number;
+      itemCount: number;
+      categories: Record<string, number>;
+    }>(`${this.BASE_URL}/valuation`);
     if (!response.data) {
       throw new Error('Failed to fetch inventory valuation');
     }

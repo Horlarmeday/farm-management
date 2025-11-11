@@ -91,6 +91,7 @@ export default function Register() {
                 <Input
                   id="firstName"
                   name="firstName"
+                  data-testid="firstName-input"
                   type="text"
                   value={formData.firstName}
                   onChange={handleChange}
@@ -103,6 +104,7 @@ export default function Register() {
                 <Input
                   id="lastName"
                   name="lastName"
+                  data-testid="lastName-input"
                   type="text"
                   value={formData.lastName}
                   onChange={handleChange}
@@ -117,6 +119,7 @@ export default function Register() {
               <Input
                 id="email"
                 name="email"
+                data-testid="email-input"
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
@@ -130,6 +133,7 @@ export default function Register() {
               <Input
                 id="password"
                 name="password"
+                data-testid="password-input"
                 type="password"
                 value={formData.password}
                 onChange={handleChange}
@@ -151,7 +155,7 @@ export default function Register() {
               />
             </div>
             
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button type="submit" data-testid="register-button" className="w-full" disabled={isLoading}>
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

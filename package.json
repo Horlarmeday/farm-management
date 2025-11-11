@@ -22,6 +22,10 @@
     "test:server": "yarn workspace @kuyash/server test",
     "test:client": "yarn workspace @kuyash/client test",
     "test:shared": "yarn workspace @kuyash/shared test",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
     "lint": "echo 'ESLint temporarily disabled - use format and type-check instead'",
     "lint:fix": "echo 'ESLint temporarily disabled - use format and type-check instead'",
     "lint:server": "yarn workspace @kuyash/server lint",
@@ -40,11 +44,14 @@
     "docker:prod": "docker-compose -f docker-compose.prod.yml up --build"
   },
   "devDependencies": {
+    "@faker-js/faker": "^10.0.0",
+    "@playwright/test": "^1.55.0",
     "@typescript-eslint/eslint-plugin": "^6.13.1",
     "@typescript-eslint/parser": "^6.13.1",
     "concurrently": "^8.2.2",
     "eslint": "^8.54.0",
     "eslint-config-prettier": "^9.1.0",
+    "playwright": "^1.55.0",
     "prettier": "^3.1.1",
     "typescript": "^5.3.2"
   },

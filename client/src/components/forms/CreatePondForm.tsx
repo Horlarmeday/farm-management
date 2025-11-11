@@ -1,75 +1,140 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
-import { getWaterSourceOptions, getPondTypeOptions } from "@/lib/formUtils";
+import { Button } from '@/components/ui/button';
+import { DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { useCreatePond } from '@/hooks/useFishery';
+import { getPondTypeOptions } from '@/lib/formUtils';
+import { Loader2 } from 'lucide-react';
+import { useState } from 'react';
 
 interface CreatePondFormProps {
   onSuccess?: () => void;
 }
 
 export default function CreatePondForm({ onSuccess }: CreatePondFormProps) {
-  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  
+  const createPondMutation = useCreatePond();
+
   const [formData, setFormData] = useState({
-    name: "",
-    location: "",
-    type: "",
-    size: "",
-    depth: "",
-    waterSource: "",
-    fishSpecies: "",
-    stockingDate: "",
-    expectedHarvestDate: "",
-    notes: "",
+    name: '',
+    location: '',
+    pondType: '',
+    sizeM2: '',
+    maxDepthM: '',
+    avgDepthM: '',
+    notes: '',
   });
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+
+    // Validate required fields
+    if (
+      !formData.name ||
+      !formData.location ||
+      !formData.pondType ||
+      !formData.sizeM2 ||
+      !formData.maxDepthM ||
+      !formData.avgDepthM
+    ) {
+      toast({
+        title: 'Error',
+        description: 'Please fill in all required fields',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Validate numeric fields are positive
+    const sizeM2 = parseFloat(formData.sizeM2);
+    const maxDepthM = parseFloat(formData.maxDepthM);
+    const avgDepthM = parseFloat(formData.avgDepthM);
+
+    if (isNaN(sizeM2) || sizeM2 <= 0) {
+      toast({
+        title: 'Error',
+        description: 'Size must be a positive number',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (isNaN(maxDepthM) || maxDepthM <= 0) {
+      toast({
+        title: 'Error',
+        description: 'Maximum depth must be a positive number',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (isNaN(avgDepthM) || avgDepthM <= 0) {
+      toast({
+        title: 'Error',
+        description: 'Average depth must be a positive number',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Validate average depth is not greater than max depth
+    if (avgDepthM > maxDepthM) {
+      toast({
+        title: 'Error',
+        description: 'Average depth cannot be greater than maximum depth',
+        variant: 'destructive',
+      });
+      return;
+    }
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      // Send data in the format the server expects
+      await createPondMutation.mutateAsync({
+        name: formData.name,
+        location: formData.location,
+        pondType: formData.pondType,
+        sizeM2: sizeM2,
+        maxDepthM: maxDepthM,
+        avgDepthM: avgDepthM,
+        notes: formData.notes || undefined,
+      } as any);
+
       toast({
-        title: "Success",
-        description: "Pond created successfully",
+        title: 'Success',
+        description: 'Pond created successfully',
       });
-      
+
       // Reset form
       setFormData({
-        name: "",
-        location: "",
-        type: "",
-        size: "",
-        depth: "",
-        waterSource: "",
-        fishSpecies: "",
-        stockingDate: "",
-        expectedHarvestDate: "",
-        notes: "",
+        name: '',
+        location: '',
+        pondType: '',
+        sizeM2: '',
+        maxDepthM: '',
+        avgDepthM: '',
+        notes: '',
       });
-      
+
       onSuccess?.();
-    } catch (error) {
+    } catch (error: any) {
       toast({
-        title: "Error",
-        description: "Failed to create pond",
-        variant: "destructive",
+        title: 'Error',
+        description: error.message || 'Failed to create pond',
+        variant: 'destructive',
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -81,23 +146,27 @@ export default function CreatePondForm({ onSuccess }: CreatePondFormProps) {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Pond Name</Label>
+            <Label htmlFor="name">
+              Pond Name <span className="text-red-500">*</span>
+            </Label>
             <Input
               id="name"
               placeholder="e.g., Pond A1"
               value={formData.name}
-              onChange={(e) => handleInputChange("name", e.target.value)}
+              onChange={(e) => handleInputChange('name', e.target.value)}
               required
             />
           </div>
-          
+
           <div className="space-y-2">
-            <Label htmlFor="location">Location</Label>
+            <Label htmlFor="location">
+              Location <span className="text-red-500">*</span>
+            </Label>
             <Input
               id="location"
-              placeholder="e.g., North Field"
+              placeholder="e.g., North Section, Block B"
               value={formData.location}
-              onChange={(e) => handleInputChange("location", e.target.value)}
+              onChange={(e) => handleInputChange('location', e.target.value)}
               required
             />
           </div>
@@ -105,56 +174,18 @@ export default function CreatePondForm({ onSuccess }: CreatePondFormProps) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="type">Pond Type</Label>
-            <Select value={formData.type} onValueChange={(value) => handleInputChange("type", value)}>
+            <Label htmlFor="pondType">
+              Pond Type <span className="text-red-500">*</span>
+            </Label>
+            <Select
+              value={formData.pondType}
+              onValueChange={(value) => handleInputChange('pondType', value)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select pond type" />
               </SelectTrigger>
               <SelectContent>
-              {getPondTypeOptions().map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="size">Size (sq. meters)</Label>
-            <Input
-              id="size"
-              type="number"
-              placeholder="e.g., 100"
-              value={formData.size}
-              onChange={(e) => handleInputChange("size", e.target.value)}
-              required
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="depth">Depth (meters)</Label>
-            <Input
-              id="depth"
-              type="number"
-              step="0.1"
-              placeholder="e.g., 1.5"
-              value={formData.depth}
-              onChange={(e) => handleInputChange("depth", e.target.value)}
-              required
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="waterSource">Water Source</Label>
-            <Select value={formData.waterSource} onValueChange={(value) => handleInputChange("waterSource", value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select water source" />
-              </SelectTrigger>
-              <SelectContent>
-                {getWaterSourceOptions().map((option) => (
+                {getPondTypeOptions().map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
                   </SelectItem>
@@ -162,38 +193,56 @@ export default function CreatePondForm({ onSuccess }: CreatePondFormProps) {
               </SelectContent>
             </Select>
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="sizeM2">
+              Size (m²) <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              id="sizeM2"
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="e.g., 100.0"
+              value={formData.sizeM2}
+              onChange={(e) => handleInputChange('sizeM2', e.target.value)}
+              required
+            />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="fishSpecies">Fish Species</Label>
+            <Label htmlFor="maxDepthM">
+              Maximum Depth (meters) <span className="text-red-500">*</span>
+            </Label>
             <Input
-              id="fishSpecies"
-              placeholder="e.g., Tilapia"
-              value={formData.fishSpecies}
-              onChange={(e) => handleInputChange("fishSpecies", e.target.value)}
+              id="maxDepthM"
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="e.g., 2.5"
+              value={formData.maxDepthM}
+              onChange={(e) => handleInputChange('maxDepthM', e.target.value)}
+              required
             />
           </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="stockingDate">Stocking Date</Label>
-            <Input
-              id="stockingDate"
-              type="date"
-              value={formData.stockingDate}
-              onChange={(e) => handleInputChange("stockingDate", e.target.value)}
-            />
-          </div>
-        </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="expectedHarvestDate">Expected Harvest Date</Label>
-          <Input
-            id="expectedHarvestDate"
-            type="date"
-            value={formData.expectedHarvestDate}
-            onChange={(e) => handleInputChange("expectedHarvestDate", e.target.value)}
-          />
+          <div className="space-y-2">
+            <Label htmlFor="avgDepthM">
+              Average Depth (meters) <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              id="avgDepthM"
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="e.g., 1.8"
+              value={formData.avgDepthM}
+              onChange={(e) => handleInputChange('avgDepthM', e.target.value)}
+              required
+            />
+          </div>
         </div>
 
         <div className="space-y-2">
@@ -202,20 +251,24 @@ export default function CreatePondForm({ onSuccess }: CreatePondFormProps) {
             id="notes"
             placeholder="Additional information about the pond..."
             value={formData.notes}
-            onChange={(e) => handleInputChange("notes", e.target.value)}
+            onChange={(e) => handleInputChange('notes', e.target.value)}
             rows={3}
           />
         </div>
 
         <div className="flex justify-end space-x-3 pt-4">
-          <Button type="submit" className="farm-button-primary" disabled={isLoading}>
-            {isLoading ? (
+          <Button
+            type="submit"
+            className="farm-button-primary"
+            disabled={createPondMutation.isPending}
+          >
+            {createPondMutation.isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Creating...
               </>
             ) : (
-              "Create Pond"
+              'Create Pond'
             )}
           </Button>
         </div>

@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  # MySQL Database for testing
+  mysql-test:
+    image: mysql:8.0
+    container_name: kuyash_mysql_test
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: kuyash_fms_test
+      MYSQL_USER: kuyash_user
+      MYSQL_PASSWORD: kuyash_password
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+    ports:
+      - '3307:3306'
+    command: --default-authentication-plugin=mysql_native_password --sql-mode="ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"
+    restart: unless-stopped
+    tmpfs:
+      - /var/lib/mysql:rw,noexec,nosuid,size=1g
+
+volumes:
+  mysql_test_data:
+
+networks:
+  default:
+    name: kuyash_test_network

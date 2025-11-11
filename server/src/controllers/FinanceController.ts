@@ -1,5 +1,5 @@
-import { ApiResponse, FinanceTransactionType } from '../../../shared/src/types';
 import { NextFunction, Request, Response } from 'express';
+import { ApiResponse, FinanceTransactionType } from '../../../shared/src/types';
 import { FinanceService } from '../services/FinanceService';
 import { ServiceFactory } from '../services/ServiceFactory';
 import { BadRequestError } from '../utils/errors';
@@ -22,7 +22,7 @@ export class FinanceController {
         res.status(401).json({
           success: false,
           message: 'User ID is required',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
         return;
       }
@@ -31,7 +31,7 @@ export class FinanceController {
         res.status(400).json({
           success: false,
           message: 'Farm ID is required',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
         return;
       }
@@ -40,7 +40,7 @@ export class FinanceController {
         ...transactionData,
         farmId,
         createdById: userId,
-        recordedById: userId
+        recordedById: userId,
       };
 
       const transaction = await this.financeService.createTransaction(completeTransactionData);
@@ -49,7 +49,7 @@ export class FinanceController {
         success: true,
         data: transaction,
         message: 'Transaction created successfully',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     } catch (error) {
       console.error('Error creating transaction:', error);
@@ -57,7 +57,7 @@ export class FinanceController {
         success: false,
         message: 'Failed to create transaction',
         error: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
   }
@@ -71,7 +71,7 @@ export class FinanceController {
         res.status(401).json({
           success: false,
           message: 'User ID is required',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
         return;
       }
@@ -80,7 +80,7 @@ export class FinanceController {
         res.status(400).json({
           success: false,
           message: 'Farm ID is required',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
         return;
       }
@@ -101,7 +101,7 @@ export class FinanceController {
         end_date: dateTo,
         limit,
         page,
-        farm_id: farmId
+        farm_id: farmId,
       });
 
       // Get total count for pagination
@@ -110,12 +110,12 @@ export class FinanceController {
         category_id: category,
         start_date: dateFrom,
         end_date: dateTo,
-        farm_id: farmId
+        farm_id: farmId,
       });
 
       const result = {
         transactions,
-        total: totalTransactions.length
+        total: totalTransactions.length,
       };
 
       res.status(200).json({
@@ -125,9 +125,9 @@ export class FinanceController {
           page,
           limit,
           total: result.total,
-          totalPages: Math.ceil(result.total / limit)
+          totalPages: Math.ceil(result.total / limit),
         },
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     } catch (error) {
       console.error('Error fetching transactions:', error);
@@ -135,7 +135,7 @@ export class FinanceController {
         success: false,
         message: 'Failed to fetch transactions',
         error: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
   }
@@ -150,7 +150,7 @@ export class FinanceController {
         res.status(401).json({
           success: false,
           message: 'User ID is required',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
         return;
       }
@@ -159,7 +159,7 @@ export class FinanceController {
         res.status(400).json({
           success: false,
           message: 'Farm ID is required',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
         return;
       }
@@ -170,7 +170,7 @@ export class FinanceController {
         res.status(404).json({
           success: false,
           message: 'Transaction not found',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
         return;
       }
@@ -179,7 +179,7 @@ export class FinanceController {
         success: true,
         data: transaction,
         message: 'Transaction retrieved successfully',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     } catch (error) {
       console.error('Error getting transaction by ID:', error);
@@ -187,7 +187,7 @@ export class FinanceController {
         success: false,
         message: 'Failed to retrieve transaction',
         error: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
   }
@@ -202,7 +202,7 @@ export class FinanceController {
         res.status(401).json({
           success: false,
           message: 'User ID is required',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
         return;
       }
@@ -211,17 +211,21 @@ export class FinanceController {
         res.status(400).json({
           success: false,
           message: 'Farm ID is required',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
         return;
       }
 
       const completeUpdateData = {
         ...updateData,
-        updatedById: userId
+        updatedById: userId,
       };
 
-      const transaction = await this.financeService.updateTransactionByFarm(id, completeUpdateData, farmId);
+      const transaction = await this.financeService.updateTransactionByFarm(
+        id,
+        completeUpdateData,
+        farmId,
+      );
 
       if (!transaction) {
         res.status(404).json({
@@ -235,7 +239,7 @@ export class FinanceController {
         success: true,
         data: transaction,
         message: 'Transaction updated successfully',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     } catch (error) {
       console.error('Error updating transaction:', error);
@@ -243,7 +247,7 @@ export class FinanceController {
         success: false,
         message: 'Failed to update transaction',
         error: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
   }
@@ -253,12 +257,12 @@ export class FinanceController {
       const userId = req.user?.id;
       const farmId = req.farm?.id;
       const { id } = req.params;
-      
+
       if (!userId || !farmId) {
         res.status(401).json({ error: 'User not authenticated or no farm selected' });
         return;
       }
-      
+
       await this.financeService.deleteTransactionByFarm(id, farmId);
 
       res.status(200).json({
@@ -283,7 +287,7 @@ export class FinanceController {
         res.status(400).json({
           success: false,
           message: 'Farm ID is required',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
         return;
       }
@@ -294,7 +298,7 @@ export class FinanceController {
         success: true,
         data: categories,
         message: 'Categories retrieved successfully',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -302,7 +306,7 @@ export class FinanceController {
         success: false,
         message: 'Failed to fetch categories',
         error: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
   }
@@ -568,11 +572,7 @@ export class FinanceController {
   };
 
   // Financial Reporting
-  generateProfitLossReport = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  generateProfitLossReport = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { startDate, endDate } = req.query;
 
@@ -597,11 +597,7 @@ export class FinanceController {
     }
   };
 
-  getProfitLossReportById = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  getProfitLossReportById = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
       const report = await this.financeService.getProfitLossReportById(id);
@@ -616,16 +612,16 @@ export class FinanceController {
     }
   };
 
-  generateCashFlowReport = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  generateCashFlowReport = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { date } = req.query;
 
       const reportDate = date ? new Date(date as string) : new Date();
-      const report = await this.financeService.generateCashFlowReport(reportDate, req.user!.id, req.farm?.id!);
+      const report = await this.financeService.generateCashFlowReport(
+        reportDate,
+        req.user!.id,
+        req.farm?.id!,
+      );
 
       res.json({
         success: true,
@@ -653,6 +649,45 @@ export class FinanceController {
         message: 'Financial overview retrieved successfully',
         data: overview,
       } as ApiResponse<typeof overview>);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getFinanceSummary = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const farmId = (req as any).farm?.id || (req as any).user?.farmId;
+
+      if (!farmId) {
+        res.status(400).json({
+          success: false,
+          message: 'Farm ID is required',
+        });
+        return;
+      }
+
+      // Get current month's financial data
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+      const overview = await this.financeService.getFinancialOverview(
+        farmId,
+        startOfMonth,
+        endOfMonth,
+      );
+
+      const summary = {
+        monthlyRevenue: overview.totalIncome,
+        expenses: overview.totalExpenses,
+        netProfit: overview.netProfit,
+      };
+
+      res.json({
+        success: true,
+        message: 'Finance summary retrieved successfully',
+        data: summary,
+      } as ApiResponse<typeof summary>);
     } catch (error) {
       next(error);
     }

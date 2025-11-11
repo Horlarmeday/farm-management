@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback, memo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Table,
@@ -96,7 +96,7 @@ interface FilterState {
 
 const ITEMS_PER_PAGE = 10;
 
-const TransactionList: React.FC<TransactionListProps> = ({ className }) => {
+const TransactionList: React.FC<TransactionListProps> = memo(({ className }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -185,19 +185,19 @@ const TransactionList: React.FC<TransactionListProps> = ({ className }) => {
     return filtered;
   }, [transactionsData?.data, filters, sortField, sortDirection]);
 
-  const handleSort = (field: SortField) => {
+  const handleSort = useCallback((field: SortField) => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
       setSortField(field);
       setSortDirection('asc');
     }
-  };
+  }, [sortField, sortDirection]);
 
-  const handleFilterChange = (key: keyof FilterState, value: string) => {
+  const handleFilterChange = useCallback((key: keyof FilterState, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
     setCurrentPage(1); // Reset to first page when filtering
-  };
+  }, []);
 
   const handleEdit = (transaction: FinancialTransaction) => {
     setEditingTransaction(transaction);
@@ -605,6 +605,6 @@ const TransactionList: React.FC<TransactionListProps> = ({ className }) => {
       </Dialog>
     </div>
   );
-};
+});
 
 export default TransactionList;

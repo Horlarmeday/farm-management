@@ -1,10 +1,12 @@
-import { InventoryCategory, PurchaseOrderStatus, TransactionType } from '../../../shared/src/types';
 import { Repository } from 'typeorm';
+import { InventoryCategory, PurchaseOrderStatus, TransactionType } from '../../../shared/src/types';
 import { AppDataSource } from '../config/database';
 import { InventoryItem } from '../entities/InventoryItem';
 import { InventoryTransaction } from '../entities/InventoryTransaction';
 import { PurchaseOrder } from '../entities/PurchaseOrder';
 import { PurchaseOrderItem } from '../entities/PurchaseOrderItem';
+import { AdjustmentStatus, AdjustmentType, StockAdjustment } from '../entities/StockAdjustment';
+import { StockAlert, StockAlertSeverity, StockAlertType } from '../entities/StockAlert';
 import { Supplier } from '../entities/Supplier';
 import { BadRequestError, NotFoundError } from '../utils/errors';
 
@@ -14,6 +16,8 @@ export class InventoryService {
   private supplierRepository: Repository<Supplier>;
   private purchaseOrderRepository: Repository<PurchaseOrder>;
   private purchaseOrderItemRepository: Repository<PurchaseOrderItem>;
+  private stockAlertRepository: Repository<StockAlert>;
+  private stockAdjustmentRepository: Repository<StockAdjustment>;
 
   constructor() {
     this.inventoryItemRepository = AppDataSource.getRepository(InventoryItem);
@@ -21,6 +25,8 @@ export class InventoryService {
     this.supplierRepository = AppDataSource.getRepository(Supplier);
     this.purchaseOrderRepository = AppDataSource.getRepository(PurchaseOrder);
     this.purchaseOrderItemRepository = AppDataSource.getRepository(PurchaseOrderItem);
+    this.stockAlertRepository = AppDataSource.getRepository(StockAlert);
+    this.stockAdjustmentRepository = AppDataSource.getRepository(StockAdjustment);
   }
 
   // Inventory Item Management
@@ -69,8 +75,7 @@ export class InventoryService {
     supplierId?: string;
     search?: string;
   }): Promise<InventoryItem[]> {
-    const query = this.inventoryItemRepository
-      .createQueryBuilder('item');
+    const query = this.inventoryItemRepository.createQueryBuilder('item');
 
     if (filters?.category) {
       query.andWhere('item.category = :category', { category: filters.category });
@@ -530,6 +535,40 @@ export class InventoryService {
     };
   }
 
+  async getInventorySummary(): Promise<{
+    feedStock: { status: string; count: number };
+    medicines: { status: string; count: number };
+    equipment: { status: string; count: number };
+  }> {
+    const feedItems = await this.getInventoryItems({ category: InventoryCategory.FEED });
+    const medicineItems = await this.getInventoryItems({ category: InventoryCategory.MEDICINE });
+    const equipmentItems = await this.getInventoryItems({ category: InventoryCategory.EQUIPMENT });
+
+    const getStatus = (items: InventoryItem[]) => {
+      const lowStockCount = items.filter((item) => item.currentStock <= item.minimumStock).length;
+      const totalCount = items.length;
+
+      if (lowStockCount === 0) return 'Good';
+      if (lowStockCount <= totalCount * 0.3) return 'Medium';
+      return 'Low';
+    };
+
+    return {
+      feedStock: {
+        status: getStatus(feedItems),
+        count: feedItems.length,
+      },
+      medicines: {
+        status: getStatus(medicineItems),
+        count: medicineItems.length,
+      },
+      equipment: {
+        status: getStatus(equipmentItems),
+        count: equipmentItems.length,
+      },
+    };
+  }
+
   async getStockMovementReport(
     startDate: Date,
     endDate: Date,
@@ -622,5 +661,454 @@ export class InventoryService {
     }
 
     return report.sort((a, b) => b.estimatedCost - a.estimatedCost);
+  }
+
+  // ============================================
+  // Stock Alert Management
+  // ============================================
+
+  async generateStockAlerts(farmId: string): Promise<StockAlert[]> {
+    const items = await this.inventoryItemRepository.find({
+      where: { farmId },
+      relations: ['farm'],
+    });
+
+    const alerts: StockAlert[] = [];
+    const now = new Date();
+
+    for (const item of items) {
+      // Low stock alert
+      if (item.currentStock <= item.minimumStock && item.currentStock > 0) {
+        const existingAlert = await this.stockAlertRepository.findOne({
+          where: {
+            itemId: item.id,
+            alertType: StockAlertType.LOW_STOCK,
+            resolved: false,
+          },
+        });
+
+        if (!existingAlert) {
+          const alert = this.stockAlertRepository.create({
+            farmId,
+            itemId: item.id,
+            alertType: StockAlertType.LOW_STOCK,
+            severity: StockAlertSeverity.MEDIUM,
+            title: `Low Stock: ${item.name}`,
+            message: `Stock level (${item.currentStock} ${item.unit}) is below minimum threshold (${item.minimumStock} ${item.unit})`,
+            currentStock: item.currentStock,
+            threshold: item.minimumStock,
+            autoGenerated: true,
+          });
+          alerts.push(await this.stockAlertRepository.save(alert));
+        }
+      }
+
+      // Out of stock alert
+      if (item.currentStock <= 0) {
+        const existingAlert = await this.stockAlertRepository.findOne({
+          where: {
+            itemId: item.id,
+            alertType: StockAlertType.OUT_OF_STOCK,
+            resolved: false,
+          },
+        });
+
+        if (!existingAlert) {
+          const alert = this.stockAlertRepository.create({
+            farmId,
+            itemId: item.id,
+            alertType: StockAlertType.OUT_OF_STOCK,
+            severity: StockAlertSeverity.CRITICAL,
+            title: `Out of Stock: ${item.name}`,
+            message: `${item.name} is completely out of stock. Immediate reorder required.`,
+            currentStock: item.currentStock,
+            threshold: 0,
+            autoGenerated: true,
+          });
+          alerts.push(await this.stockAlertRepository.save(alert));
+        }
+      }
+
+      // Overstock alert
+      if (item.maximumStock && item.currentStock > item.maximumStock) {
+        const existingAlert = await this.stockAlertRepository.findOne({
+          where: {
+            itemId: item.id,
+            alertType: StockAlertType.OVERSTOCK,
+            resolved: false,
+          },
+        });
+
+        if (!existingAlert) {
+          const alert = this.stockAlertRepository.create({
+            farmId,
+            itemId: item.id,
+            alertType: StockAlertType.OVERSTOCK,
+            severity: StockAlertSeverity.LOW,
+            title: `Overstock: ${item.name}`,
+            message: `Stock level (${item.currentStock} ${item.unit}) exceeds maximum threshold (${item.maximumStock} ${item.unit})`,
+            currentStock: item.currentStock,
+            threshold: item.maximumStock,
+            autoGenerated: true,
+          });
+          alerts.push(await this.stockAlertRepository.save(alert));
+        }
+      }
+
+      // Expiry warning (30 days before expiry)
+      if (item.expiryDate) {
+        const daysUntilExpiry = Math.floor(
+          (item.expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+        );
+
+        if (daysUntilExpiry > 0 && daysUntilExpiry <= 30) {
+          const existingAlert = await this.stockAlertRepository.findOne({
+            where: {
+              itemId: item.id,
+              alertType: StockAlertType.EXPIRY_WARNING,
+              resolved: false,
+            },
+          });
+
+          if (!existingAlert) {
+            const alert = this.stockAlertRepository.create({
+              farmId,
+              itemId: item.id,
+              alertType: StockAlertType.EXPIRY_WARNING,
+              severity: daysUntilExpiry <= 7 ? StockAlertSeverity.HIGH : StockAlertSeverity.MEDIUM,
+              title: `Expiring Soon: ${item.name}`,
+              message: `${item.name} will expire in ${daysUntilExpiry} days (${item.expiryDate.toLocaleDateString()})`,
+              currentStock: item.currentStock,
+              autoGenerated: true,
+            });
+            alerts.push(await this.stockAlertRepository.save(alert));
+          }
+        }
+
+        // Expired alert
+        if (daysUntilExpiry < 0) {
+          const existingAlert = await this.stockAlertRepository.findOne({
+            where: {
+              itemId: item.id,
+              alertType: StockAlertType.EXPIRED,
+              resolved: false,
+            },
+          });
+
+          if (!existingAlert) {
+            const alert = this.stockAlertRepository.create({
+              farmId,
+              itemId: item.id,
+              alertType: StockAlertType.EXPIRED,
+              severity: StockAlertSeverity.CRITICAL,
+              title: `Expired: ${item.name}`,
+              message: `${item.name} expired on ${item.expiryDate.toLocaleDateString()}. Immediate action required.`,
+              currentStock: item.currentStock,
+              autoGenerated: true,
+            });
+            alerts.push(await this.stockAlertRepository.save(alert));
+          }
+        }
+      }
+    }
+
+    return alerts;
+  }
+
+  async getStockAlerts(
+    farmId: string,
+    filters?: {
+      alertType?: StockAlertType;
+      severity?: StockAlertSeverity;
+      acknowledged?: boolean;
+      resolved?: boolean;
+      page?: number;
+      limit?: number;
+    },
+  ): Promise<{ alerts: StockAlert[]; total: number }> {
+    const query = this.stockAlertRepository
+      .createQueryBuilder('alert')
+      .leftJoinAndSelect('alert.item', 'item')
+      .leftJoinAndSelect('alert.acknowledgedBy', 'acknowledgedBy')
+      .leftJoinAndSelect('alert.resolvedBy', 'resolvedBy')
+      .where('alert.farmId = :farmId', { farmId });
+
+    if (filters?.alertType) {
+      query.andWhere('alert.alertType = :alertType', { alertType: filters.alertType });
+    }
+
+    if (filters?.severity) {
+      query.andWhere('alert.severity = :severity', { severity: filters.severity });
+    }
+
+    if (filters?.acknowledged !== undefined) {
+      query.andWhere('alert.acknowledged = :acknowledged', { acknowledged: filters.acknowledged });
+    }
+
+    if (filters?.resolved !== undefined) {
+      query.andWhere('alert.resolved = :resolved', { resolved: filters.resolved });
+    }
+
+    query.orderBy('alert.severity', 'DESC').addOrderBy('alert.createdAt', 'DESC');
+
+    const page = filters?.page || 1;
+    const limit = filters?.limit || 20;
+    query.skip((page - 1) * limit).take(limit);
+
+    const [alerts, total] = await query.getManyAndCount();
+
+    return { alerts, total };
+  }
+
+  async acknowledgeStockAlert(alertId: string, userId: string): Promise<StockAlert> {
+    const alert = await this.stockAlertRepository.findOne({
+      where: { id: alertId },
+    });
+
+    if (!alert) {
+      throw new NotFoundError('Stock alert not found');
+    }
+
+    if (alert.acknowledged) {
+      throw new BadRequestError('Alert is already acknowledged');
+    }
+
+    alert.acknowledged = true;
+    alert.acknowledgedAt = new Date();
+    alert.acknowledgedById = userId;
+
+    return await this.stockAlertRepository.save(alert);
+  }
+
+  async resolveStockAlert(
+    alertId: string,
+    userId: string,
+    resolutionNotes?: string,
+  ): Promise<StockAlert> {
+    const alert = await this.stockAlertRepository.findOne({
+      where: { id: alertId },
+    });
+
+    if (!alert) {
+      throw new NotFoundError('Stock alert not found');
+    }
+
+    if (alert.resolved) {
+      throw new BadRequestError('Alert is already resolved');
+    }
+
+    alert.resolved = true;
+    alert.resolvedAt = new Date();
+    alert.resolvedById = userId;
+    alert.resolutionNotes = resolutionNotes;
+
+    return await this.stockAlertRepository.save(alert);
+  }
+
+  // ============================================
+  // Stock Adjustment Management
+  // ============================================
+
+  async createStockAdjustment(
+    farmId: string,
+    userId: string,
+    adjustmentData: {
+      itemId: string;
+      adjustmentType: AdjustmentType;
+      newQuantity: number;
+      reason: string;
+      notes?: string;
+    },
+  ): Promise<StockAdjustment> {
+    const item = await this.getInventoryItemById(adjustmentData.itemId);
+
+    if (item.farmId !== farmId) {
+      throw new BadRequestError('Item does not belong to this farm');
+    }
+
+    const oldQuantity = item.currentStock;
+    const quantityDifference = adjustmentData.newQuantity - oldQuantity;
+    const estimatedValue = Math.abs(quantityDifference) * (item.unitCost || 0);
+
+    const adjustment = this.stockAdjustmentRepository.create({
+      farmId,
+      itemId: adjustmentData.itemId,
+      adjustmentType: adjustmentData.adjustmentType,
+      oldQuantity,
+      newQuantity: adjustmentData.newQuantity,
+      quantityDifference,
+      reason: adjustmentData.reason,
+      notes: adjustmentData.notes,
+      createdById: userId,
+      estimatedValue,
+      status: AdjustmentStatus.PENDING,
+    });
+
+    return await this.stockAdjustmentRepository.save(adjustment);
+  }
+
+  async getStockAdjustments(
+    farmId: string,
+    filters?: {
+      itemId?: string;
+      adjustmentType?: AdjustmentType;
+      status?: AdjustmentStatus;
+      dateFrom?: string;
+      dateTo?: string;
+      page?: number;
+      limit?: number;
+    },
+  ): Promise<{ adjustments: StockAdjustment[]; total: number }> {
+    const query = this.stockAdjustmentRepository
+      .createQueryBuilder('adjustment')
+      .leftJoinAndSelect('adjustment.item', 'item')
+      .leftJoinAndSelect('adjustment.createdBy', 'createdBy')
+      .leftJoinAndSelect('adjustment.approvedBy', 'approvedBy')
+      .leftJoinAndSelect('adjustment.transaction', 'transaction')
+      .where('adjustment.farmId = :farmId', { farmId });
+
+    if (filters?.itemId) {
+      query.andWhere('adjustment.itemId = :itemId', { itemId: filters.itemId });
+    }
+
+    if (filters?.adjustmentType) {
+      query.andWhere('adjustment.adjustmentType = :adjustmentType', {
+        adjustmentType: filters.adjustmentType,
+      });
+    }
+
+    if (filters?.status) {
+      query.andWhere('adjustment.status = :status', { status: filters.status });
+    }
+
+    if (filters?.dateFrom) {
+      query.andWhere('adjustment.createdAt >= :dateFrom', { dateFrom: filters.dateFrom });
+    }
+
+    if (filters?.dateTo) {
+      query.andWhere('adjustment.createdAt <= :dateTo', { dateTo: filters.dateTo });
+    }
+
+    query.orderBy('adjustment.createdAt', 'DESC');
+
+    const page = filters?.page || 1;
+    const limit = filters?.limit || 20;
+    query.skip((page - 1) * limit).take(limit);
+
+    const [adjustments, total] = await query.getManyAndCount();
+
+    return { adjustments, total };
+  }
+
+  async approveStockAdjustment(adjustmentId: string, userId: string): Promise<StockAdjustment> {
+    const adjustment = await this.stockAdjustmentRepository.findOne({
+      where: { id: adjustmentId },
+      relations: ['item'],
+    });
+
+    if (!adjustment) {
+      throw new NotFoundError('Stock adjustment not found');
+    }
+
+    if (adjustment.status !== AdjustmentStatus.PENDING) {
+      throw new BadRequestError('Only pending adjustments can be approved');
+    }
+
+    // Update inventory item stock
+    const item = adjustment.item;
+    item.currentStock = adjustment.newQuantity;
+    await this.inventoryItemRepository.save(item);
+
+    // Create inventory transaction for audit trail
+    const transaction = this.inventoryTransactionRepository.create({
+      itemId: item.id,
+      type: adjustment.quantityDifference > 0 ? TransactionType.PURCHASE : TransactionType.USAGE,
+      quantity: Math.abs(adjustment.quantityDifference),
+      unitCost: item.unitCost,
+      totalCost: adjustment.estimatedValue,
+      reason: `Stock adjustment: ${adjustment.adjustmentType}`,
+      notes: adjustment.reason,
+      reference: `ADJ-${adjustment.id}`,
+      userId: userId,
+    });
+    const savedTransaction = await this.inventoryTransactionRepository.save(transaction);
+
+    // Update adjustment
+    adjustment.status = AdjustmentStatus.APPROVED;
+    adjustment.approvedAt = new Date();
+    adjustment.approvedById = userId;
+    adjustment.transactionId = savedTransaction.id;
+
+    const savedAdjustment = await this.stockAdjustmentRepository.save(adjustment);
+
+    // Auto-resolve related alerts
+    await this.autoResolveAlertsForItem(item.id, userId);
+
+    return savedAdjustment;
+  }
+
+  async rejectStockAdjustment(
+    adjustmentId: string,
+    userId: string,
+    rejectionReason: string,
+  ): Promise<StockAdjustment> {
+    const adjustment = await this.stockAdjustmentRepository.findOne({
+      where: { id: adjustmentId },
+    });
+
+    if (!adjustment) {
+      throw new NotFoundError('Stock adjustment not found');
+    }
+
+    if (adjustment.status !== AdjustmentStatus.PENDING) {
+      throw new BadRequestError('Only pending adjustments can be rejected');
+    }
+
+    adjustment.status = AdjustmentStatus.REJECTED;
+    adjustment.rejectedAt = new Date();
+    adjustment.rejectionReason = rejectionReason;
+
+    return await this.stockAdjustmentRepository.save(adjustment);
+  }
+
+  private async autoResolveAlertsForItem(itemId: string, userId: string): Promise<void> {
+    const item = await this.inventoryItemRepository.findOne({
+      where: { id: itemId },
+    });
+
+    if (!item) return;
+
+    const unresolvedAlerts = await this.stockAlertRepository.find({
+      where: {
+        itemId,
+        resolved: false,
+      },
+    });
+
+    for (const alert of unresolvedAlerts) {
+      let shouldResolve = false;
+
+      switch (alert.alertType) {
+        case StockAlertType.LOW_STOCK:
+          shouldResolve = item.currentStock > item.minimumStock;
+          break;
+        case StockAlertType.OUT_OF_STOCK:
+          shouldResolve = item.currentStock > 0;
+          break;
+        case StockAlertType.OVERSTOCK:
+          shouldResolve = !item.maximumStock || item.currentStock <= item.maximumStock;
+          break;
+        default:
+          break;
+      }
+
+      if (shouldResolve) {
+        alert.resolved = true;
+        alert.resolvedAt = new Date();
+        alert.resolvedById = userId;
+        alert.resolutionNotes = 'Auto-resolved after stock adjustment';
+        await this.stockAlertRepository.save(alert);
+      }
+    }
   }
 }

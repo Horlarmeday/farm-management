@@ -20,12 +20,15 @@ import {
 import { apiClient } from './api';
 
 export class UsersService {
-  private static readonly BASE_URL = '/users';
-  private static readonly DEPARTMENTS_URL = '/departments';
-  private static readonly ROLES_URL = '/roles';
-  private static readonly ATTENDANCE_URL = '/attendance';
-  private static readonly PAYROLL_URL = '/payroll';
-  private static readonly LEAVES_URL = '/leaves';
+  private static readonly BASE_URL = '/api/users';
+  private static readonly DEPARTMENTS_URL = '/api/departments';
+  private static readonly ROLES_URL = '/api/roles';
+  private static readonly ATTENDANCE_URL = '/api/attendance';
+  private static readonly PAYROLL_URL = '/api/payroll';
+  private static readonly LEAVES_URL = '/api/leaves';
+  // New endpoints aligned with users router
+  private static readonly USERS_ATTENDANCE_URL = '/api/users/attendance';
+  private static readonly USERS_LEAVE_URL = '/api/users/leave';
 
   // User CRUD Operations
   static async getUsers(params?: {
@@ -158,6 +161,19 @@ export class UsersService {
     limit?: number;
   }): Promise<PaginatedResponse<AttendanceRecord>> {
     const response = await apiClient.get(this.ATTENDANCE_URL, { params });
+    return response.data;
+  }
+
+  // Create attendance via /api/users/attendance (server users router)
+  static async createAttendance(data: {
+    userId: string;
+    date: Date;
+    checkIn: Date;
+    checkOut?: Date;
+    location?: string;
+    notes?: string;
+  }): Promise<ApiResponse<AttendanceRecord>> {
+    const response = await apiClient.post(this.USERS_ATTENDANCE_URL, data);
     return response.data;
   }
 
@@ -294,6 +310,18 @@ export class UsersService {
     return response.data;
   }
 
+  // Create leave via /api/users/leave (server users router)
+  static async createLeaveRequestUsers(data: {
+    userId: string;
+    type: LeaveType;
+    startDate: Date;
+    endDate: Date;
+    reason: string;
+  }): Promise<ApiResponse<LeaveRequest>> {
+    const response = await apiClient.post(this.USERS_LEAVE_URL, data);
+    return response.data;
+  }
+
   static async updateLeaveRequest(id: string, data: {
     type?: LeaveType;
     startDate?: Date;
@@ -306,6 +334,15 @@ export class UsersService {
 
   static async approveLeave(id: string): Promise<ApiResponse<LeaveRequest>> {
     const response = await apiClient.patch(`${this.LEAVES_URL}/${id}/approve`);
+    return response.data;
+  }
+
+  // Approve/Reject leave via /api/users/leave/:id/approve (server users router uses PUT with body)
+  static async approveLeaveUsers(id: string, data: {
+    status: 'APPROVED' | 'REJECTED';
+    comments?: string;
+  }): Promise<ApiResponse<LeaveRequest>> {
+    const response = await apiClient.put(`${this.USERS_LEAVE_URL}/${id}/approve`, data);
     return response.data;
   }
 

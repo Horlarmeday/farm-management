@@ -2,14 +2,19 @@ import { commonSchemas, validate } from '@/middleware/joiValidation.middleware';
 import { inventoryValidations } from '@/validations/inventory.validations';
 import { Router } from 'express';
 import Joi from 'joi';
+import { FarmRole } from '../../../shared/src/types';
 import { InventoryController } from '../controllers/InventoryController';
 import { authenticate } from '../middleware/auth.middleware';
+import { requireFarmAccessWithRole } from '../middleware/farm-auth.middleware';
 
 const router = Router();
 const inventoryController = new InventoryController();
 
 // Apply authentication to all routes
 router.use(authenticate);
+
+// Apply farm access middleware - Inventory operations require WORKER or higher
+router.use(requireFarmAccessWithRole([FarmRole.WORKER, FarmRole.MANAGER, FarmRole.OWNER]));
 
 // Inventory Items Routes
 router.post(
@@ -170,17 +175,20 @@ router.post(
   inventoryController.receivePurchaseOrder,
 );
 
-// Analytics and Reports Routes
-router.get('/analytics/valuation', inventoryController.getInventoryValuation);
-
-router.get(
-  '/reports/stock-movement',
-  validate({ query: commonSchemas.dateRange }),
-  inventoryController.getStockMovementReport,
+// Stock Alerts Routes
+router.get('/alerts', inventoryController.getStockAlerts);
+router.post('/alerts/generate', inventoryController.generateStockAlerts);
+router.patch('/alerts/:id/acknowledge', inventoryController.acknowledgeStockAlert);
+router.patch(
+  '/alerts/:id/resolve',
+  validate({
+    params: commonSchemas.uuidParam,
+    body: Joi.object({
+      notes: Joi.string().optional(),
+    }),
+  }),
+  inventoryController.resolveStockAlert,
 );
-
-router.get('/reports/reorder', inventoryController.generateReorderReport);
-
 router.get(
   '/alerts/expiring',
   validate({
@@ -190,5 +198,52 @@ router.get(
   }),
   inventoryController.checkExpiringItems,
 );
+
+// Stock Adjustments Routes
+router.post(
+  '/adjustments',
+  validate({
+    body: Joi.object({
+      itemId: Joi.string().uuid().required(),
+      adjustmentType: Joi.string()
+        .valid('physical_count', 'damaged', 'lost', 'expired', 'theft', 'other')
+        .required(),
+      newQuantity: Joi.number().min(0).required(),
+      reason: Joi.string().required(),
+      notes: Joi.string().optional(),
+    }),
+  }),
+  inventoryController.createStockAdjustment,
+);
+router.get('/adjustments', inventoryController.getStockAdjustments);
+router.post(
+  '/adjustments/:id/approve',
+  requireFarmAccessWithRole([FarmRole.MANAGER, FarmRole.OWNER]),
+  validate({ params: commonSchemas.uuidParam }),
+  inventoryController.approveStockAdjustment,
+);
+router.post(
+  '/adjustments/:id/reject',
+  requireFarmAccessWithRole([FarmRole.MANAGER, FarmRole.OWNER]),
+  validate({
+    params: commonSchemas.uuidParam,
+    body: Joi.object({
+      rejectionReason: Joi.string().required(),
+    }),
+  }),
+  inventoryController.rejectStockAdjustment,
+);
+
+// Analytics and Reports Routes
+router.get('/analytics/valuation', inventoryController.getInventoryValuation);
+router.get('/summary', inventoryController.getInventorySummary);
+
+router.get(
+  '/reports/stock-movement',
+  validate({ query: commonSchemas.dateRange }),
+  inventoryController.getStockMovementReport,
+);
+
+router.get('/reports/reorder', inventoryController.generateReorderReport);
 
 export default router;

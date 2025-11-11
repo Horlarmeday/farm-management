@@ -1,5 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 import { toast } from 'sonner';
+import { API_CONFIG } from '../config/api.config';
 
 export interface FarmAlert {
   id: string;
@@ -85,20 +86,20 @@ class WebSocketService {
         throw new Error('No authentication token found');
       }
 
-      const serverUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-      
+      const serverUrl = API_CONFIG.BASE_URL;
+
       this.socket = io(serverUrl, {
         auth: {
-          token
+          token,
         },
         query: farmId ? { farmId } : {},
         transports: ['websocket', 'polling'],
-        timeout: 20000,
-        forceNew: true
+        timeout: API_CONFIG.REQUEST.TIMEOUT,
+        forceNew: true,
       });
 
       this.setupEventHandlers();
-      
+
       // Wait for connection
       await new Promise<void>((resolve, reject) => {
         const timeout = setTimeout(() => {
@@ -119,7 +120,6 @@ class WebSocketService {
           reject(error);
         });
       });
-
     } catch (error) {
       this.isConnecting = false;
       console.error('Failed to connect to WebSocket:', error);
@@ -145,7 +145,7 @@ class WebSocketService {
     if (!this.eventListeners.has(event)) {
       this.eventListeners.set(event, new Set());
     }
-    
+
     this.eventListeners.get(event)!.add(callback);
 
     // Return unsubscribe function
@@ -194,7 +194,7 @@ class WebSocketService {
     this.socket.on('connect', () => {
       console.log('🔌 WebSocket connected');
       this.reconnectAttempts = 0;
-      
+
       // Re-subscribe to farm events if we have a current farm
       if (this.currentFarmId) {
         this.subscribeToAlerts(this.currentFarmId);
@@ -205,7 +205,7 @@ class WebSocketService {
 
     this.socket.on('disconnect', (reason) => {
       console.log('🔌 WebSocket disconnected:', reason);
-      
+
       if (reason === 'io server disconnect') {
         // Server initiated disconnect, try to reconnect
         this.handleReconnect();
@@ -266,19 +266,21 @@ class WebSocketService {
       low: { duration: 4000, style: 'info' as const },
       medium: { duration: 6000, style: 'info' as const },
       high: { duration: 8000, style: 'warning' as const },
-      critical: { duration: 0, style: 'error' as const } // Persistent
+      critical: { duration: 0, style: 'error' as const }, // Persistent
     };
 
     const config = severityConfig[alert.severity];
-    
+
     // Use proper toast method based on style
     const toastOptions = {
       description: alert.message,
       duration: config.duration,
-      action: alert.data?.actionUrl ? {
-        label: 'View Details',
-        onClick: () => window.open(alert.data.actionUrl, '_blank')
-      } : undefined
+      action: alert.data?.actionUrl
+        ? {
+            label: 'View Details',
+            onClick: () => window.open(alert.data.actionUrl, '_blank'),
+          }
+        : undefined,
     };
 
     switch (config.style) {
@@ -301,7 +303,7 @@ class WebSocketService {
       title: `🚨 ${alert.title}`,
       body: alert.message,
       tag: `farm-alert-${alert.type}`,
-      data: alert
+      data: alert,
     });
   }
 
@@ -312,23 +314,25 @@ class WebSocketService {
       update: { style: 'info' as const, icon: '📊' },
       reminder: { style: 'warning' as const, icon: '⏰' },
       system: { style: 'info' as const, icon: '🔧' },
-      push: { style: 'info' as const, icon: '🔔' }
+      push: { style: 'info' as const, icon: '🔔' },
     };
 
     const config = typeConfig[notification.type] || typeConfig.system;
-    
+
     const toastOptions = {
       description: notification.message,
-      action: notification.actions?.[0] ? {
-        label: notification.actions[0].title,
-        onClick: () => {
-          // Handle action - could emit back to server or navigate
-          this.socket?.emit('notification_action', {
-            action: notification.actions![0].action,
-            data: notification.data
-          });
-        }
-      } : undefined
+      action: notification.actions?.[0]
+        ? {
+            label: notification.actions[0].title,
+            onClick: () => {
+              // Handle action - could emit back to server or navigate
+              this.socket?.emit('notification_action', {
+                action: notification.actions![0].action,
+                data: notification.data,
+              });
+            },
+          }
+        : undefined,
     };
 
     const title = `${config.icon} ${notification.title}`;
@@ -361,7 +365,7 @@ class WebSocketService {
     }
 
     let permission = Notification.permission;
-    
+
     if (permission === 'default') {
       permission = await Notification.requestPermission();
     }
@@ -373,13 +377,13 @@ class WebSocketService {
         badge: '/icons/badge-icon.png',
         tag: options.tag,
         data: options.data,
-        requireInteraction: true
+        requireInteraction: true,
       });
 
       notification.onclick = () => {
         window.focus();
         notification.close();
-        
+
         // Handle notification click - could navigate to relevant page
         if (options.data?.actionUrl) {
           window.location.href = options.data.actionUrl;
@@ -394,16 +398,18 @@ class WebSocketService {
       console.error('🔌 Max reconnection attempts reached');
       toast.error('Connection lost', {
         description: 'Unable to reconnect to server. Please refresh the page.',
-        duration: 0
+        duration: 0,
       });
       return;
     }
 
     this.reconnectAttempts++;
     const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
-    
-    console.log(`🔌 Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts}) in ${delay}ms`);
-    
+
+    console.log(
+      `🔌 Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts}) in ${delay}ms`,
+    );
+
     setTimeout(() => {
       if (this.currentFarmId) {
         this.connect(this.currentFarmId).catch(console.error);
@@ -415,7 +421,7 @@ class WebSocketService {
   private notifyListeners<T>(event: string, data: T): void {
     const listeners = this.eventListeners.get(event);
     if (listeners) {
-      listeners.forEach(callback => {
+      listeners.forEach((callback) => {
         try {
           callback(data);
         } catch (error) {

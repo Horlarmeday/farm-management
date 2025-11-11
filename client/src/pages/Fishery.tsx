@@ -1,18 +1,21 @@
-import { useState } from "react";
-import { Fish, Plus, Search, Filter } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import { LoadingTable } from "@/components/ui/loading-card";
-import CreatePondForm from "@/components/forms/CreatePondForm";
-import { usePonds } from "@/hooks/useFishery";
+import CreateFeedingRecordForm from '@/components/forms/CreateFeedingRecordForm';
+import CreateHarvestRecordForm from '@/components/forms/CreateHarvestRecordForm';
+import CreatePondForm from '@/components/forms/CreatePondForm';
+import CreateWaterQualityForm from '@/components/forms/CreateWaterQualityForm';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { LoadingTable } from '@/components/ui/loading-card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { usePonds } from '@/hooks/useFishery';
+import { Filter, Fish, Plus, Search } from 'lucide-react';
+import { useState } from 'react';
 
 export default function Fishery() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  
+
   // Fetch ponds data
   const { data: pondsResponse, isLoading, error } = usePonds();
   const ponds = pondsResponse?.data || [];
@@ -91,10 +94,7 @@ export default function Fishery() {
         <TabsContent value="ponds" className="space-y-4">
           <div className="flex items-center space-x-2">
             <Search className="h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search ponds..."
-              className="max-w-sm"
-            />
+            <Input placeholder="Search ponds..." className="max-w-sm" />
           </div>
 
           <div className="grid gap-4">
@@ -103,9 +103,7 @@ export default function Fishery() {
                 <CardContent className="p-8 text-center">
                   <Fish className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <h3 className="text-lg font-semibold mb-2">No Ponds Found</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Start by adding your first fish pond
-                  </p>
+                  <p className="text-muted-foreground mb-4">Start by adding your first fish pond</p>
                   <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
                     <DialogTrigger asChild>
                       <Button className="farm-button-primary">
@@ -128,9 +126,7 @@ export default function Fishery() {
                           {pond.type} • {pond.speciesStocked}
                         </p>
                       </div>
-                      <Badge 
-                        variant={pond.status === 'active' ? 'default' : 'secondary'}
-                      >
+                      <Badge variant={pond.status === 'active' ? 'default' : 'secondary'}>
                         {pond.status}
                       </Badge>
                     </div>
@@ -164,6 +160,9 @@ export default function Fishery() {
         </TabsContent>
 
         <TabsContent value="water-quality" className="space-y-4">
+          <div className="flex justify-end">
+            <CreateWaterQualityForm />
+          </div>
           <Card>
             <CardContent className="p-8 text-center">
               <h3 className="text-lg font-semibold mb-2">Water Quality Monitoring</h3>
@@ -179,6 +178,9 @@ export default function Fishery() {
         </TabsContent>
 
         <TabsContent value="feeding" className="space-y-4">
+          <div className="flex justify-end">
+            <CreateFeedingRecordForm />
+          </div>
           <Card>
             <CardContent className="p-8 text-center">
               <h3 className="text-lg font-semibold mb-2">Feeding Records</h3>
@@ -194,6 +196,9 @@ export default function Fishery() {
         </TabsContent>
 
         <TabsContent value="harvest" className="space-y-4">
+          <div className="flex justify-end">
+            <CreateHarvestRecordForm />
+          </div>
           <Card>
             <CardContent className="p-8 text-center">
               <h3 className="text-lg font-semibold mb-2">Harvest Records</h3>

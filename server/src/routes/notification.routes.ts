@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { NotificationController } from '../controllers/NotificationController';
 import { authenticate } from '../middleware/auth.middleware';
+import { optionalFarmAccess } from '../middleware/farm-auth.middleware';
 import { validate } from '../middleware/joiValidation.middleware';
 import { notificationValidations } from '../validations/notification.validations';
 
@@ -9,6 +10,9 @@ const notificationController = new NotificationController();
 
 // Apply authentication to all routes
 router.use(authenticate);
+
+// Apply optional farm access - notifications can be user-wide or farm-specific
+router.use(optionalFarmAccess);
 
 // Notification Management Routes
 router.post(
@@ -40,9 +44,9 @@ router.put(
 // Enhanced notification routes
 router.post(
   '/notifications/:id/deliver',
-  validate({ 
+  validate({
     params: notificationValidations.uuidParam,
-    body: notificationValidations.deliverNotification 
+    body: notificationValidations.deliverNotification,
   }),
   notificationController.deliverNotification,
 );
@@ -55,9 +59,9 @@ router.get(
 
 router.get(
   '/notifications/priority/:priority',
-  validate({ 
+  validate({
     params: notificationValidations.getNotificationsByPriority,
-    query: notificationValidations.getNotifications 
+    query: notificationValidations.getNotifications,
   }),
   notificationController.getNotificationsByPriority,
 );

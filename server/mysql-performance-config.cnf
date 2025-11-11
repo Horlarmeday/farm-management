@@ -1,0 +1,51 @@
+# MySQL Performance Configuration for Kuyash Farm Management System
+# This configuration enables slow query logging and performance monitoring
+
+[mysqld]
+# Slow Query Log Configuration
+slow_query_log = 1
+slow_query_log_file = /var/log/mysql/slow-query.log
+long_query_time = 1.0
+log_queries_not_using_indexes = 1
+log_slow_admin_statements = 1
+log_slow_slave_statements = 1
+
+# General Query Log (for development only)
+# general_log = 1
+# general_log_file = /var/log/mysql/general.log
+
+# Performance Schema (for detailed performance monitoring)
+performance_schema = ON
+performance_schema_max_table_instances = 12500
+performance_schema_max_table_handles = 4000
+
+# InnoDB Configuration for Performance
+innodb_buffer_pool_size = 1G
+innodb_log_file_size = 256M
+innodb_flush_log_at_trx_commit = 2
+innodb_flush_method = O_DIRECT
+
+# Query Cache (deprecated in MySQL 8.0+)
+# query_cache_type = 1
+# query_cache_size = 64M
+
+# Connection and Thread Configuration
+max_connections = 200
+thread_cache_size = 16
+table_open_cache = 4000
+
+# Binary Logging for Replication and Point-in-time Recovery
+log_bin = mysql-bin
+binlog_format = ROW
+expire_logs_days = 7
+
+# Monitoring and Analysis
+# Enable these for detailed analysis
+# log_output = TABLE,FILE
+# slow_query_log_file = /var/log/mysql/slow-query.log
+
+# Notes:
+# 1. Adjust innodb_buffer_pool_size based on available RAM (typically 70-80% of total RAM)
+# 2. Monitor slow query log regularly: tail -f /var/log/mysql/slow-query.log
+# 3. Use mysqldumpslow to analyze slow query patterns
+# 4. Consider using pt-query-digest from Percona Toolkit for advanced analysis

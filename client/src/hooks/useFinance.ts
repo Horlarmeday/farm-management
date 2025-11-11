@@ -1,33 +1,24 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { FinanceService } from '../services/finance.service';
-import { queryKeys } from '../lib/queryKeys';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  FinancialTransaction,
-  Account,
-  Invoice,
-  Payment,
-  Receipt,
-  Budget,
-  FinancialStats,
-  FinancialReport,
-  CashFlow,
-  CreateTransactionRequest,
-  UpdateTransactionRequest,
+  AccountType,
   CreateAccountRequest,
-  UpdateAccountRequest,
-  CreateInvoiceRequest,
-  UpdateInvoiceRequest,
-  CreatePaymentRequest,
   CreateBudgetRequest,
-  UpdateBudgetRequest,
-  IncomeCategory,
+  CreateInvoiceRequest,
+  CreatePaymentRequest,
+  CreateTransactionRequest,
   ExpenseCategory,
   FinanceTransactionType,
-  PaymentMethod,
+  IncomeCategory,
   InvoiceStatus,
+  PaymentMethod,
   PaymentStatus,
-  AccountType,
+  UpdateAccountRequest,
+  UpdateBudgetRequest,
+  UpdateInvoiceRequest,
+  UpdateTransactionRequest,
 } from '../../../shared/src/types/finance.types';
+import { queryKeys } from '../lib/queryKeys';
+import { FinanceService } from '../services/finance.service';
 
 // Financial Transactions
 export const useFinancialTransactions = (params?: {
@@ -55,10 +46,9 @@ export const useFinancialTransaction = (id: string) => {
 
 export const useCreateFinancialTransaction = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: (data: CreateTransactionRequest) => 
-      FinanceService.createTransaction(data),
+    mutationFn: (data: CreateTransactionRequest) => FinanceService.createTransaction(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.finance.all });
     },
@@ -67,9 +57,9 @@ export const useCreateFinancialTransaction = () => {
 
 export const useUpdateFinancialTransaction = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateTransactionRequest }) => 
+    mutationFn: ({ id, data }: { id: string; data: UpdateTransactionRequest }) =>
       FinanceService.updateTransaction(id, data),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.finance.transaction(id) });
@@ -80,7 +70,7 @@ export const useUpdateFinancialTransaction = () => {
 
 export const useDeleteFinancialTransaction = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (id: string) => FinanceService.deleteTransaction(id),
     onSuccess: () => {
@@ -120,7 +110,7 @@ export const useAccountBalance = (id: string) => {
 
 export const useCreateAccount = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: CreateAccountRequest) => FinanceService.createAccount(data),
     onSuccess: () => {
@@ -131,9 +121,9 @@ export const useCreateAccount = () => {
 
 export const useUpdateAccount = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateAccountRequest }) => 
+    mutationFn: ({ id, data }: { id: string; data: UpdateAccountRequest }) =>
       FinanceService.updateAccount(id, data),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.finance.account(id) });
@@ -144,7 +134,7 @@ export const useUpdateAccount = () => {
 
 export const useDeleteAccount = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (id: string) => FinanceService.deleteAccount(id),
     onSuccess: () => {
@@ -186,7 +176,7 @@ export const useOverdueInvoices = () => {
 
 export const useCreateInvoice = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: CreateInvoiceRequest) => FinanceService.createInvoice(data),
     onSuccess: () => {
@@ -197,9 +187,9 @@ export const useCreateInvoice = () => {
 
 export const useUpdateInvoice = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateInvoiceRequest }) => 
+    mutationFn: ({ id, data }: { id: string; data: UpdateInvoiceRequest }) =>
       FinanceService.updateInvoice(id, data),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.finance.invoice(id) });
@@ -210,7 +200,7 @@ export const useUpdateInvoice = () => {
 
 export const useDeleteInvoice = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (id: string) => FinanceService.deleteInvoice(id),
     onSuccess: () => {
@@ -245,7 +235,7 @@ export const usePayment = (id: string) => {
 
 export const useCreatePayment = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: CreatePaymentRequest) => FinanceService.createPayment(data),
     onSuccess: () => {
@@ -257,7 +247,7 @@ export const useCreatePayment = () => {
 
 export const useDeletePayment = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (id: string) => FinanceService.deletePayment(id),
     onSuccess: () => {
@@ -290,7 +280,7 @@ export const useReceipt = (id: string) => {
 
 export const useGenerateReceipt = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (paymentId: string) => FinanceService.generateReceipt(paymentId),
     onSuccess: () => {
@@ -330,7 +320,7 @@ export const useBudgetPerformance = (id: string) => {
 
 export const useCreateBudget = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: CreateBudgetRequest) => FinanceService.createBudget(data),
     onSuccess: () => {
@@ -341,9 +331,9 @@ export const useCreateBudget = () => {
 
 export const useUpdateBudget = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateBudgetRequest }) => 
+    mutationFn: ({ id, data }: { id: string; data: UpdateBudgetRequest }) =>
       FinanceService.updateBudget(id, data),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.finance.budget(id) });
@@ -354,7 +344,7 @@ export const useUpdateBudget = () => {
 
 export const useDeleteBudget = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (id: string) => FinanceService.deleteBudget(id),
     onSuccess: () => {
@@ -375,51 +365,35 @@ export const useFinancialStats = (params?: {
   });
 };
 
-export const useIncomeByCategory = (params?: {
-  dateFrom?: string;
-  dateTo?: string;
-}) => {
+export const useIncomeByCategory = (params?: { dateFrom?: string; dateTo?: string }) => {
   return useQuery({
     queryKey: queryKeys.finance.incomeByCategory(params),
     queryFn: () => FinanceService.getIncomeByCategory(params),
   });
 };
 
-export const useExpensesByCategory = (params?: {
-  dateFrom?: string;
-  dateTo?: string;
-}) => {
+export const useExpensesByCategory = (params?: { dateFrom?: string; dateTo?: string }) => {
   return useQuery({
     queryKey: queryKeys.finance.expensesByCategory(params),
     queryFn: () => FinanceService.getExpensesByCategory(params),
   });
 };
 
-export const useMonthlyTrend = (params?: {
-  months?: number;
-  year?: number;
-}) => {
+export const useMonthlyTrend = (params?: { months?: number; year?: number }) => {
   return useQuery({
     queryKey: queryKeys.finance.monthlyTrend(params),
     queryFn: () => FinanceService.getMonthlyTrend(params),
   });
 };
 
-export const useCashFlow = (params?: {
-  dateFrom?: string;
-  dateTo?: string;
-  period?: string;
-}) => {
+export const useCashFlow = (params?: { dateFrom?: string; dateTo?: string; period?: string }) => {
   return useQuery({
     queryKey: queryKeys.finance.cashFlow(params),
     queryFn: () => FinanceService.getCashFlow(params),
   });
 };
 
-export const useFinancialReports = (params?: {
-  dateFrom?: string;
-  dateTo?: string;
-}) => {
+export const useFinancialReports = (params?: { dateFrom?: string; dateTo?: string }) => {
   return useQuery({
     queryKey: queryKeys.finance.reports(params),
     queryFn: () => FinanceService.getFinancialReports(params),
@@ -436,10 +410,13 @@ export const useFinancialReport = (id: string) => {
 
 export const useGenerateFinancialReport = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: (data: { dateFrom: string; dateTo: string; reportType: 'profit_loss' | 'cash_flow' }) => 
-      FinanceService.getFinancialReports(data),
+    mutationFn: (data: {
+      dateFrom: string;
+      dateTo: string;
+      reportType: 'profit_loss' | 'cash_flow';
+    }) => FinanceService.getFinancialReports(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.finance.reports() });
     },
@@ -450,5 +427,13 @@ export const useFinanceDashboardSummary = () => {
   return useQuery({
     queryKey: queryKeys.finance.dashboardSummary(),
     queryFn: () => FinanceService.getDashboardSummary(),
+  });
+};
+
+// Financial Categories
+export const useFinancialCategories = () => {
+  return useQuery({
+    queryKey: queryKeys.finance.categories(),
+    queryFn: () => FinanceService.getCategories(),
   });
 };

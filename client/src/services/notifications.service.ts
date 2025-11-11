@@ -26,6 +26,8 @@ import {
 import { Priority } from '../../../shared/src/types/common.types';
 import { ApiResponse, PaginatedResponse } from './api';
 
+const prefix = '/api/notifications';
+
 export class NotificationsService {
   // Notification Management
   static async getNotifications(params?: {
@@ -49,38 +51,38 @@ export class NotificationsService {
         }
       });
     }
-    const response = await apiClient.get<Notification[]>(`/notifications?${queryParams}`);
+    const response = await apiClient.get<Notification[]>(`${prefix}?${queryParams}`);
     return response as PaginatedResponse<Notification>;
   }
 
   static async getNotificationById(id: string): Promise<ApiResponse<Notification>> {
-    return apiClient.get<Notification>(`/notifications/${id}`);
+    return apiClient.get<Notification>(`${prefix}/${id}`);
   }
 
   static async createNotification(data: CreateNotificationRequest): Promise<ApiResponse<Notification>> {
-    return apiClient.post<Notification>('/notifications', data);
+    return apiClient.post<Notification>(`${prefix}`, data);
   }
 
   static async updateNotification(id: string, data: UpdateNotificationRequest): Promise<ApiResponse<Notification>> {
-    return apiClient.put<Notification>(`/notifications/${id}`, data);
+    return apiClient.put<Notification>(`${prefix}/${id}`, data);
   }
 
   static async deleteNotification(id: string): Promise<ApiResponse<void>> {
-    return apiClient.delete(`/notifications/${id}`);
+    return apiClient.delete(`${prefix}/${id}`);
   }
 
   static async markAsRead(id: string): Promise<ApiResponse<Notification>> {
-    return apiClient.patch<Notification>(`/notifications/${id}/read`);
+    return apiClient.patch<Notification>(`${prefix}/${id}/read`);
   }
 
   static async markAllAsRead(userId?: string): Promise<ApiResponse<void>> {
     const data = userId ? { userId } : {};
-    return apiClient.patch('/notifications/mark-all-read', data);
+    return apiClient.patch(`${prefix}/mark-all-read`, data);
   }
 
   static async getUnreadCount(userId?: string): Promise<ApiResponse<{ count: number }>> {
     const params = userId ? `?userId=${userId}` : '';
-    return apiClient.get<{ count: number }>(`/notifications/unread-count${params}`);
+    return apiClient.get<{ count: number }>(`${prefix}/unread-count${params}`);
   }
 
   // Notification Templates
@@ -98,30 +100,30 @@ export class NotificationsService {
         }
       });
     }
-    const response = await apiClient.get<NotificationTemplate[]>(`/notifications/templates?${queryParams}`);
+    const response = await apiClient.get<NotificationTemplate[]>(`${prefix}/templates?${queryParams}`);
     return response as PaginatedResponse<NotificationTemplate>;
   }
 
   static async getNotificationTemplateById(id: string): Promise<ApiResponse<NotificationTemplate>> {
-    return apiClient.get<NotificationTemplate>(`/notifications/templates/${id}`);
+    return apiClient.get<NotificationTemplate>(`${prefix}/templates/${id}`);
   }
 
   static async createNotificationTemplate(data: CreateNotificationTemplateRequest): Promise<ApiResponse<NotificationTemplate>> {
-    return apiClient.post<NotificationTemplate>('/notifications/templates', data);
+    return apiClient.post<NotificationTemplate>(`${prefix}/templates`, data);
   }
 
   static async updateNotificationTemplate(id: string, data: UpdateNotificationTemplateRequest): Promise<ApiResponse<NotificationTemplate>> {
-    return apiClient.put<NotificationTemplate>(`/notifications/templates/${id}`, data);
+    return apiClient.put<NotificationTemplate>(`${prefix}/templates/${id}`, data);
   }
 
   static async deleteNotificationTemplate(id: string): Promise<ApiResponse<void>> {
-    return apiClient.delete(`/notifications/templates/${id}`);
+    return apiClient.delete(`${prefix}/templates/${id}`);
   }
 
   // Notification Subscriptions
   static async getNotificationSubscriptions(userId?: string): Promise<ApiResponse<NotificationSubscription[]>> {
     const params = userId ? `?userId=${userId}` : '';
-    return apiClient.get<NotificationSubscription[]>(`/notifications/subscriptions${params}`);
+    return apiClient.get<NotificationSubscription[]>(`${prefix}/subscriptions${params}`);
   }
 
   static async updateNotificationSubscription(
@@ -134,7 +136,7 @@ export class NotificationsService {
       filters?: Record<string, any>;
     }
   ): Promise<ApiResponse<NotificationSubscription>> {
-    return apiClient.put<NotificationSubscription>(`/notifications/subscriptions/${id}`, data);
+    return apiClient.put<NotificationSubscription>(`${prefix}/subscriptions/${id}`, data);
   }
 
   // Notification Logs
@@ -155,7 +157,7 @@ export class NotificationsService {
         }
       });
     }
-    const response = await apiClient.get<NotificationLog[]>(`/notifications/logs?${queryParams}`);
+    const response = await apiClient.get<NotificationLog[]>(`${prefix}/logs?${queryParams}`);
     return response as PaginatedResponse<NotificationLog>;
   }
 

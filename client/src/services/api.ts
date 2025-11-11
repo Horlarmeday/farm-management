@@ -21,7 +21,7 @@ export class ApiError extends Error {
   constructor(
     message: string,
     public status: number,
-    public response?: any
+    public response?: any,
   ) {
     super(message);
     this.name = 'ApiError';
@@ -71,7 +71,7 @@ class ApiClient {
   private refreshPromise: Promise<string> | null = null;
 
   constructor() {
-    this.baseURL = 'http://localhost:5058';
+    this.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5058';
   }
 
   private async refreshToken(): Promise<string> {
@@ -112,7 +112,7 @@ class ApiClient {
 
     const data = await response.json();
     const newToken = data.data?.token || data.token;
-    
+
     if (newToken) {
       TokenManager.setToken(newToken);
       return newToken;
@@ -127,7 +127,7 @@ class ApiClient {
     };
 
     let token = TokenManager.getToken();
-    
+
     if (token) {
       // Check if token is expired and refresh if needed
       if (TokenManager.isTokenExpired(token)) {
@@ -145,18 +145,21 @@ class ApiClient {
       }
     }
 
+    // Add farm context if available
+    const selectedFarmId = localStorage.getItem('selectedFarmId');
+    if (selectedFarmId) {
+      headers['X-Farm-Id'] = selectedFarmId;
+    }
+
     return headers;
   }
 
-  async request<T = any>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<ApiResponse<T>> {
+  async request<T = any>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
     const url = endpoint.startsWith('http') ? endpoint : `${this.baseURL}${endpoint}`;
-    
+
     try {
       const headers = await this.getAuthHeaders();
-      
+
       const response = await fetch(url, {
         ...options,
         headers: {
@@ -168,7 +171,7 @@ class ApiClient {
       // Handle different response types
       let data: any;
       const contentType = response.headers.get('content-type');
-      
+
       if (contentType?.includes('application/json')) {
         data = await response.json();
       } else {
@@ -182,7 +185,7 @@ class ApiClient {
             // Try to refresh token and retry the request
             await this.refreshToken();
             const retryHeaders = await this.getAuthHeaders();
-            
+
             const retryResponse = await fetch(url, {
               ...options,
               headers: {
@@ -192,7 +195,9 @@ class ApiClient {
             });
 
             if (retryResponse.ok) {
-              const retryData = retryResponse.headers.get('content-type')?.includes('application/json')
+              const retryData = retryResponse.headers
+                .get('content-type')
+                ?.includes('application/json')
                 ? await retryResponse.json()
                 : await retryResponse.text();
               return retryData;
@@ -206,7 +211,7 @@ class ApiClient {
         throw new ApiError(
           data?.message || data?.error || `HTTP ${response.status}: ${response.statusText}`,
           response.status,
-          data
+          data,
         );
       }
 
@@ -214,7 +219,7 @@ class ApiClient {
       if (typeof data === 'object' && data !== null && !data.timestamp) {
         data.timestamp = new Date().toISOString();
       }
-      
+
       return data;
     } catch (error) {
       if (error instanceof ApiError) {
@@ -222,17 +227,14 @@ class ApiClient {
       }
 
       // Network or other errors
-      throw new ApiError(
-        error instanceof Error ? error.message : 'Network error occurred',
-        0
-      );
+      throw new ApiError(error instanceof Error ? error.message : 'Network error occurred', 0);
     }
   }
 
   // Convenience methods
   async get<T = any>(endpoint: string, params?: Record<string, any>): Promise<ApiResponse<T>> {
     const url = new URL(endpoint.startsWith('http') ? endpoint : `${this.baseURL}${endpoint}`);
-    
+
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {

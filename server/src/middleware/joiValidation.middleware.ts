@@ -46,7 +46,8 @@ export const validate = (schema: ValidationSchema) => {
     }
 
     if (validationErrors.length > 0) {
-      throw new ApiError(400, `Validation Error: ${validationErrors.join('; ')}`);
+      const error = new ApiError(400, `Validation Error: ${validationErrors.join('; ')}`);
+      return next(error);
     }
 
     next();

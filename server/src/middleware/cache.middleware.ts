@@ -1,16 +1,16 @@
 import { Request, Response, NextFunction } from 'express';
 import { ApiResponse } from '../../../shared/src/types';
+import { redisService } from '../services/redis.service';
 
-// Simple in-memory cache for development
-// In production, this should be replaced with Redis
+// Fallback in-memory cache for when Redis is unavailable
 interface CacheEntry {
   data: any;
   timestamp: number;
   ttl: number; // Time to live in milliseconds
 }
 
-class MemoryCache {
-  private cache = new Map<string, CacheEntry>();
+class FallbackCache {
+  private cache: Map<string, CacheEntry> = new Map();
   private cleanupInterval: NodeJS.Timeout;
 
   constructor() {
@@ -20,7 +20,7 @@ class MemoryCache {
     }, 5 * 60 * 1000);
   }
 
-  set(key: string, data: any, ttlMinutes: number = 10): void {
+  set(key: string, data: any, ttlMinutes: number = 15): void {
     const ttl = ttlMinutes * 60 * 1000; // Convert to milliseconds
     this.cache.set(key, {
       data,
@@ -44,12 +44,22 @@ class MemoryCache {
     return entry.data;
   }
 
-  delete(key: string): void {
-    this.cache.delete(key);
+  delete(key: string): boolean {
+    return this.cache.delete(key);
   }
 
-  clear(): void {
-    this.cache.clear();
+  deletePattern(pattern: string): number {
+    let deletedCount = 0;
+    const regex = new RegExp(pattern.replace(/\*/g, '.*'));
+    
+    for (const key of this.cache.keys()) {
+      if (regex.test(key)) {
+        this.cache.delete(key);
+        deletedCount++;
+      }
+    }
+    
+    return deletedCount;
   }
 
   private cleanup(): void {
@@ -61,54 +71,173 @@ class MemoryCache {
     }
   }
 
-  // Get cache statistics
-  getStats(): { size: number; keys: string[] } {
+  getStats(): any {
+    const now = Date.now();
+    let activeEntries = 0;
+    let expiredEntries = 0;
+
+    for (const entry of this.cache.values()) {
+      if (now - entry.timestamp > entry.ttl) {
+        expiredEntries++;
+      } else {
+        activeEntries++;
+      }
+    }
+
     return {
-      size: this.cache.size,
-      keys: Array.from(this.cache.keys()),
+      type: 'fallback',
+      totalEntries: this.cache.size,
+      activeEntries,
+      expiredEntries,
+      memoryUsage: process.memoryUsage(),
     };
+  }
+
+  clear(): void {
+    this.cache.clear();
+  }
+
+  destroy(): void {
+    clearInterval(this.cleanupInterval);
+    this.cache.clear();
+  }
+}
+
+// Cache abstraction layer
+class CacheService {
+  private fallbackCache = new FallbackCache();
+
+  async set(key: string, data: any, ttlMinutes: number = 15): Promise<void> {
+    try {
+      if (redisService.isReady()) {
+        await redisService.set(key, data, ttlMinutes * 60);
+      } else {
+        this.fallbackCache.set(key, data, ttlMinutes);
+      }
+    } catch (error) {
+      console.warn('Cache SET fallback to memory:', error.message);
+      this.fallbackCache.set(key, data, ttlMinutes);
+    }
+  }
+
+  async get(key: string): Promise<any | null> {
+    try {
+      if (redisService.isReady()) {
+        return await redisService.get(key);
+      } else {
+        return this.fallbackCache.get(key);
+      }
+    } catch (error) {
+      console.warn('Cache GET fallback to memory:', error.message);
+      return this.fallbackCache.get(key);
+    }
+  }
+
+  async delete(key: string): Promise<boolean> {
+    try {
+      if (redisService.isReady()) {
+        return await redisService.delete(key);
+      } else {
+        return this.fallbackCache.delete(key);
+      }
+    } catch (error) {
+      console.warn('Cache DELETE fallback to memory:', error.message);
+      return this.fallbackCache.delete(key);
+    }
+  }
+
+  async deletePattern(pattern: string): Promise<number> {
+    try {
+      if (redisService.isReady()) {
+        return await redisService.deletePattern(pattern);
+      } else {
+        return this.fallbackCache.deletePattern(pattern);
+      }
+    } catch (error) {
+      console.warn('Cache DELETE PATTERN fallback to memory:', error.message);
+      return this.fallbackCache.deletePattern(pattern);
+    }
+  }
+
+  async getStats(): Promise<any> {
+    try {
+      if (redisService.isReady()) {
+        const redisStats = await redisService.getStats();
+        return {
+          type: 'redis',
+          ...redisStats,
+        };
+      } else {
+        return this.fallbackCache.getStats();
+      }
+    } catch (error) {
+      console.warn('Cache STATS fallback to memory:', error.message);
+      return this.fallbackCache.getStats();
+    }
+  }
+
+  async clear(): Promise<void> {
+    try {
+      if (redisService.isReady()) {
+        await redisService.flushDb();
+      } else {
+        this.fallbackCache.clear();
+      }
+    } catch (error) {
+      console.warn('Cache CLEAR fallback to memory:', error.message);
+      this.fallbackCache.clear();
+    }
   }
 }
 
 // Global cache instance
-const cache = new MemoryCache();
+const cache = new CacheService();
 
 /**
  * Cache middleware factory
- * Creates a cache middleware with specified TTL
+ * Creates middleware that caches GET responses
  */
-export const cacheMiddleware = (ttlMinutes: number = 10) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+export const cacheMiddleware = (ttlMinutes: number = 15) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
     // Only cache GET requests
     if (req.method !== 'GET') {
       return next();
     }
 
-    // Create cache key from URL and query parameters
-    const cacheKey = `${req.originalUrl}_${JSON.stringify(req.query)}_${req.user?.id || 'anonymous'}`;
+    const cacheKey = `cache:${req.originalUrl}:${JSON.stringify(req.query)}`;
     
-    // Try to get cached response
-    const cachedResponse = cache.get(cacheKey);
-    if (cachedResponse) {
-      console.log(`📦 Cache HIT for key: ${cacheKey}`);
-      return res.json(cachedResponse);
-    }
+    try {
+      const cachedData = await cache.get(cacheKey);
 
-    console.log(`🔍 Cache MISS for key: ${cacheKey}`);
+      if (cachedData) {
+        return res.json({
+          success: true,
+          data: cachedData,
+          cached: true,
+          timestamp: new Date().toISOString(),
+        } as ApiResponse<any>);
+      }
+    } catch (error) {
+      console.warn('Cache GET error, proceeding without cache:', error.message);
+    }
 
     // Store original json method
     const originalJson = res.json;
 
     // Override json method to cache the response
-    res.json = function(data: any) {
+    res.json = function (body: any) {
       // Only cache successful responses
-      if (res.statusCode === 200 && data && typeof data === 'object') {
-        cache.set(cacheKey, data, ttlMinutes);
-        console.log(`💾 Cached response for key: ${cacheKey}`);
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        if (body && body.success && body.data) {
+          // Cache asynchronously without blocking response
+          cache.set(cacheKey, body.data, ttlMinutes).catch(error => {
+            console.warn('Cache SET error:', error.message);
+          });
+        }
       }
-      
+
       // Call original json method
-      return originalJson.call(this, data);
+      return originalJson.call(this, body);
     };
 
     next();
@@ -116,22 +245,31 @@ export const cacheMiddleware = (ttlMinutes: number = 10) => {
 };
 
 /**
- * Cache invalidation middleware
- * Clears cache entries that match a pattern
+ * Middleware to invalidate cache entries
+ * Useful for POST, PUT, DELETE operations
  */
-export const invalidateCache = (pattern?: string) => {
+export const invalidateCache = (patterns: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    if (pattern) {
-      // Clear specific cache entries matching pattern
-      const stats = cache.getStats();
-      const keysToDelete = stats.keys.filter(key => key.includes(pattern));
-      keysToDelete.forEach(key => cache.delete(key));
-      console.log(`🗑️ Invalidated ${keysToDelete.length} cache entries matching pattern: ${pattern}`);
-    } else {
-      // Clear all cache
-      cache.clear();
-      console.log('🗑️ Cleared all cache entries');
-    }
+    // Store original json method
+    const originalJson = res.json;
+
+    // Override json method to invalidate cache after successful response
+    res.json = function (body: any) {
+      // Only invalidate cache for successful responses
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        patterns.forEach(pattern => {
+          const cachePattern = `cache:${pattern}`;
+          // Invalidate cache asynchronously without blocking response
+          cache.deletePattern(cachePattern).catch(error => {
+            console.warn('Cache invalidation error:', error.message);
+          });
+        });
+      }
+
+      // Call original json method
+      return originalJson.call(this, body);
+    };
+
     next();
   };
 };
@@ -145,13 +283,43 @@ export const reportsCacheMiddleware = cacheMiddleware(15);
 /**
  * Cache statistics endpoint middleware
  */
-export const getCacheStats = (req: Request, res: Response) => {
-  const stats = cache.getStats();
-  res.json({
-    success: true,
-    data: stats,
-    message: 'Cache statistics retrieved successfully',
-  } as ApiResponse<typeof stats>);
+export const getCacheStats = async (req: Request, res: Response) => {
+  try {
+    const stats = await cache.getStats();
+    res.json({
+      success: true,
+      data: stats,
+      timestamp: new Date().toISOString(),
+    } as ApiResponse<any>);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get cache statistics',
+      error: error.message,
+      timestamp: new Date().toISOString(),
+    } as ApiResponse<any>);
+  }
+};
+
+/**
+ * Clear cache endpoint middleware
+ */
+export const clearCache = async (req: Request, res: Response) => {
+  try {
+    await cache.clear();
+    res.json({
+      success: true,
+      message: 'Cache cleared successfully',
+      timestamp: new Date().toISOString(),
+    } as ApiResponse<any>);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to clear cache',
+      error: error.message,
+      timestamp: new Date().toISOString(),
+    } as ApiResponse<any>);
+  }
 };
 
 export { cache };

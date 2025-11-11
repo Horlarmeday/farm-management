@@ -50,7 +50,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
   className = ''
 }) => {
   const { isMobile } = useResponsive();
-  const isKeyboardVisible = useKeyboardVisible();
+  const { isKeyboardVisible } = useKeyboardVisible();
   const safeArea = useSafeArea();
 
   // Bottom tab navigation for mobile

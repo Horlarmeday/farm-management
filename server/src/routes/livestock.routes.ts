@@ -1,10 +1,10 @@
 import { Router } from 'express';
+import { FarmRole } from '../../../shared/src/types';
 import { LivestockController } from '../controllers/LivestockController';
 import { authenticate } from '../middleware/auth.middleware';
 import { requireFarmAccessWithRole } from '../middleware/farm-auth.middleware';
 import { validate } from '../middleware/joiValidation.middleware';
 import { livestockValidations } from '../validations/livestock.validations';
-import { FarmRole } from '../../../shared/src/types';
 
 const router: Router = Router();
 const livestockController = new LivestockController();
@@ -135,24 +135,7 @@ router.get(
   livestockController.getAnimalPerformance,
 );
 
-// Health analytics route removed - method not implemented
-
-// router.get(
-//   '/analytics/production',
-//   validate({ query: livestockValidations.getProductionAnalytics }),
-//   livestockController.getProductionAnalytics,
-// );
-//
-// router.get(
-//   '/analytics/breeding',
-//   validate({ query: livestockValidations.getBreedingAnalytics }),
-//   livestockController.getBreedingAnalytics,
-// );
-//
-// router.get(
-//   '/reports/financial-summary',
-//   validate({ query: livestockValidations.getFinancialSummary }),
-//   livestockController.getFinancialSummary,
-// );
+router.get('/stats', livestockController.getLivestockStats);
+router.get('/dashboard', livestockController.getDashboardSummary);
 
 export default router;

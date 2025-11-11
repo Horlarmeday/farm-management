@@ -1,6 +1,7 @@
 import { UserStatus } from '../../../shared/src/types';
 import * as bcrypt from 'bcryptjs';
 import {
+  AfterLoad,
   BeforeInsert,
   BeforeUpdate,
   Column,
@@ -26,6 +27,7 @@ import { Task } from './Task';
 import { FarmUser } from './FarmUser';
 import { PushSubscription } from './PushSubscription';
 import { NotificationPreference } from './NotificationPreference';
+import { getEncryptionService } from '../services/encryption.service';
 
 @Entity('users')
 export class User extends BaseEntity {
@@ -45,7 +47,8 @@ export class User extends BaseEntity {
   @Column({ type: 'varchar', length: 255, select: false })
   password!: string;
 
-  @Column({ type: 'varchar', length: 20, nullable: true })
+  @Column({ type: 'text', nullable: true, select: false })
+  // Virtual property for phone
   phone?: string;
 
   @Column({ type: 'text', nullable: true })
@@ -105,7 +108,7 @@ export class User extends BaseEntity {
   @Column({ type: 'varchar', length: 10, nullable: true })
   gender?: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true, select: false })
   address?: string;
 
   @Column({ type: 'varchar', length: 100, nullable: true })
@@ -126,7 +129,7 @@ export class User extends BaseEntity {
   @Column({ type: 'date', nullable: true })
   terminationDate?: Date;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true, select: false })
   emergencyContact?: string;
 
   @Column({ type: 'simple-json', nullable: true })
@@ -197,7 +200,7 @@ export class User extends BaseEntity {
     return `${this.firstName} ${this.lastName}`;
   }
 
-  // Hash password before saving
+  // Hash password and encrypt sensitive fields before saving
   @BeforeInsert()
   async hashPassword() {
     if (this.password) {

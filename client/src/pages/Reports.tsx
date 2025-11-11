@@ -1,7 +1,7 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import ProfitLossReport from '../components/reports/ProfitLossReport';
+const ProfitLossReport = React.lazy(() => import('../components/reports/ProfitLossReport').then(module => ({ default: module.ProfitLossReport })));
 import { BarChart3, TrendingUp, FileText, Calendar } from 'lucide-react';
 
 const Reports: React.FC = () => {
@@ -41,7 +41,26 @@ const Reports: React.FC = () => {
 
           {/* Profit & Loss Report Tab */}
           <TabsContent value="profit-loss">
-            <ProfitLossReport />
+            <React.Suspense fallback={
+              <Card>
+                <CardHeader>
+                  <CardTitle>Profit & Loss Report</CardTitle>
+                  <CardDescription>
+                    Loading financial charts...
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-center h-64 text-muted-foreground">
+                    <div className="text-center">
+                      <TrendingUp className="w-12 h-12 mx-auto mb-4 animate-pulse" />
+                      <p>Loading charts...</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            }>
+              <ProfitLossReport />
+            </React.Suspense>
           </TabsContent>
 
           {/* Cash Flow Report Tab */}

@@ -1,7 +1,9 @@
 import { Router } from 'express';
 import Joi from 'joi';
+import { FarmRole } from '../../../shared/src/types';
 import { AssetController } from '../controllers/AssetController';
 import { authenticate } from '../middleware/auth.middleware';
+import { requireFarmAccessWithRole } from '../middleware/farm-auth.middleware';
 import { validate } from '../middleware/joiValidation.middleware';
 
 const router: Router = Router();
@@ -10,19 +12,22 @@ const assetController = new AssetController();
 // Apply authentication to all routes
 router.use(authenticate);
 
-// Asset Management Routes
-router.post('/assets', assetController.createAsset);
+// Apply farm access middleware - Asset operations require WORKER or higher
+router.use(requireFarmAccessWithRole([FarmRole.WORKER, FarmRole.MANAGER, FarmRole.OWNER]));
 
-router.get('/assets', assetController.getAssets);
+// Asset Management Routes
+router.post('/', assetController.createAsset);
+
+router.get('/', assetController.getAssets);
 
 router.get(
-  '/assets/:id',
+  '/:id',
   validate({ params: Joi.object({ id: Joi.string().uuid().required() }) }),
   assetController.getAssetById,
 );
 
 router.put(
-  '/assets/:id',
+  '/:id',
   validate({
     params: Joi.object({ id: Joi.string().uuid().required() }),
     body: Joi.object({
@@ -76,7 +81,7 @@ router.get('/auxiliary-dispatch', assetController.getAuxiliaryDispatch);
 
 // Depreciation Management Routes
 router.post(
-  '/assets/:id/depreciation',
+  '/:id/depreciation',
   validate({
     params: Joi.object({ id: Joi.string().uuid().required() }),
     body: Joi.object({
@@ -94,7 +99,7 @@ router.get('/depreciation', assetController.getDepreciationReport);
 
 // Analytics and Reports Routes
 router.get(
-  '/assets/:id/performance',
+  '/:id/performance',
   validate({
     params: Joi.object({ id: Joi.string().uuid().required() }),
     query: Joi.object({

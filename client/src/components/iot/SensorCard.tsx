@@ -51,7 +51,7 @@ interface SensorCardProps {
   className?: string;
 }
 
-export const SensorCard: React.FC<SensorCardProps> = ({
+export const SensorCard: React.FC<SensorCardProps> = React.memo(({
   sensor,
   onSelect,
   onEdit,
@@ -295,4 +295,4 @@ export const SensorCard: React.FC<SensorCardProps> = ({
       </CardContent>
     </Card>
   );
-};
+});

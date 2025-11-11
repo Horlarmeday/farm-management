@@ -1,14 +1,15 @@
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useUserFarms } from '@/hooks/useFarm';
+import { Farm, FarmRole, FarmUser } from '@/types/farm.types';
+import { AlertCircle, Building2, Plus, Users } from 'lucide-react';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Building2, Users, Plus, AlertCircle } from 'lucide-react';
-import { useUserFarms } from '@/hooks/useFarm';
-import { FarmRole, FarmUser, Farm } from '@/types/farm.types';
 import { toast } from 'sonner';
+import CreateFarmDialog from './CreateFarmDialog';
 
 interface FarmSelectionProps {
   onFarmSelect: (farmId: string) => void;
@@ -21,6 +22,7 @@ interface FarmWithRole extends FarmUser {
 const FarmSelection: React.FC<FarmSelectionProps> = ({ onFarmSelect }) => {
   const navigate = useNavigate();
   const [selectedFarmId, setSelectedFarmId] = useState<string | null>(null);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const { data: farmUsers, isLoading, error } = useUserFarms();
 
   const handleFarmSelect = (farmId: string) => {
@@ -36,7 +38,15 @@ const FarmSelection: React.FC<FarmSelectionProps> = ({ onFarmSelect }) => {
   };
 
   const handleCreateFarm = () => {
-    navigate('/farms/create');
+    setIsCreateDialogOpen(true);
+  };
+
+  const handleCreateSuccess = (farmId: string) => {
+    // Auto-select the newly created farm and navigate to dashboard
+    setSelectedFarmId(farmId);
+    onFarmSelect(farmId);
+    toast.success('Farm created and selected successfully!');
+    navigate('/dashboard');
   };
 
   const getRoleColor = (role: FarmRole) => {
@@ -99,12 +109,10 @@ const FarmSelection: React.FC<FarmSelectionProps> = ({ onFarmSelect }) => {
         <div className="w-full max-w-md">
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Failed to load farms. Please try again later.
-            </AlertDescription>
+            <AlertDescription>Failed to load farms. Please try again later.</AlertDescription>
           </Alert>
-          <Button 
-            onClick={() => window.location.reload()} 
+          <Button
+            onClick={() => window.location.reload()}
             className="w-full mt-4"
             variant="outline"
           >
@@ -119,25 +127,24 @@ const FarmSelection: React.FC<FarmSelectionProps> = ({ onFarmSelect }) => {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="w-full max-w-4xl">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Select Your Farm
-          </h1>
-          <p className="text-gray-600">
-            Choose which farm you'd like to manage today
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Select Your Farm</h1>
+          <p className="text-gray-600">Choose which farm you'd like to manage today</p>
         </div>
 
         {farmUsers && farmUsers.length === 0 ? (
           <div className="text-center">
             <div className="mb-8">
               <Building2 className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                No Farms Found
-              </h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">No Farms Found</h2>
               <p className="text-gray-600 mb-6">
-                You don't have access to any farms yet. Create your first farm or ask to be invited to an existing one.
+                You don't have access to any farms yet. Create your first farm or ask to be invited
+                to an existing one.
               </p>
-              <Button onClick={handleCreateFarm} className="inline-flex items-center">
+              <Button
+                onClick={handleCreateFarm}
+                data-testid="create-first-farm-button"
+                className="inline-flex items-center"
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Create Your First Farm
               </Button>
@@ -147,8 +154,9 @@ const FarmSelection: React.FC<FarmSelectionProps> = ({ onFarmSelect }) => {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
               {farmUsers?.map((farmUser) => (
-                <Card 
-                  key={farmUser.farmId} 
+                <Card
+                  key={farmUser.farmId}
+                  data-testid={`farm-card-${farmUser.farmId}`}
                   className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 ${
                     selectedFarmId === farmUser.farmId ? 'ring-2 ring-blue-500' : ''
                   }`}
@@ -160,8 +168,8 @@ const FarmSelection: React.FC<FarmSelectionProps> = ({ onFarmSelect }) => {
                         <CardTitle className="text-lg font-semibold text-gray-900 mb-1">
                           Farm {farmUser.farm?.name || farmUser.farmId}
                         </CardTitle>
-                        <Badge 
-                          variant="outline" 
+                        <Badge
+                          variant="outline"
                           className={`text-xs ${getRoleColor(farmUser.role)}`}
                         >
                           {getRoleLabel(farmUser.role)}
@@ -179,8 +187,9 @@ const FarmSelection: React.FC<FarmSelectionProps> = ({ onFarmSelect }) => {
                         </div>
                       )}
                     </div>
-                    <Button 
+                    <Button
                       className="w-full"
+                      data-testid={`select-farm-button-${farmUser.farmId}`}
                       disabled={selectedFarmId === farmUser.farmId}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -195,9 +204,10 @@ const FarmSelection: React.FC<FarmSelectionProps> = ({ onFarmSelect }) => {
             </div>
 
             <div className="text-center">
-              <Button 
-                onClick={handleCreateFarm} 
-                variant="outline" 
+              <Button
+                onClick={handleCreateFarm}
+                variant="outline"
+                data-testid="create-new-farm-button"
                 className="inline-flex items-center"
               >
                 <Plus className="h-4 w-4 mr-2" />
@@ -206,6 +216,13 @@ const FarmSelection: React.FC<FarmSelectionProps> = ({ onFarmSelect }) => {
             </div>
           </>
         )}
+
+        {/* Create Farm Dialog */}
+        <CreateFarmDialog
+          open={isCreateDialogOpen}
+          onOpenChange={setIsCreateDialogOpen}
+          onSuccess={handleCreateSuccess}
+        />
       </div>
     </div>
   );

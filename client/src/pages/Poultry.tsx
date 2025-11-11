@@ -1,12 +1,14 @@
-import { Bird, Plus, Search, Filter } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LoadingTable } from "@/components/ui/loading-card";
-import CreateBirdBatchForm from "@/components/forms/CreateBirdBatchForm";
-import { useBirdBatches, useEggProductionLogs } from "@/hooks/usePoultry";
+import CreateBirdBatchForm from '@/components/forms/CreateBirdBatchForm';
+import CreateEggProductionForm from '@/components/forms/CreateEggProductionForm';
+import CreateHealthRecordForm from '@/components/forms/CreateHealthRecordForm';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { LoadingTable } from '@/components/ui/loading-card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useBirdBatches, useEggProductionLogs } from '@/hooks/usePoultry';
+import { Bird, Filter, Plus, Search } from 'lucide-react';
 
 export default function Poultry() {
   const { data: batchesResponse, isLoading } = useBirdBatches();
@@ -14,10 +16,9 @@ export default function Poultry() {
 
   // Get egg production for the first active batch if available
   const firstActiveBatch = batches.find((batch: any) => batch.status === 'active');
-  const { data: eggProductionResponse } = useEggProductionLogs(
-    firstActiveBatch?.id || '', 
-    { limit: 10 }
-  );
+  const { data: eggProductionResponse } = useEggProductionLogs(firstActiveBatch?.id || '', {
+    limit: 10,
+  });
   const eggProduction = eggProductionResponse?.data || [];
 
   if (isLoading) {
@@ -83,10 +84,7 @@ export default function Poultry() {
         <TabsContent value="batches" className="space-y-4">
           <div className="flex items-center space-x-2">
             <Search className="h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search batches..."
-              className="max-w-sm"
-            />
+            <Input placeholder="Search batches..." className="max-w-sm" />
           </div>
 
           <div className="grid gap-4">
@@ -117,11 +115,11 @@ export default function Poultry() {
                       </div>
                       <Badge
                         variant={
-                          batch.status === "active"
-                            ? "default"
-                            : batch.status === "sold"
-                            ? "secondary"
-                            : "destructive"
+                          batch.status === 'active'
+                            ? 'default'
+                            : batch.status === 'sold'
+                              ? 'secondary'
+                              : 'destructive'
                         }
                       >
                         {batch.status}
@@ -136,7 +134,9 @@ export default function Poultry() {
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">House</p>
-                        <p className="text-lg font-semibold">{batch.houseLocation || 'Not assigned'}</p>
+                        <p className="text-lg font-semibold">
+                          {batch.houseLocation || 'Not assigned'}
+                        </p>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Arrival Date</p>
@@ -157,6 +157,9 @@ export default function Poultry() {
         </TabsContent>
 
         <TabsContent value="production" className="space-y-4">
+          <div className="flex justify-end">
+            <CreateEggProductionForm />
+          </div>
           <Card>
             <CardContent className="p-8 text-center">
               <h3 className="text-lg font-semibold mb-2">Egg Production Records</h3>
@@ -172,6 +175,9 @@ export default function Poultry() {
         </TabsContent>
 
         <TabsContent value="health" className="space-y-4">
+          <div className="flex justify-end">
+            <CreateHealthRecordForm />
+          </div>
           <Card>
             <CardContent className="p-8 text-center">
               <h3 className="text-lg font-semibold mb-2">Health Records</h3>
@@ -193,9 +199,7 @@ export default function Poultry() {
               <p className="text-muted-foreground mb-4">
                 View performance metrics and production analytics
               </p>
-              <Button className="farm-button-primary">
-                Generate Report
-              </Button>
+              <Button className="farm-button-primary">Generate Report</Button>
             </CardContent>
           </Card>
         </TabsContent>

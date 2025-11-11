@@ -43,14 +43,14 @@ export interface AlertTrigger {
 
 class AlertEngineService {
   private webSocketService: WebSocketService;
-  private pushNotificationService: PushNotificationService;
+  private pushNotificationService: PushNotificationService | null;
   private alertRules: Map<string, AlertRule> = new Map();
   private alertCooldowns: Map<string, Date> = new Map();
   private monitoringInterval: NodeJS.Timeout | null = null;
 
   constructor(
     webSocketService: WebSocketService,
-    pushNotificationService: PushNotificationService
+    pushNotificationService: PushNotificationService | null
   ) {
     this.webSocketService = webSocketService;
     this.pushNotificationService = pushNotificationService;
@@ -372,7 +372,11 @@ class AlertEngineService {
               this.webSocketService!.broadcastAlert(alert);
               break;
             case 'push_notification':
-              await this.sendPushNotificationAlert(alert);
+              if (this.pushNotificationService) {
+                await this.sendPushNotificationAlert(alert);
+              } else {
+                console.warn('⚠️ Push notification service not available, skipping push notification');
+              }
               break;
             // Add email and SMS actions here
           }
@@ -420,17 +424,22 @@ class AlertEngineService {
         ]
       };
 
+      if (!this.pushNotificationService) {
+        console.warn('⚠️ Push notification service not available');
+        return;
+      }
+
       if (alert.severity === 'critical') {
         // Send critical alert to all farm users
         const farmUsers = await this.getFarmUsers(alert.farmId);
-        await this.pushNotificationService!.sendCriticalAlert(
+        await this.pushNotificationService.sendCriticalAlert(
           farmUsers.map(user => user.id),
           payload,
           notificationContext
         );
       } else {
         // Send regular notification to farm
-        await this.pushNotificationService!.sendNotificationToFarm(
+        await this.pushNotificationService.sendNotificationToFarm(
           alert.farmId,
           payload,
           notificationContext

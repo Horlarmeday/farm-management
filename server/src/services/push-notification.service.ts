@@ -38,26 +38,31 @@ class PushNotificationService {
   };
 
   constructor() {
-    // Use VAPID keys from environment variables
-    if (!config.notifications.vapid.publicKey || !config.notifications.vapid.privateKey) {
-      ErrorHandler.logError(
-        new Error('VAPID keys not configured. Push notifications will be disabled.'),
-        'PUSH_NOTIFICATION_CONFIG'
-      );
+    this.vapidKeys = {
+      publicKey: config.notifications.vapid.publicKey,
+      privateKey: config.notifications.vapid.privateKey,
+      subject: config.notifications.vapid.subject
+    };
+
+    // Check if VAPID keys are configured (allow valid test keys)
+    if (!this.vapidKeys.publicKey || !this.vapidKeys.privateKey) {
+      console.warn('⚠️ VAPID keys not configured. Push notifications will be disabled.');
+      this.isEnabled = false;
       return;
     }
 
-    this.vapidKeys = {
-      publicKey: config.notifications.vapid.publicKey,
-      privateKey: config.notifications.vapid.privateKey
-    };
-
-    // Configure web-push
-    webpush.setVapidDetails(
-      config.notifications.vapid.subject,
-      this.vapidKeys.publicKey,
-      this.vapidKeys.privateKey
-    );
+    try {
+      webpush.setVapidDetails(
+        this.vapidKeys.subject,
+        this.vapidKeys.publicKey,
+        this.vapidKeys.privateKey
+      );
+      this.isEnabled = true;
+      console.log('✅ Push notification service initialized successfully');
+    } catch (error) {
+      console.error('❌ Failed to initialize push notification service:', error);
+      this.isEnabled = false;
+    }
   }
 
   /**

@@ -1,19 +1,24 @@
-import { apiClient } from './api';
 import { queryKeys } from '@/lib/queryKeys';
+import { apiClient } from './api';
 
 // Dashboard Statistics Types
 export interface DashboardStats {
   totalRevenue: number;
   activeBirds: number;
   fishHarvest: number;
-  livestock: number;
+  livestock: {
+    count: number;
+    milkProduction: number;
+  };
   monthlyRevenue: number;
   monthlyExpenses: number;
   netProfit: number;
   feedConsumption: number;
   mortalityRate: number;
   productionEfficiency: number;
-  eggProduction: number;
+  eggProduction: {
+    daily: number;
+  };
   milkProduction: number;
   pondCount: number;
   activePonds: number;
@@ -22,7 +27,26 @@ export interface DashboardStats {
   completedTasks: number;
   lowStockItems: number;
   alerts: number;
-  recentActivities: number;
+  activeWorkers: number;
+  activeFarms: number;
+  fishery: {
+    fishPopulation: number;
+  };
+  recentActivities: {
+    id: number;
+    text: string;
+    time: string;
+    color: string;
+    module: string;
+  }[];
+  alertsList: {
+    id: number;
+    type: 'warning' | 'info' | 'error';
+    title: string;
+    description: string;
+    color: string;
+    timestamp: Date;
+  }[];
 }
 
 export interface KPIData {
@@ -81,7 +105,7 @@ export interface DashboardOverview {
   modules: ModuleStats;
 }
 
-const BASE_URL = '/api/reports/dashboard';
+const BASE_URL = '/api/reporting/dashboard';
 /**
  * Dashboard Service
  * Handles all dashboard-related API calls
@@ -161,20 +185,22 @@ export class DashboardService {
     mortalityRate: { value: string; progress: number };
     productionEfficiency: { value: string; progress: number };
   }> {
-    const response = await apiClient.get(`${BASE_URL}/quick-stats`);  
+    const response = await apiClient.get(`${BASE_URL}/quick-stats`);
     return response.data;
   }
 
   /**
    * Get recent activities
    */
-  static async getRecentActivities(limit: number = 10): Promise<{
-    id: number;
-    text: string;
-    time: string;
-    color: string;
-    module: string;
-  }[]> {
+  static async getRecentActivities(limit: number = 10): Promise<
+    {
+      id: number;
+      text: string;
+      time: string;
+      color: string;
+      module: string;
+    }[]
+  > {
     const response = await apiClient.get(`${BASE_URL}/recent-activities?limit=${limit}`);
     return response.data;
   }
@@ -182,18 +208,20 @@ export class DashboardService {
   /**
    * Get alerts data
    */
-  static async getAlerts(limit: number = 10): Promise<{
-    id: number;
-    type: 'warning' | 'info' | 'error';
-    title: string;
-    description: string;
-    color: string;
-    timestamp: Date;
-  }[]> {
-    const response = await apiClient.get(`${BASE_URL}/alerts?limit=${limit}`);  
+  static async getAlerts(limit: number = 10): Promise<
+    {
+      id: number;
+      type: 'warning' | 'info' | 'error';
+      title: string;
+      description: string;
+      color: string;
+      timestamp: Date;
+    }[]
+  > {
+    const response = await apiClient.get(`${BASE_URL}/alerts?limit=${limit}`);
     return response.data.map((alert: any) => ({
       ...alert,
-      timestamp: new Date(alert.timestamp)
+      timestamp: new Date(alert.timestamp),
     }));
   }
 
@@ -211,13 +239,61 @@ export class DashboardService {
       priority: 'high' | 'medium' | 'low';
     }[];
   }> {
-    const response = await apiClient.get(`${BASE_URL}/tasks?limit=${limit}`);  
+    const response = await apiClient.get(`${BASE_URL}/tasks?limit=${limit}`);
     return {
       ...response.data,
       tasks: response.data.tasks.map((task: any) => ({
         ...task,
-        dueDate: task.dueDate ? new Date(task.dueDate) : undefined
-      }))
+        dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
+      })),
+    };
+  }
+
+  /**
+   * Get inventory summary for dashboard
+   */
+  static async getInventorySummary(): Promise<{
+    feedStock: { status: string; count: number };
+    medicines: { status: string; count: number };
+    equipment: { status: string; count: number };
+  }> {
+    const response = await apiClient.get('/api/inventory/summary');
+    return response.data;
+  }
+
+  /**
+   * Get finance summary for dashboard
+   */
+  static async getFinanceSummary(): Promise<{
+    monthlyRevenue: number;
+    expenses: number;
+    netProfit: number;
+  }> {
+    const response = await apiClient.get('/api/finance/summary');
+    return response.data;
+  }
+
+  /**
+   * Get tasks summary for dashboard
+   */
+  static async getTasksSummary(): Promise<{
+    pending: number;
+    completed: number;
+    tasks: {
+      id: number;
+      text: string;
+      completed: boolean;
+      dueDate?: Date;
+      priority: 'high' | 'medium' | 'low';
+    }[];
+  }> {
+    const response = await apiClient.get(`${BASE_URL}/tasks?limit=10`);
+    return {
+      ...response.data,
+      tasks: response.data.tasks.map((task: any) => ({
+        ...task,
+        dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
+      })),
     };
   }
 }

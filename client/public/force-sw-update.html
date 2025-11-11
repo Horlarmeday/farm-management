@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Force Service Worker Update</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+        max-width: 600px;
+        margin: 50px auto;
+        padding: 20px;
+        line-height: 1.6;
+      }
+      .container {
+        background: #f5f5f5;
+        border-radius: 8px;
+        padding: 30px;
+      }
+      h1 {
+        color: #2563eb;
+        margin-bottom: 10px;
+      }
+      .status {
+        background: white;
+        padding: 15px;
+        border-radius: 6px;
+        margin: 15px 0;
+        border-left: 4px solid #2563eb;
+      }
+      .success {
+        border-left-color: #10b981;
+        background: #f0fdf4;
+      }
+      .error {
+        border-left-color: #ef4444;
+        background: #fef2f2;
+      }
+      button {
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+        margin: 5px;
+      }
+      button:hover {
+        background: #1d4ed8;
+      }
+      button:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+      }
+      .danger {
+        background: #ef4444;
+      }
+      .danger:hover {
+        background: #dc2626;
+      }
+      pre {
+        background: #1e293b;
+        color: #e2e8f0;
+        padding: 15px;
+        border-radius: 6px;
+        overflow-x: auto;
+      }
+      .steps {
+        background: white;
+        padding: 20px;
+        border-radius: 6px;
+        margin: 15px 0;
+      }
+      .steps ol {
+        margin-left: 20px;
+      }
+      .steps li {
+        margin: 10px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🔄 Force Service Worker Update</h1>
+      <p>Use this page to force update the service worker and clear all caches.</p>
+
+      <div class="steps">
+        <h3>What this will do:</h3>
+        <ol>
+          <li>Unregister all service workers</li>
+          <li>Clear all browser caches</li>
+          <li>Reload the application</li>
+          <li>New service worker will be installed automatically</li>
+        </ol>
+      </div>
+
+      <div id="status" class="status"><strong>Status:</strong> Ready to update</div>
+
+      <div id="cache-info"></div>
+
+      <div style="margin-top: 20px">
+        <button onclick="checkCacheStatus()">📊 Check Cache Status</button>
+        <button onclick="clearCachesOnly()">🗑️ Clear Caches Only</button>
+        <button onclick="unregisterSWOnly()">⚙️ Unregister SW Only</button>
+        <button onclick="fullUpdate()" class="danger">🚀 Full Update & Reload</button>
+      </div>
+
+      <div style="margin-top: 20px">
+        <button onclick="window.location.href='/'">← Back to App</button>
+      </div>
+    </div>
+
+    <script>
+      const statusDiv = document.getElementById('status');
+      const cacheInfoDiv = document.getElementById('cache-info');
+
+      async function checkCacheStatus() {
+        try {
+          const cacheNames = await caches.keys();
+          const registrations = await navigator.serviceWorker.getRegistrations();
+
+          let html = '<div class="status"><strong>Cache Status:</strong><br>';
+          html += `📦 Total Caches: ${cacheNames.length}<br>`;
+          html += `⚙️ Service Workers: ${registrations.length}<br><br>`;
+
+          if (cacheNames.length > 0) {
+            html += '<strong>Cache Names:</strong><br>';
+            cacheNames.forEach((name) => {
+              html += `• ${name}<br>`;
+            });
+          }
+
+          if (registrations.length > 0) {
+            html += '<br><strong>Service Worker Status:</strong><br>';
+            registrations.forEach((reg, i) => {
+              html += `• SW ${i + 1}: ${reg.active ? 'Active' : 'Installing'}<br>`;
+              html += `  Scope: ${reg.scope}<br>`;
+            });
+          }
+          html += '</div>';
+
+          cacheInfoDiv.innerHTML = html;
+        } catch (error) {
+          statusDiv.className = 'status error';
+          statusDiv.innerHTML = '<strong>Error:</strong> ' + error.message;
+        }
+      }
+
+      async function clearCachesOnly() {
+        statusDiv.innerHTML = '<strong>Status:</strong> Clearing caches...';
+        try {
+          const cacheNames = await caches.keys();
+          const count = cacheNames.length;
+
+          await Promise.all(cacheNames.map((name) => caches.delete(name)));
+
+          statusDiv.className = 'status success';
+          statusDiv.innerHTML = `<strong>✅ Success!</strong><br>Cleared ${count} cache(s). Refresh the page to see changes.`;
+
+          setTimeout(() => checkCacheStatus(), 500);
+        } catch (error) {
+          statusDiv.className = 'status error';
+          statusDiv.innerHTML = '<strong>❌ Error:</strong> ' + error.message;
+        }
+      }
+
+      async function unregisterSWOnly() {
+        statusDiv.innerHTML = '<strong>Status:</strong> Unregistering service workers...';
+        try {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          const count = registrations.length;
+
+          for (const registration of registrations) {
+            await registration.unregister();
+          }
+
+          statusDiv.className = 'status success';
+          statusDiv.innerHTML = `<strong>✅ Success!</strong><br>Unregistered ${count} service worker(s). Refresh to reinstall.`;
+
+          setTimeout(() => checkCacheStatus(), 500);
+        } catch (error) {
+          statusDiv.className = 'status error';
+          statusDiv.innerHTML = '<strong>❌ Error:</strong> ' + error.message;
+        }
+      }
+
+      async function fullUpdate() {
+        if (!confirm('This will clear all caches and reload the page. Continue?')) {
+          return;
+        }
+
+        statusDiv.innerHTML = '<strong>Status:</strong> Performing full update...';
+
+        try {
+          // Step 1: Clear all caches
+          const cacheNames = await caches.keys();
+          await Promise.all(cacheNames.map((name) => caches.delete(name)));
+          console.log('✅ Cleared', cacheNames.length, 'caches');
+
+          // Step 2: Unregister all service workers
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          for (const registration of registrations) {
+            await registration.unregister();
+          }
+          console.log('✅ Unregistered', registrations.length, 'service workers');
+
+          // Step 3: Clear localStorage (optional)
+          // localStorage.clear();
+
+          // Step 4: Reload
+          statusDiv.className = 'status success';
+          statusDiv.innerHTML = '<strong>✅ Complete!</strong><br>Reloading in 2 seconds...';
+
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 2000);
+        } catch (error) {
+          statusDiv.className = 'status error';
+          statusDiv.innerHTML = '<strong>❌ Error:</strong> ' + error.message;
+        }
+      }
+
+      // Auto-check on load
+      window.addEventListener('load', () => {
+        checkCacheStatus();
+      });
+    </script>
+  </body>
+</html>

@@ -1,42 +1,42 @@
-import { Link, useLocation } from "react-router-dom";
-import { 
-  Home, 
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { useAuth } from '@/hooks/useAuth';
+import {
   Activity,
   BarChart3,
-  Wifi,
-  Bird, 
-  Beef, 
-  Fish, 
-  Package2, 
-  Package, 
-  DollarSign, 
-  FileText,
+  Beef,
   Bell,
-  Menu,
-  X,
+  Bird,
+  DollarSign,
+  FileText,
+  Fish,
+  Home,
   Leaf,
+  LogOut,
+  Menu,
+  Package,
+  Package2,
   User,
-  LogOut
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
+  Wifi,
+  X,
+} from 'lucide-react';
+import { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 
 const navigation = [
-  { name: "Dashboard", href: "/", icon: Home },
-  { name: "Real-Time", href: "/real-time", icon: Activity },
-  { name: "Analytics", href: "/analytics", icon: BarChart3 },
-  { name: "IoT Sensors", href: "/iot-sensors", icon: Wifi },
-  { name: "Poultry", href: "/poultry", icon: Bird },
-  { name: "Livestock", href: "/livestock", icon: Beef },
-  { name: "Fishery", href: "/fishery", icon: Fish },
-  { name: "Assets", href: "/assets", icon: Package2 },
-  { name: "Inventory", href: "/inventory", icon: Package },
-  { name: "Finance", href: "/finance", icon: DollarSign },
-  { name: "Reports", href: "/reports", icon: FileText },
-  { name: "Notifications", href: "/notifications", icon: Bell },
+  { name: 'Dashboard', href: '/', icon: Home },
+  { name: 'Real-Time', href: '/real-time', icon: Activity },
+  { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+  { name: 'IoT Sensors', href: '/iot-sensors', icon: Wifi },
+  { name: 'Poultry', href: '/poultry', icon: Bird },
+  { name: 'Livestock', href: '/livestock', icon: Beef },
+  { name: 'Fishery', href: '/fishery', icon: Fish },
+  { name: 'Assets', href: '/assets', icon: Package2 },
+  { name: 'Inventory', href: '/inventory', icon: Package },
+  { name: 'Finance', href: '/finance', icon: DollarSign },
+  { name: 'Reports', href: '/reports', icon: FileText },
+  { name: 'Notifications', href: '/notifications', icon: Bell },
 ];
 
 export default function Sidebar() {
@@ -67,8 +67,12 @@ export default function Sidebar() {
             <Leaf className="h-7 w-7 text-white" />
           </div>
           <div className="flex flex-col">
-            <span className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Kuyash</span>
-            <span className="text-sm text-green-600 dark:text-green-400 font-medium">Farm Management</span>
+            <span className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">
+              Kuyash
+            </span>
+            <span className="text-sm text-green-600 dark:text-green-400 font-medium">
+              Farm Management
+            </span>
           </div>
         </Link>
         <Button
@@ -80,7 +84,7 @@ export default function Sidebar() {
           <X className="h-4 w-4" />
         </Button>
       </div>
-      
+
       {/* Navigation Section */}
       <nav className="flex-1 p-6 space-y-2 overflow-y-auto">
         {navigation.map((item) => {
@@ -92,13 +96,17 @@ export default function Sidebar() {
                 variant="ghost"
                 className={`w-full justify-start h-12 px-4 rounded-xl transition-all duration-300 group ${
                   isActive
-                    ? "bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 text-green-700 dark:text-green-400 shadow-sm border border-green-200 dark:border-green-800"
-                    : "text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-800 dark:hover:to-gray-700 hover:shadow-sm"
+                    ? 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 text-green-700 dark:text-green-400 shadow-sm border border-green-200 dark:border-green-800'
+                    : 'text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-800 dark:hover:to-gray-700 hover:shadow-sm'
                 }`}
               >
-                <Icon className={`h-5 w-5 mr-4 transition-colors duration-300 ${
-                  isActive ? "text-green-600 dark:text-green-400" : "text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300"
-                }`} />
+                <Icon
+                  className={`h-5 w-5 mr-4 transition-colors duration-300 ${
+                    isActive
+                      ? 'text-green-600 dark:text-green-400'
+                      : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300'
+                  }`}
+                />
                 <span className="font-medium text-sm">{item.name}</span>
               </Button>
             </Link>
@@ -150,7 +158,7 @@ export default function Sidebar() {
       </Sheet>
 
       {/* Desktop Sidebar */}
-      <div className="hidden md:fixed md:inset-y-0 md:left-0 md:flex md:w-[280px] md:max-w-[280px] md:min-w-[280px] md:flex-col z-50 sidebar-fixed">
+      <div className="hidden md:flex md:w-[280px] md:max-w-[280px] md:min-w-[280px] md:flex-col sidebar-fixed">
         <div className="flex flex-col flex-grow bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 shadow-xl">
           <SidebarContent />
         </div>

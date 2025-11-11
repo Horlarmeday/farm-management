@@ -1,10 +1,12 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useUserFarms } from '@/hooks/useFarm';
+import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 
 interface FarmContextType {
   selectedFarmId: string | null;
   setSelectedFarmId: (farmId: string | null) => void;
   isLoading: boolean;
   clearFarm: () => void;
+  isValidFarmId: boolean;
 }
 
 const FarmContext = createContext<FarmContextType | undefined>(undefined);
@@ -18,6 +20,12 @@ const FARM_STORAGE_KEY = 'selectedFarmId';
 export const FarmProvider: React.FC<FarmProviderProps> = ({ children }) => {
   const [selectedFarmId, setSelectedFarmIdState] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { data: userFarms, isLoading: farmsLoading } = useUserFarms();
+
+  // Validate if the stored farmId is still valid for the current user
+  const isValidFarmId = selectedFarmId
+    ? (userFarms?.some((farmUser) => farmUser.farm.id === selectedFarmId) ?? false)
+    : false;
 
   // Load farmId from localStorage on mount
   useEffect(() => {
@@ -34,9 +42,18 @@ export const FarmProvider: React.FC<FarmProviderProps> = ({ children }) => {
     }
   }, []);
 
+  // Clear invalid farmId when user farms are loaded
+  useEffect(() => {
+    if (!farmsLoading && selectedFarmId && !isValidFarmId) {
+      console.log('Clearing invalid farmId:', selectedFarmId);
+      setSelectedFarmIdState(null);
+      localStorage.removeItem(FARM_STORAGE_KEY);
+    }
+  }, [farmsLoading, selectedFarmId, isValidFarmId]);
+
   const setSelectedFarmId = (farmId: string | null) => {
     setSelectedFarmIdState(farmId);
-    
+
     if (farmId) {
       try {
         localStorage.setItem(FARM_STORAGE_KEY, farmId);
@@ -55,15 +72,12 @@ export const FarmProvider: React.FC<FarmProviderProps> = ({ children }) => {
   const value: FarmContextType = {
     selectedFarmId,
     setSelectedFarmId,
-    isLoading,
+    isLoading: isLoading || farmsLoading,
     clearFarm,
+    isValidFarmId,
   };
 
-  return (
-    <FarmContext.Provider value={value}>
-      {children}
-    </FarmContext.Provider>
-  );
+  return <FarmContext.Provider value={value}>{children}</FarmContext.Provider>;
 };
 
 export const useFarmContext = (): FarmContextType => {
@@ -82,6 +96,6 @@ export const useCurrentFarmId = (): string | null => {
 
 // Helper hook to check if user has selected a farm
 export const useHasSelectedFarm = (): boolean => {
-  const { selectedFarmId } = useFarmContext();
-  return selectedFarmId !== null;
+  const { selectedFarmId, isValidFarmId } = useFarmContext();
+  return selectedFarmId !== null && isValidFarmId;
 };

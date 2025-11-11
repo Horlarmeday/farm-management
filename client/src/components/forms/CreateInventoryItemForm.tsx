@@ -26,8 +26,8 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
 import { getInventoryCategoryOptions, getUnitOptions } from '@/lib/formUtils';
+import { apiRequest } from '@/lib/queryClient';
 import { createInventoryItemFormSchema } from '@/lib/schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';

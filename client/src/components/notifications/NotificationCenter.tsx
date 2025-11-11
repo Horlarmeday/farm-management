@@ -86,7 +86,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ farmId, classNa
 
   const handleMarkAllAsRead = async () => {
     try {
-      await markAllAsReadMutation.mutateAsync();
+      await markAllAsReadMutation.mutateAsync(undefined);
       toast({ title: "Success", description: "All notifications marked as read" });
     } catch (error) {
       toast({ title: "Error", description: "Failed to mark all notifications as read", variant: "destructive" });

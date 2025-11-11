@@ -53,11 +53,12 @@ export interface ResetPasswordData {
 
 // Authentication service
 export class AuthService {
+  private static readonly BASE_URL = '/api/auth';
   /**
    * Login user with email and password
    */
   static async login(credentials: LoginCredentials): Promise<ApiResponse<AuthResponse>> {
-    const response = await apiClient.post<AuthResponse>('/api/auth/login', credentials);
+    const response = await apiClient.post<AuthResponse>(`${this.BASE_URL}/login`, credentials);
     
     if (response.success && response.data) {
       // Store tokens
@@ -74,7 +75,7 @@ export class AuthService {
    * Register new user
    */
   static async register(userData: RegisterData): Promise<ApiResponse<AuthResponse>> {
-    const response = await apiClient.post<AuthResponse>('/api/auth/register', userData);
+    const response = await apiClient.post<AuthResponse>(`${this.BASE_URL}/register`, userData);
     
     if (response.success && response.data) {
       // Store tokens
@@ -93,7 +94,7 @@ export class AuthService {
   static async logout(): Promise<void> {
     try {
       // Call logout endpoint to invalidate token on server
-      await apiClient.post('/api/auth/logout');
+      await apiClient.post(`${this.BASE_URL}/logout`);
     } catch (error) {
       // Even if logout fails on server, clear local tokens
       // Logout request failed - handled silently
@@ -107,7 +108,7 @@ export class AuthService {
    * Get current user profile
    */
   static async getCurrentUser(): Promise<ApiResponse<User>> {
-    return apiClient.get<User>('/api/auth/me');
+    return apiClient.get<User>(`${this.BASE_URL}/me`);
   }
 
   /**
@@ -119,7 +120,7 @@ export class AuthService {
       throw new Error('No refresh token available');
     }
 
-    const response = await apiClient.post<{ token: string }>('/api/auth/refresh-token', {
+    const response = await apiClient.post<{ token: string }>(`${this.BASE_URL}/refresh-token`, {
       refreshToken,
     });
 
@@ -134,28 +135,28 @@ export class AuthService {
    * Change user password
    */
   static async changePassword(data: ChangePasswordData): Promise<ApiResponse<void>> {
-    return apiClient.post<void>('/api/auth/change-password', data);
+    return apiClient.post<void>(`${this.BASE_URL}/change-password`, data);
   }
 
   /**
    * Request password reset
    */
   static async forgotPassword(data: ForgotPasswordData): Promise<ApiResponse<void>> {
-    return apiClient.post<void>('/api/auth/forgot-password', data);
+    return apiClient.post<void>(`${this.BASE_URL}/forgot-password`, data);
   }
 
   /**
    * Reset password with token
    */
   static async resetPassword(data: ResetPasswordData): Promise<ApiResponse<void>> {
-    return apiClient.post<void>('/api/auth/reset-password', data);
+    return apiClient.post<void>(`${this.BASE_URL}/reset-password`, data);
   }
 
   /**
    * Verify email with token
    */
   static async verifyEmail(token: string): Promise<ApiResponse<void>> {
-    return apiClient.get<void>(`/api/auth/verify-email/${token}`);
+    return apiClient.get<void>(`${this.BASE_URL}/verify-email/${token}`);
   }
 
   /**
@@ -190,7 +191,7 @@ export class AuthService {
    * Admin: Create new user
    */
   static async createUser(userData: RegisterData): Promise<ApiResponse<User>> {
-    return apiClient.post<User>('/api/auth/admin/create-user', userData);
+    return apiClient.post<User>(`${this.BASE_URL}/admin/create-user`, userData);
   }
 }
 

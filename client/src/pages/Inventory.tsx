@@ -1,39 +1,68 @@
-import { useState } from "react";
-import { Package, Plus, Search, Filter, AlertTriangle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LoadingTable } from "@/components/ui/loading-card";
-import CreateInventoryItemForm from "@/components/forms/CreateInventoryItemForm";
-import { useInventoryItems, useInventoryTransactions, useStockAlerts } from "@/hooks/useInventory";
-import { InventoryCategory, TransactionType } from '@/types/inventory.types';
+import CreateInventoryItemForm from '@/components/forms/CreateInventoryItemForm';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { LoadingTable } from '@/components/ui/loading-card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  useAcknowledgeStockAlert,
+  useInventoryItems,
+  useInventoryTransactions,
+  useResolveStockAlert,
+  useStockAlerts,
+} from '@/hooks/useInventory';
 import { formatNaira as formatCurrency } from '@/lib/currency';
+import { InventoryCategory, TransactionType } from '@/types/inventory.types';
+import { AlertTriangle, Filter, Package, Plus, Search } from 'lucide-react';
+import { useState } from 'react';
 
 export default function Inventory() {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<InventoryCategory | undefined>();
-  
-  const { data: inventoryItems, isLoading: itemsLoading, error: itemsError } = useInventoryItems({
+
+  const {
+    data: inventoryItems,
+    isLoading: itemsLoading,
+    error: itemsError,
+  } = useInventoryItems({
     search: searchTerm || undefined,
     category: selectedCategory,
     page: 1,
-    limit: 20
+    limit: 20,
   });
-  
+
   const { data: transactions, isLoading: transactionsLoading } = useInventoryTransactions({
     page: 1,
-    limit: 10
+    limit: 10,
   });
-  
+
   const { data: alerts, isLoading: alertsLoading } = useStockAlerts({
     resolved: false,
     page: 1,
-    limit: 10
+    limit: 10,
   });
-  
+
+  const acknowledgeMutation = useAcknowledgeStockAlert();
+  const resolveMutation = useResolveStockAlert();
+
   const isLoading = itemsLoading || transactionsLoading || alertsLoading;
+
+  const handleAcknowledgeAlert = async (alertId: string) => {
+    try {
+      await acknowledgeMutation.mutateAsync(alertId);
+    } catch (error) {
+      console.error('Failed to acknowledge alert:', error);
+    }
+  };
+
+  const handleResolveAlert = async (alertId: string) => {
+    try {
+      await resolveMutation.mutateAsync({ id: alertId });
+    } catch (error) {
+      console.error('Failed to resolve alert:', error);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -122,7 +151,9 @@ export default function Inventory() {
                   <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <h3 className="text-lg font-semibold mb-2">No Items Found</h3>
                   <p className="text-muted-foreground mb-4">
-                    {searchTerm ? 'No items match your search criteria' : 'Start by adding your first inventory item'}
+                    {searchTerm
+                      ? 'No items match your search criteria'
+                      : 'Start by adding your first inventory item'}
                   </p>
                   <CreateInventoryItemForm />
                 </CardContent>
@@ -141,18 +172,17 @@ export default function Inventory() {
                       <Badge
                         variant={
                           item.currentStock <= item.reorderPoint
-                            ? "destructive"
+                            ? 'destructive'
                             : item.currentStock <= item.reorderPoint * 2
-                            ? "secondary"
-                            : "default"
+                              ? 'secondary'
+                              : 'default'
                         }
                       >
                         {item.currentStock <= item.reorderPoint
-                          ? "Low Stock"
+                          ? 'Low Stock'
                           : item.currentStock <= item.reorderPoint * 2
-                          ? "Medium"
-                          : "Good Stock"
-                        }
+                            ? 'Medium'
+                            : 'Good Stock'}
                       </Badge>
                     </div>
                   </CardHeader>
@@ -160,15 +190,21 @@ export default function Inventory() {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div>
                         <p className="text-sm text-muted-foreground">Current Stock</p>
-                        <p className="text-lg font-semibold">{item.currentStock} {item.unit}</p>
+                        <p className="text-lg font-semibold">
+                          {item.currentStock} {item.unit}
+                        </p>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Reorder Level</p>
-                        <p className="text-lg font-semibold">{item.reorderPoint} {item.unit}</p>
+                        <p className="text-lg font-semibold">
+                          {item.reorderPoint} {item.unit}
+                        </p>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Unit Cost</p>
-                        <p className="text-lg font-semibold">{formatCurrency(item.standardCost || 0)}</p>
+                        <p className="text-lg font-semibold">
+                          {formatCurrency(item.standardCost || 0)}
+                        </p>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Total Value</p>
@@ -215,11 +251,22 @@ export default function Inventory() {
                       <div>
                         <CardTitle className="text-lg">Transaction ID: {transaction.id}</CardTitle>
                         <p className="text-sm text-muted-foreground">
-                          {transaction.type} • {new Date(transaction.createdAt).toLocaleDateString()}
+                          {transaction.type} •{' '}
+                          {new Date(transaction.createdAt).toLocaleDateString()}
                         </p>
                       </div>
-                      <Badge variant={transaction.type === TransactionType.IN || transaction.type === TransactionType.RETURN ? 'default' : 'secondary'}>
-                        {transaction.type === TransactionType.IN || transaction.type === TransactionType.RETURN ? 'Stock In' : 'Stock Out'}
+                      <Badge
+                        variant={
+                          transaction.type === TransactionType.IN ||
+                          transaction.type === TransactionType.RETURN
+                            ? 'default'
+                            : 'secondary'
+                        }
+                      >
+                        {transaction.type === TransactionType.IN ||
+                        transaction.type === TransactionType.RETURN
+                          ? 'Stock In'
+                          : 'Stock Out'}
                       </Badge>
                     </div>
                   </CardHeader>
@@ -231,11 +278,15 @@ export default function Inventory() {
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Unit Price</p>
-                        <p className="text-lg font-semibold">{formatCurrency(transaction.unitCost || 0)}</p>
+                        <p className="text-lg font-semibold">
+                          {formatCurrency(transaction.unitCost || 0)}
+                        </p>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Total Amount</p>
-                        <p className="text-lg font-semibold">{formatCurrency(transaction.totalCost || 0)}</p>
+                        <p className="text-lg font-semibold">
+                          {formatCurrency(transaction.totalCost || 0)}
+                        </p>
                       </div>
                     </div>
                     {transaction.notes && (
@@ -253,62 +304,94 @@ export default function Inventory() {
 
         <TabsContent value="alerts" className="space-y-4">
           <div className="grid gap-4">
-            {alerts?.length === 0 ? (
+            {!alerts || alerts.length === 0 ? (
               <Card>
                 <CardContent className="p-8 text-center">
                   <h3 className="text-lg font-semibold mb-2">No Active Alerts</h3>
                   <p className="text-muted-foreground mb-4">
                     All inventory levels are within normal ranges
                   </p>
-                  <Button className="farm-button-primary">
-                    Configure Alert Settings
-                  </Button>
+                  <Button className="farm-button-primary">Generate Alerts</Button>
                 </CardContent>
               </Card>
             ) : (
-              alerts?.map((alert) => (
+              alerts?.map((alert: any) => (
                 <Card key={alert.id}>
                   <CardHeader>
                     <div className="flex justify-between items-start">
                       <div>
                         <CardTitle className="text-lg flex items-center gap-2">
-                          <AlertTriangle className="h-5 w-5 text-orange-500" />
-                          Alert for Item ID: {alert.itemId}
+                          <AlertTriangle
+                            className={`h-5 w-5 ${
+                              alert.severity === 'critical'
+                                ? 'text-red-600'
+                                : alert.severity === 'high'
+                                  ? 'text-orange-600'
+                                  : alert.severity === 'medium'
+                                    ? 'text-yellow-600'
+                                    : 'text-blue-600'
+                            }`}
+                          />
+                          {alert.title}
                         </CardTitle>
                         <p className="text-sm text-muted-foreground">
-                          {alert.type.replace('_', ' ').toUpperCase()}
+                          {alert.alertType.replace('_', ' ').toUpperCase()}
                         </p>
                       </div>
-                      <Badge 
-                        variant={
-                          alert.severity === 'high' ? 'destructive' :
-                          alert.severity === 'medium' ? 'secondary' : 'default'
-                        }
-                      >
-                        {alert.severity.toUpperCase()}
-                      </Badge>
+                      <div className="flex flex-col gap-2 items-end">
+                        <Badge
+                          variant={
+                            alert.severity === 'critical' || alert.severity === 'high'
+                              ? 'destructive'
+                              : alert.severity === 'medium'
+                                ? 'secondary'
+                                : 'default'
+                          }
+                        >
+                          {alert.severity.toUpperCase()}
+                        </Badge>
+                        {alert.acknowledged && (
+                          <Badge variant="outline" className="text-xs">
+                            Acknowledged
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-2">
+                    <div className="space-y-4">
                       <p className="text-sm">{alert.message}</p>
-                      <div className="grid grid-cols-2 gap-4 mt-4">
+                      <div className="grid grid-cols-2 gap-4">
                         <div>
                           <p className="text-sm text-muted-foreground">Current Stock</p>
-                          <p className="text-lg font-semibold">Check Item</p>
+                          <p className="text-lg font-semibold">{alert.currentStock || 'N/A'}</p>
                         </div>
                         <div>
                           <p className="text-sm text-muted-foreground">Threshold</p>
-                          <p className="text-lg font-semibold">-</p>
+                          <p className="text-lg font-semibold">{alert.threshold || 'N/A'}</p>
                         </div>
                       </div>
                       <div className="flex gap-2 mt-4">
-                        <Button size="sm" variant="outline">
-                          Acknowledge
-                        </Button>
-                        <Button size="sm" className="farm-button-primary">
-                          Resolve
-                        </Button>
+                        {!alert.acknowledged && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleAcknowledgeAlert(alert.id)}
+                            disabled={acknowledgeMutation.isPending}
+                          >
+                            {acknowledgeMutation.isPending ? 'Acknowledging...' : 'Acknowledge'}
+                          </Button>
+                        )}
+                        {!alert.resolved && (
+                          <Button
+                            size="sm"
+                            className="farm-button-primary"
+                            onClick={() => handleResolveAlert(alert.id)}
+                            disabled={resolveMutation.isPending}
+                          >
+                            {resolveMutation.isPending ? 'Resolving...' : 'Resolve'}
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </CardContent>

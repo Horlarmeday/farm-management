@@ -1,42 +1,47 @@
-import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { Toaster } from 'sonner';
-import { AuthProvider, useAuth } from '@/hooks/useAuth';
-import { FarmProvider, useFarmContext } from '@/contexts/FarmContext';
-import { WebSocketProvider } from '@/contexts/WebSocketContext';
+import FarmSelection from '@/components/farm/FarmSelection';
+import Sidebar from '@/components/layout/Sidebar';
 import { MobileLayout } from '@/components/mobile/MobileLayout';
 import { OfflineIndicator } from '@/components/OfflineIndicator';
-import { PWAInstallBanner } from '@/components/PWAInstallBanner';
+import { FarmProvider, useFarmContext } from '@/contexts/FarmContext';
+import { WebSocketProvider } from '@/contexts/WebSocketContext';
+import { AuthProvider, useAuth } from '@/hooks/useAuth';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
-import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { useResponsive } from '@/hooks/useResponsive';
 import { syncService } from '@/services/syncService';
 import { db } from '@/utils/database';
-import Sidebar from '@/components/layout/Sidebar';
-import FarmSelection from '@/components/farm/FarmSelection';
-import Login from '@/pages/Login';
-import Register from '@/pages/Register';
-import ForgotPassword from '@/pages/auth/ForgotPassword';
-import PasswordReset from '@/pages/auth/PasswordReset';
-import EmailVerification from '@/pages/auth/EmailVerification';
-import Dashboard from '@/pages/Dashboard';
-import Inventory from '@/pages/Inventory';
-import Finance from '@/pages/Finance';
-import Livestock from '@/pages/Livestock';
-import Poultry from '@/pages/Poultry';
-import Fishery from '@/pages/Fishery';
-import Assets from '@/pages/Assets';
-import Reports from '@/pages/Reports';
-import Settings from '@/pages/Settings';
-import Profile from '@/pages/Profile';
-import NotFound from '@/pages/NotFound';
-import RealTimeDashboard from '@/components/dashboard/RealTimeDashboard';
-import PredictiveAnalyticsDashboard from '@/components/analytics/PredictiveAnalyticsDashboard';
-import { IoTDashboard } from '@/pages/IoTDashboard';
-import NotificationPreferences from '@/components/notifications/NotificationPreferences';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import React, { useEffect, useState } from 'react';
+import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import { Toaster } from 'sonner';
 import './App.css';
+// Lazy load all page components for code splitting
+const Login = React.lazy(() => import('@/pages/Login'));
+const Register = React.lazy(() => import('@/pages/Register'));
+const ForgotPassword = React.lazy(() => import('@/pages/auth/ForgotPassword'));
+const PasswordReset = React.lazy(() => import('@/pages/auth/PasswordReset'));
+const EmailVerification = React.lazy(() => import('@/pages/auth/EmailVerification'));
+const Dashboard = React.lazy(() => import('@/pages/Dashboard'));
+const Inventory = React.lazy(() => import('@/pages/Inventory'));
+const Finance = React.lazy(() => import('@/pages/Finance'));
+const Livestock = React.lazy(() => import('@/pages/Livestock'));
+const Poultry = React.lazy(() => import('@/pages/Poultry'));
+const Fishery = React.lazy(() => import('@/pages/Fishery'));
+const Assets = React.lazy(() => import('@/pages/Assets'));
+const Reports = React.lazy(() => import('@/pages/Reports'));
+const Settings = React.lazy(() => import('@/pages/Settings'));
+const Profile = React.lazy(() => import('@/pages/Profile'));
+const NotFound = React.lazy(() => import('@/pages/NotFound'));
+const RealTimeDashboard = React.lazy(() => import('@/components/dashboard/RealTimeDashboard'));
+const PredictiveAnalyticsDashboard = React.lazy(
+  () => import('@/components/analytics/PredictiveAnalyticsDashboard'),
+);
+const IoTDashboard = React.lazy(() =>
+  import('@/pages/IoTDashboard').then((module) => ({ default: module.IoTDashboard })),
+);
+const NotificationPreferences = React.lazy(
+  () => import('@/components/notifications/NotificationPreferences'),
+);
 
 // Create a query client with offline-first configuration
 const queryClient = new QueryClient({
@@ -62,11 +67,16 @@ const queryClient = new QueryClient({
 
 const AppContent: React.FC = () => {
   const { user, isLoading } = useAuth();
-  const { selectedFarmId, setSelectedFarmId, isLoading: farmLoading } = useFarmContext();
+  const {
+    selectedFarmId,
+    setSelectedFarmId,
+    isLoading: farmLoading,
+    isValidFarmId,
+  } = useFarmContext();
   const [isAppInitialized, setIsAppInitialized] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
 
-  // Initialize PWA and offline features
+  // Initialize database and offline features
   useEffect(() => {
     const initializeApp = async () => {
       try {
@@ -76,16 +86,6 @@ const AppContent: React.FC = () => {
 
         // Initialize sync service (constructor handles initialization)
         console.log('Sync service initialized successfully');
-
-        // Register service worker for PWA
-        if ('serviceWorker' in navigator) {
-          try {
-            const registration = await navigator.serviceWorker.register('/sw.js');
-            console.log('Service Worker registered successfully:', registration);
-          } catch (error) {
-            console.warn('Service Worker registration failed:', error);
-          }
-        }
 
         setIsAppInitialized(true);
       } catch (error) {
@@ -117,23 +117,89 @@ const AppContent: React.FC = () => {
         <Routes>
           <Route
             path="/login"
-            element={!user ? <Login /> : <Navigate to="/" replace />}
+            element={
+              !user ? (
+                <React.Suspense
+                  fallback={
+                    <div className="min-h-screen flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    </div>
+                  }
+                >
+                  <Login />
+                </React.Suspense>
+              ) : (
+                <Navigate to="/" replace />
+              )
+            }
           />
           <Route
             path="/register"
-            element={!user ? <Register /> : <Navigate to="/" replace />}
+            element={
+              !user ? (
+                <React.Suspense
+                  fallback={
+                    <div className="min-h-screen flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    </div>
+                  }
+                >
+                  <Register />
+                </React.Suspense>
+              ) : (
+                <Navigate to="/" replace />
+              )
+            }
           />
           <Route
             path="/forgot-password"
-            element={!user ? <ForgotPassword /> : <Navigate to="/" replace />}
+            element={
+              !user ? (
+                <React.Suspense
+                  fallback={
+                    <div className="min-h-screen flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    </div>
+                  }
+                >
+                  <ForgotPassword />
+                </React.Suspense>
+              ) : (
+                <Navigate to="/" replace />
+              )
+            }
           />
           <Route
             path="/reset-password/:token"
-            element={!user ? <PasswordReset /> : <Navigate to="/" replace />}
+            element={
+              !user ? (
+                <React.Suspense
+                  fallback={
+                    <div className="min-h-screen flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    </div>
+                  }
+                >
+                  <PasswordReset />
+                </React.Suspense>
+              ) : (
+                <Navigate to="/" replace />
+              )
+            }
           />
           <Route
             path="/verify-email/:token"
-            element={<EmailVerification />}
+            element={
+              <React.Suspense
+                fallback={
+                  <div className="min-h-screen flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  </div>
+                }
+              >
+                <EmailVerification />
+              </React.Suspense>
+            }
           />
           <Route
             path="/select-farm"
@@ -146,7 +212,7 @@ const AppContent: React.FC = () => {
             }
           />
           {user ? (
-            selectedFarmId ? (
+            selectedFarmId && isValidFarmId ? (
               <Route path="/*" element={<AuthenticatedApp />} />
             ) : (
               <Route path="/*" element={<Navigate to="/select-farm" replace />} />
@@ -164,7 +230,6 @@ const AuthenticatedApp: React.FC = () => {
   const { selectedFarmId } = useFarmContext();
   const { isMobile } = useResponsive();
   const { isOnline: syncIsOnline } = useOfflineSync();
-  const { showInstallBanner: canInstall, isStandalone } = usePWAInstall();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Handle navigation for mobile layout
@@ -179,12 +244,12 @@ const AuthenticatedApp: React.FC = () => {
       if (syncIsOnline) {
         await syncService.triggerSync();
       }
-      
+
       // Invalidate queries to refetch data
       await queryClient.invalidateQueries();
-      
+
       // Trigger re-render
-      setRefreshTrigger(prev => prev + 1);
+      setRefreshTrigger((prev) => prev + 1);
     } catch (error) {
       console.error('Refresh failed:', error);
       throw error;
@@ -198,26 +263,37 @@ const AuthenticatedApp: React.FC = () => {
         currentPath={window.location.pathname}
         onNavigate={handleNavigate}
         onRefresh={handleRefresh}
-        showInstallPrompt={canInstall && !isStandalone}
+        showInstallPrompt={false}
       >
-        <Routes key={refreshTrigger}>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/real-time" element={<RealTimeDashboard farmId={selectedFarmId || ''} />} />
-          <Route path="/analytics" element={<PredictiveAnalyticsDashboard />} />
-          <Route path="/iot-sensors" element={<IoTDashboard />} />
-          <Route path="/notifications" element={<NotificationPreferences />} />
-          <Route path="/inventory" element={<Inventory />} />
-          <Route path="/finance" element={<Finance />} />
-          <Route path="/livestock" element={<Livestock />} />
-          <Route path="/poultry" element={<Poultry />} />
-          <Route path="/fishery" element={<Fishery />} />
-          <Route path="/assets" element={<Assets />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <React.Suspense
+          fallback={
+            <div className="flex items-center justify-center p-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          }
+        >
+          <Routes key={refreshTrigger}>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route
+              path="/real-time"
+              element={<RealTimeDashboard farmId={selectedFarmId || ''} />}
+            />
+            <Route path="/analytics" element={<PredictiveAnalyticsDashboard />} />
+            <Route path="/iot-sensors" element={<IoTDashboard />} />
+            <Route path="/notifications" element={<NotificationPreferences />} />
+            <Route path="/inventory" element={<Inventory />} />
+            <Route path="/finance" element={<Finance />} />
+            <Route path="/livestock" element={<Livestock />} />
+            <Route path="/poultry" element={<Poultry />} />
+            <Route path="/fishery" element={<Fishery />} />
+            <Route path="/assets" element={<Assets />} />
+            <Route path="/reports" element={<Reports />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </React.Suspense>
       </MobileLayout>
     );
   }
@@ -225,42 +301,48 @@ const AuthenticatedApp: React.FC = () => {
   // Desktop layout
   return (
     <>
-      {/* PWA Install Banner for desktop */}
-      {canInstall && !isStandalone && (
-        <PWAInstallBanner variant="banner" className="m-4" />
-      )}
-      
       {/* Offline indicator */}
       {!syncIsOnline && (
         <div className="fixed top-4 right-4 z-50">
           <OfflineIndicator />
         </div>
       )}
-      
+
       <Sidebar />
-      
+
       {/* Main Content Area */}
-      <div className="md:ml-[280px] min-h-screen main-content-offset">
+      <div className="min-h-screen main-content-offset">
         <main className="py-6 px-4 md:px-6 lg:px-8">
           <div className="mx-auto max-w-7xl">
-            <Routes key={refreshTrigger}>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/real-time" element={<RealTimeDashboard farmId={selectedFarmId || ''} />} />
-              <Route path="/analytics" element={<PredictiveAnalyticsDashboard />} />
-              <Route path="/iot-sensors" element={<IoTDashboard />} />
-              <Route path="/notifications" element={<NotificationPreferences />} />
-              <Route path="/inventory" element={<Inventory />} />
-              <Route path="/finance" element={<Finance />} />
-              <Route path="/livestock" element={<Livestock />} />
-              <Route path="/poultry" element={<Poultry />} />
-              <Route path="/fishery" element={<Fishery />} />
-              <Route path="/assets" element={<Assets />} />
-              <Route path="/reports" element={<Reports />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <React.Suspense
+              fallback={
+                <div className="flex items-center justify-center p-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>
+              }
+            >
+              <Routes key={refreshTrigger}>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route
+                  path="/real-time"
+                  element={<RealTimeDashboard farmId={selectedFarmId || ''} />}
+                />
+                <Route path="/analytics" element={<PredictiveAnalyticsDashboard />} />
+                <Route path="/iot-sensors" element={<IoTDashboard />} />
+                <Route path="/notifications" element={<NotificationPreferences />} />
+                <Route path="/inventory" element={<Inventory />} />
+                <Route path="/finance" element={<Finance />} />
+                <Route path="/livestock" element={<Livestock />} />
+                <Route path="/poultry" element={<Poultry />} />
+                <Route path="/fishery" element={<Fishery />} />
+                <Route path="/assets" element={<Assets />} />
+                <Route path="/reports" element={<Reports />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </React.Suspense>
           </div>
         </main>
       </div>
@@ -275,7 +357,7 @@ const App: React.FC = () => {
         <FarmProvider>
           <WebSocketProvider>
             <AppContent />
-            <Toaster 
+            <Toaster
               position="top-center"
               toastOptions={{
                 duration: 4000,

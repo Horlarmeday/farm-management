@@ -56,17 +56,23 @@ export const insertInventoryItemSchema = z.object({
   supplier: z.string().optional(),
 });
 
-// Form schemas (simplified for UI)
+// Form schemas (aligned with server validation)
 export const createAnimalFormSchema = z.object({
-  tagNumber: z.string().min(1, 'Tag number is required'),
-  species: z.string().min(1, 'Species is required'),
-  breed: z.string().min(1, 'Breed is required'),
-  age: z.number().min(0, 'Age must be positive'),
-  weight: z.number().min(0, 'Weight must be positive'),
-  gender: z.enum(['male', 'female']),
-  purpose: z.enum(['dairy', 'meat', 'breeding', 'draft']),
-  status: z.enum(['healthy', 'sick', 'quarantine', 'treatment']),
-  notes: z.string().optional(),
+  tagNumber: z.string().min(1, 'Tag number is required').max(50),
+  species: z.enum(['cow', 'goat', 'sheep', 'pig', 'chicken'], {
+    required_error: 'Species is required',
+  }),
+  breed: z.string().min(1, 'Breed is required').max(100),
+  gender: z.enum(['male', 'female'], {
+    required_error: 'Gender is required',
+  }),
+  dateOfBirth: z.string().min(1, 'Date of birth is required'),
+  acquisitionDate: z.string().min(1, 'Acquisition date is required'),
+  source: z.string().min(1, 'Source is required').max(200),
+  location: z.string().max(100).optional(),
+  weight: z.number().min(0, 'Weight must be positive').optional(),
+  acquisitionCost: z.number().min(0, 'Cost must be positive').optional(),
+  notes: z.string().max(500).optional(),
 });
 
 export const createBirdBatchFormSchema = z.object({

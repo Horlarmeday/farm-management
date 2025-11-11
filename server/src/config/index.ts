@@ -2,8 +2,10 @@ import dotenv from 'dotenv';
 import Joi from 'joi';
 import path from 'path';
 
-// Load environment variables
-dotenv.config();
+// Load environment variables based on NODE_ENV
+const envFile = process.env.NODE_ENV === 'test' ? '.env.test' : '.env';
+const serverDir = path.resolve(__dirname, '../..');
+dotenv.config({ path: path.resolve(serverDir, envFile) });
 
 // Environment variable validation schema
 const envSchema = Joi.object({
@@ -39,7 +41,7 @@ const envSchema = Joi.object({
   CORS_ORIGINS: Joi.string().default('http://localhost:3000'),
   CORS_CREDENTIALS: Joi.boolean().default(true),
   CORS_ALLOWED_HEADERS: Joi.string().default(
-    'Origin, X-Requested-With, Content-Type, Accept, Authorization',
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Farm-Id',
   ),
   CORS_EXPOSED_HEADERS: Joi.string().default('X-Pagination-Count'),
   CORS_METHODS: Joi.string().default('GET, POST, PUT, PATCH, DELETE, OPTIONS'),
@@ -87,6 +89,7 @@ const envSchema = Joi.object({
   // Security
   BCRYPT_ROUNDS: Joi.number().default(12),
   SESSION_SECRET: Joi.string(),
+  ENCRYPTION_KEY: Joi.string().required().min(32),
   HELMET_ENABLED: Joi.boolean().default(true),
   TRUST_PROXY: Joi.boolean().default(false),
 
@@ -231,21 +234,22 @@ export const config = {
     corsOrigins: envVars.WS_CORS_ORIGINS.split(',').map((origin: string) => origin.trim()),
   },
 
-  // Logging
-  logging: {
-    level: envVars.LOG_LEVEL,
-    fileEnabled: envVars.LOG_FILE_ENABLED,
-    filePath: path.resolve(envVars.LOG_FILE_PATH),
-    maxSize: envVars.LOG_MAX_SIZE,
-    maxFiles: envVars.LOG_MAX_FILES,
-  },
-
   // Security
   security: {
     bcryptRounds: envVars.BCRYPT_ROUNDS,
     sessionSecret: envVars.SESSION_SECRET,
+    encryptionKey: envVars.ENCRYPTION_KEY,
     helmetEnabled: envVars.HELMET_ENABLED,
     trustProxy: envVars.TRUST_PROXY,
+  },
+
+  // Logging
+  logging: {
+    level: envVars.LOG_LEVEL,
+    fileEnabled: envVars.LOG_FILE_ENABLED,
+    filePath: envVars.LOG_FILE_PATH,
+    maxSize: envVars.LOG_MAX_SIZE,
+    maxFiles: envVars.LOG_MAX_FILES,
   },
 
   // API Documentation

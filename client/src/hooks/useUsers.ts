@@ -470,6 +470,89 @@ export const useCreateLeaveRequest = () => {
   });
 };
 
+// HR: Create attendance record (explicit form, not clock-in/out)
+export const useCreateAttendance = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: {
+      userId: string;
+      date: Date;
+      checkIn: Date;
+      checkOut?: Date;
+      location?: string;
+      notes?: string;
+    }) => UsersService.createAttendance(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: userKeys.attendance() });
+      toast({
+        title: 'Success',
+        description: 'Attendance recorded successfully',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to record attendance',
+        variant: 'destructive',
+      });
+    },
+  });
+};
+
+// HR: Create leave request via /api/users/leave
+export const useCreateLeaveRequestUsers = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: {
+      userId: string;
+      type: LeaveType;
+      startDate: Date;
+      endDate: Date;
+      reason: string;
+    }) => UsersService.createLeaveRequestUsers(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: userKeys.leave() });
+      toast({
+        title: 'Success',
+        description: 'Leave request submitted successfully',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to submit leave request',
+        variant: 'destructive',
+      });
+    },
+  });
+};
+
+// HR: Approve/Reject leave via /api/users/leave/:id/approve
+export const useApproveLeave = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, status, comments }: { id: string; status: 'APPROVED' | 'REJECTED'; comments?: string }) =>
+      UsersService.approveLeaveUsers(id, { status, comments }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: userKeys.leave() });
+      toast({
+        title: 'Success',
+        description: 'Leave status updated successfully',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update leave status',
+        variant: 'destructive',
+      });
+    },
+  });
+};
+
 // Statistics
 export const useUserStats = () => {
   return useQuery({

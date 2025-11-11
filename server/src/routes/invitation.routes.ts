@@ -1,8 +1,8 @@
 import { Router } from 'express';
+import { FarmRole } from '../../../shared/src/types';
 import { InvitationController } from '../controllers/invitation.controller';
 import { authenticate } from '../middleware/auth.middleware';
-import { requireFarmAccess } from '../middleware/farm-auth';
-import { FarmRole } from '../../../shared/src/types';
+import { requireFarmAccessWithRole } from '../middleware/farm-auth.middleware';
 
 const router = Router();
 const invitationController = new InvitationController();
@@ -11,16 +11,18 @@ const invitationController = new InvitationController();
 router.get('/invitation/:token', invitationController.getInvitationDetails);
 
 // Public route - accept invitation by token (user must be authenticated)
-router.post('/invitation/:token/accept', 
+router.post(
+  '/invitation/:token/accept',
   authenticate,
   InvitationController.acceptInvitationValidation,
-  invitationController.acceptInvitation
+  invitationController.acceptInvitation,
 );
 
 // Public route - decline invitation by token
-router.post('/invitation/:token/decline',
+router.post(
+  '/invitation/:token/decline',
   InvitationController.declineInvitationValidation,
-  invitationController.declineInvitation
+  invitationController.declineInvitation,
 );
 
 // Protected routes - require authentication
@@ -30,21 +32,23 @@ router.use(authenticate);
 router.get('/user/invitations', invitationController.getUserInvitations);
 
 // Farm-specific routes - require farm access
-router.use(requireFarmAccess([FarmRole.OWNER, FarmRole.MANAGER]));
+router.use(requireFarmAccessWithRole([FarmRole.OWNER, FarmRole.MANAGER]));
 
 // Create invitation (only owners and managers can invite)
-router.post('/farm/invitations',
+router.post(
+  '/farm/invitations',
   InvitationController.createInvitationValidation,
-  invitationController.createInvitation
+  invitationController.createInvitation,
 );
 
 // Get farm invitations (only owners and managers can view)
 router.get('/farm/invitations', invitationController.getFarmInvitations);
 
 // Cancel invitation (only owners and managers can cancel)
-router.delete('/farm/invitations/:invitationId',
+router.delete(
+  '/farm/invitations/:invitationId',
   InvitationController.cancelInvitationValidation,
-  invitationController.cancelInvitation
+  invitationController.cancelInvitation,
 );
 
 export default router;

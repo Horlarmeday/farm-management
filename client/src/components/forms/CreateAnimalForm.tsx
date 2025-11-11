@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -27,62 +26,60 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
+import { useCreateAnimal } from '@/hooks/useLivestock';
 import { createAnimalFormSchema } from '@/lib/schemas';
+import { getErrorMessage, parseServerValidationErrors } from '@/utils/errorUtils';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Heart, Plus } from 'lucide-react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { getAnimalStatusOptions, getAnimalPurposeOptions, getGenderOptions } from "@/lib/formUtils";
 
 export default function CreateAnimalForm() {
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   const form = useForm({
     resolver: zodResolver(createAnimalFormSchema),
     defaultValues: {
       tagNumber: '',
-      species: '',
+      species: 'cow' as const,
       breed: '',
-      age: 0,
-      weight: 0,
-      gender: 'male',
-      purpose: 'dairy',
-      status: 'healthy',
+      gender: 'male' as const,
+      dateOfBirth: '',
+      acquisitionDate: new Date().toISOString().split('T')[0],
+      source: '',
+      location: '',
+      weight: undefined,
+      acquisitionCost: undefined,
       notes: '',
     },
   });
 
-  const createAnimal = useMutation({
-    mutationFn: async (data: any) => {
-      return await apiRequest({
-        url: '/api/animals',
-        method: 'POST',
-        body: data,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/animals'] });
+  const createAnimalMutation = useCreateAnimal();
+
+  const onSubmit = async (data: any) => {
+    try {
+      await createAnimalMutation.mutateAsync(data);
       toast({
         title: 'Success',
         description: 'Animal created successfully',
       });
       setOpen(false);
       form.reset();
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to create animal',
-        variant: 'destructive',
-      });
-    },
-  });
+    } catch (error: any) {
+      // Parse and set field-level errors
+      parseServerValidationErrors(error, form.setError);
 
-  const onSubmit = (data: any) => {
-    createAnimal.mutate(data);
+      // Show general toast for non-field errors
+      const errorMsg = getErrorMessage(error);
+      if (!errorMsg.includes('Validation Error:')) {
+        toast({
+          title: 'Error',
+          description: errorMsg,
+          variant: 'destructive',
+        });
+      }
+    }
   };
 
   return (
@@ -110,9 +107,9 @@ export default function CreateAnimalForm() {
               name="tagNumber"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tag Number</FormLabel>
+                  <FormLabel>Tag Number *</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., L001" {...field} />
+                    <Input placeholder="e.g., L001" {...field} maxLength={50} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -124,10 +121,21 @@ export default function CreateAnimalForm() {
                 name="species"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Species</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Cattle" {...field} />
-                    </FormControl>
+                    <FormLabel>Species *</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select species" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="cow">Cow</SelectItem>
+                        <SelectItem value="goat">Goat</SelectItem>
+                        <SelectItem value="sheep">Sheep</SelectItem>
+                        <SelectItem value="pig">Pig</SelectItem>
+                        <SelectItem value="chicken">Chicken</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -137,47 +145,9 @@ export default function CreateAnimalForm() {
                 name="breed"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Breed</FormLabel>
+                    <FormLabel>Breed *</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Holstein" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="age"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Age (months)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="24"
-                        {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="weight"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Weight (kg)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="450"
-                        {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                      />
+                      <Input placeholder="e.g., Holstein" {...field} maxLength={100} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -190,7 +160,7 @@ export default function CreateAnimalForm() {
                 name="gender"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Gender</FormLabel>
+                    <FormLabel>Gender *</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -198,11 +168,8 @@ export default function CreateAnimalForm() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {getGenderOptions().map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
+                        <SelectItem value="male">Male</SelectItem>
+                        <SelectItem value="female">Female</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -211,24 +178,85 @@ export default function CreateAnimalForm() {
               />
               <FormField
                 control={form.control}
-                name="purpose"
+                name="dateOfBirth"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Purpose</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select purpose" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {getAnimalPurposeOptions().map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormLabel>Date of Birth *</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="acquisitionDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Acquisition Date *</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="source"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Source *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., Local farm, Auction" {...field} maxLength={200} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="weight"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Weight (kg)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="450"
+                        {...field}
+                        value={field.value || ''}
+                        onChange={(e) =>
+                          field.onChange(e.target.value ? Number(e.target.value) : undefined)
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="acquisitionCost"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Acquisition Cost (₦)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="50000"
+                        {...field}
+                        value={field.value || ''}
+                        onChange={(e) =>
+                          field.onChange(e.target.value ? Number(e.target.value) : undefined)
+                        }
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -236,24 +264,13 @@ export default function CreateAnimalForm() {
             </div>
             <FormField
               control={form.control}
-              name="status"
+              name="location"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Status</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {getAnimalStatusOptions().map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormLabel>Location</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., Pen 3, Barn A" {...field} maxLength={100} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -275,8 +292,8 @@ export default function CreateAnimalForm() {
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={createAnimal.isPending}>
-                {createAnimal.isPending ? 'Creating...' : 'Add Animal'}
+              <Button type="submit" disabled={createAnimalMutation.isPending}>
+                {createAnimalMutation.isPending ? 'Creating...' : 'Add Animal'}
               </Button>
             </DialogFooter>
           </form>

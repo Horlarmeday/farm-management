@@ -1,9 +1,9 @@
 import { Router } from 'express';
-import { FileController } from '../controllers/FileController';
-import { uploadSingle, uploadMultiple } from '../middleware/upload.middleware';
-import { authenticate } from '../middleware/auth.middleware';
-import { requireFarmAccess } from '../middleware/farm-auth';
 import { FarmRole } from '../../../shared/src/types';
+import { FileController } from '../controllers/FileController';
+import { authenticate } from '../middleware/auth.middleware';
+import { requireFarmAccessWithRole } from '../middleware/farm-auth.middleware';
+import { uploadMultiple, uploadSingle } from '../middleware/upload.middleware';
 
 const router = Router();
 const fileController = new FileController();
@@ -16,22 +16,14 @@ router.use(authenticate);
  * @desc Upload a single file
  * @access Private (requires authentication)
  */
-router.post(
-  '/upload/single',
-  uploadSingle(),
-  fileController.uploadSingle
-);
+router.post('/upload/single', uploadSingle(), fileController.uploadSingle);
 
 /**
  * @route POST /api/files/upload/multiple
  * @desc Upload multiple files
  * @access Private (requires authentication)
  */
-router.post(
-  '/upload/multiple',
-  uploadMultiple(),
-  fileController.uploadMultiple
-);
+router.post('/upload/multiple', uploadMultiple(), fileController.uploadMultiple);
 
 /**
  * @route DELETE /api/files/:key
@@ -73,9 +65,9 @@ router.get('/storage/info', fileController.getStorageInfo);
  */
 router.post(
   '/farm/:farmId/upload/single',
-  requireFarmAccess([FarmRole.OWNER, FarmRole.MANAGER, FarmRole.WORKER]),
+  requireFarmAccessWithRole([FarmRole.OWNER, FarmRole.MANAGER, FarmRole.WORKER]),
   uploadSingle(),
-  fileController.uploadSingle
+  fileController.uploadSingle,
 );
 
 /**
@@ -85,9 +77,9 @@ router.post(
  */
 router.post(
   '/farm/:farmId/upload/multiple',
-  requireFarmAccess([FarmRole.OWNER, FarmRole.MANAGER, FarmRole.WORKER]),
+  requireFarmAccessWithRole([FarmRole.OWNER, FarmRole.MANAGER, FarmRole.WORKER]),
   uploadMultiple(),
-  fileController.uploadMultiple
+  fileController.uploadMultiple,
 );
 
 export default router;

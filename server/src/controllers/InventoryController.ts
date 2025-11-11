@@ -1,5 +1,5 @@
-import { ApiResponse } from '../../../shared/src/types';
 import { NextFunction, Request, Response } from 'express';
+import { ApiResponse } from '../../../shared/src/types';
 import { InventoryService } from '../services/InventoryService';
 import { ServiceFactory } from '../services/ServiceFactory';
 import { BadRequestError } from '../utils/errors';
@@ -344,6 +344,199 @@ export class InventoryController {
     }
   };
 
+  getStockAlerts = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const farmId = req.farm!.id;
+      const { alertType, severity, acknowledged, resolved, page, limit } = req.query;
+
+      const result = await this.inventoryService.getStockAlerts(farmId, {
+        alertType: alertType as any,
+        severity: severity as any,
+        acknowledged: acknowledged === 'true',
+        resolved: resolved === 'true',
+        page: page ? parseInt(page as string) : undefined,
+        limit: limit ? parseInt(limit as string) : undefined,
+      });
+
+      res.json({
+        success: true,
+        message: 'Stock alerts retrieved successfully',
+        data: result.alerts,
+        pagination: {
+          total: result.total,
+          page: parseInt((page as string) || '1'),
+          limit: parseInt((limit as string) || '20'),
+          pages: Math.ceil(result.total / parseInt((limit as string) || '20')),
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  acknowledgeStockAlert = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const userId = req.user!.id;
+
+      const alert = await this.inventoryService.acknowledgeStockAlert(id, userId);
+
+      res.json({
+        success: true,
+        message: 'Stock alert acknowledged successfully',
+        data: alert,
+      } as ApiResponse<typeof alert>);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  resolveStockAlert = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const userId = req.user!.id;
+      const { notes } = req.body;
+
+      const alert = await this.inventoryService.resolveStockAlert(id, userId, notes);
+
+      res.json({
+        success: true,
+        message: 'Stock alert resolved successfully',
+        data: alert,
+      } as ApiResponse<typeof alert>);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  generateStockAlerts = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const farmId = req.farm!.id;
+
+      const alerts = await this.inventoryService.generateStockAlerts(farmId);
+
+      res.json({
+        success: true,
+        message: 'Stock alerts generated successfully',
+        data: alerts,
+      } as ApiResponse<typeof alerts>);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  createStockAdjustment = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const farmId = req.farm!.id;
+      const userId = req.user!.id;
+      const adjustmentData = req.body;
+
+      const adjustment = await this.inventoryService.createStockAdjustment(
+        farmId,
+        userId,
+        adjustmentData,
+      );
+
+      res.json({
+        success: true,
+        message: 'Stock adjustment created successfully',
+        data: adjustment,
+      } as ApiResponse<typeof adjustment>);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getStockAdjustments = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const farmId = req.farm!.id;
+      const { itemId, adjustmentType, status, dateFrom, dateTo, page, limit } = req.query;
+
+      const result = await this.inventoryService.getStockAdjustments(farmId, {
+        itemId: itemId as string,
+        adjustmentType: adjustmentType as any,
+        status: status as any,
+        dateFrom: dateFrom as string,
+        dateTo: dateTo as string,
+        page: page ? parseInt(page as string) : undefined,
+        limit: limit ? parseInt(limit as string) : undefined,
+      });
+
+      res.json({
+        success: true,
+        message: 'Stock adjustments retrieved successfully',
+        data: result.adjustments,
+        pagination: {
+          total: result.total,
+          page: parseInt((page as string) || '1'),
+          limit: parseInt((limit as string) || '20'),
+          pages: Math.ceil(result.total / parseInt((limit as string) || '20')),
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  approveStockAdjustment = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const userId = req.user!.id;
+
+      const adjustment = await this.inventoryService.approveStockAdjustment(id, userId);
+
+      res.json({
+        success: true,
+        message: 'Stock adjustment approved successfully',
+        data: adjustment,
+      } as ApiResponse<typeof adjustment>);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  rejectStockAdjustment = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const userId = req.user!.id;
+      const { rejectionReason } = req.body;
+
+      if (!rejectionReason) {
+        throw new BadRequestError('Rejection reason is required');
+      }
+
+      const adjustment = await this.inventoryService.rejectStockAdjustment(
+        id,
+        userId,
+        rejectionReason,
+      );
+
+      res.json({
+        success: true,
+        message: 'Stock adjustment rejected successfully',
+        data: adjustment,
+      } as ApiResponse<typeof adjustment>);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   checkExpiringItems = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { daysAhead = '30' } = req.query;
@@ -354,6 +547,20 @@ export class InventoryController {
         message: 'Expiring items retrieved successfully',
         data: items,
       } as ApiResponse<typeof items>);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getInventorySummary = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const summary = await this.inventoryService.getInventorySummary();
+
+      res.json({
+        success: true,
+        message: 'Inventory summary retrieved successfully',
+        data: summary,
+      } as ApiResponse<typeof summary>);
     } catch (error) {
       next(error);
     }

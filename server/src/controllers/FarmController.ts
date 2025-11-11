@@ -1,5 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { FarmService } from '../services/FarmService';
+import { ResponseHelper } from '../utils/response.helper';
 
 export class FarmController {
   private farmService: FarmService;
@@ -14,29 +15,21 @@ export class FarmController {
   getUserFarms = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const userId = (req as any).user?.id;
-      
+
       if (!userId) {
-        res.status(401).json({
-          success: false,
-          message: 'User not authenticated'
-        });
+        ResponseHelper.error(res, 'User not authenticated', 401);
         return;
       }
 
       const result = await this.farmService.getUserFarms(userId);
-      
-      if (result.success) {
-        res.status(200).json(result);
+
+      if (result.success && result.data) {
+        ResponseHelper.success(res, result.data, result.message);
       } else {
-        res.status(400).json(result);
+        ResponseHelper.error(res, result.message || 'Failed to retrieve farms', 400, result.error);
       }
     } catch (error) {
-      console.error('Error in getUserFarms:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Internal server error',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
+      next(error);
     }
   };
 
@@ -47,39 +40,28 @@ export class FarmController {
     try {
       const { id } = req.params;
       const userId = (req as any).user?.id;
-      
+
       if (!userId) {
-        res.status(401).json({
-          success: false,
-          message: 'User not authenticated'
-        });
+        ResponseHelper.error(res, 'User not authenticated', 401);
         return;
       }
 
       // Check if user has access to this farm
       const hasAccess = await this.farmService.checkFarmAccess(userId, id);
       if (!hasAccess) {
-        res.status(403).json({
-          success: false,
-          message: 'Access denied to this farm'
-        });
+        ResponseHelper.error(res, 'Access denied to this farm', 403);
         return;
       }
 
       const result = await this.farmService.getFarmById(id);
-      
-      if (result.success) {
-        res.status(200).json(result);
+
+      if (result.success && result.data) {
+        ResponseHelper.success(res, result.data, result.message);
       } else {
-        res.status(404).json(result);
+        ResponseHelper.error(res, result.message || 'Farm not found', 404, result.error);
       }
     } catch (error) {
-      console.error('Error in getFarmById:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Internal server error',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
+      next(error);
     }
   };
 
@@ -89,30 +71,22 @@ export class FarmController {
   createFarm = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const userId = (req as any).user?.id;
-      
+
       if (!userId) {
-        res.status(401).json({
-          success: false,
-          message: 'User not authenticated'
-        });
+        ResponseHelper.error(res, 'User not authenticated', 401);
         return;
       }
 
       const farmData = req.body;
       const result = await this.farmService.createFarm(farmData, userId);
-      
-      if (result.success) {
-        res.status(201).json(result);
+
+      if (result.success && result.data) {
+        ResponseHelper.created(res, result.data, result.message);
       } else {
-        res.status(400).json(result);
+        ResponseHelper.error(res, result.message || 'Failed to create farm', 400, result.error);
       }
     } catch (error) {
-      console.error('Error in createFarm:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Internal server error',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
+      next(error);
     }
   };
 
@@ -123,40 +97,29 @@ export class FarmController {
     try {
       const { id } = req.params;
       const userId = (req as any).user?.id;
-      
+
       if (!userId) {
-        res.status(401).json({
-          success: false,
-          message: 'User not authenticated'
-        });
+        ResponseHelper.error(res, 'User not authenticated', 401);
         return;
       }
 
       // Check if user has access to this farm
       const hasAccess = await this.farmService.checkFarmAccess(userId, id);
       if (!hasAccess) {
-        res.status(403).json({
-          success: false,
-          message: 'Access denied to this farm'
-        });
+        ResponseHelper.error(res, 'Access denied to this farm', 403);
         return;
       }
 
       const farmData = req.body;
       const result = await this.farmService.updateFarm(id, farmData);
-      
-      if (result.success) {
-        res.status(200).json(result);
+
+      if (result.success && result.data) {
+        ResponseHelper.success(res, result.data, result.message);
       } else {
-        res.status(400).json(result);
+        ResponseHelper.error(res, result.message || 'Failed to update farm', 400, result.error);
       }
     } catch (error) {
-      console.error('Error in updateFarm:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Internal server error',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
+      next(error);
     }
   };
 
@@ -167,39 +130,140 @@ export class FarmController {
     try {
       const { id } = req.params;
       const userId = (req as any).user?.id;
-      
+
       if (!userId) {
-        res.status(401).json({
-          success: false,
-          message: 'User not authenticated'
-        });
+        ResponseHelper.error(res, 'User not authenticated', 401);
         return;
       }
 
       // Check if user has owner role for this farm
       const userRole = await this.farmService.getUserFarmRole(userId, id);
       if (userRole !== 'owner') {
-        res.status(403).json({
-          success: false,
-          message: 'Only farm owners can delete farms'
-        });
+        ResponseHelper.error(res, 'Only farm owners can delete farms', 403);
         return;
       }
 
       const result = await this.farmService.deleteFarm(id);
-      
+
       if (result.success) {
-        res.status(200).json(result);
+        ResponseHelper.success(res, undefined, result.message);
       } else {
-        res.status(400).json(result);
+        ResponseHelper.error(res, result.message || 'Failed to delete farm', 400, result.error);
       }
     } catch (error) {
-      console.error('Error in deleteFarm:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Internal server error',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
+      next(error);
+    }
+  };
+
+  /**
+   * Get farm users
+   */
+  getFarmUsers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { farmId } = req.params;
+      const userId = (req as any).user?.id;
+
+      if (!userId) {
+        ResponseHelper.error(res, 'User not authenticated', 401);
+        return;
+      }
+
+      // Check if user has access to this farm
+      const hasAccess = await this.farmService.checkFarmAccess(userId, farmId);
+      if (!hasAccess) {
+        ResponseHelper.error(res, 'Access denied to this farm', 403);
+        return;
+      }
+
+      const result = await this.farmService.getFarmUsers(farmId);
+
+      if (result.success && result.data) {
+        ResponseHelper.success(res, result.data, result.message);
+      } else {
+        ResponseHelper.error(
+          res,
+          result.message || 'Failed to retrieve farm users',
+          400,
+          result.error,
+        );
+      }
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * Update farm user role
+   */
+  updateFarmUserRole = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { farmId, userId: targetUserId } = req.params;
+      const { role } = req.body;
+      const userId = (req as any).user?.id;
+
+      if (!userId) {
+        ResponseHelper.error(res, 'User not authenticated', 401);
+        return;
+      }
+
+      // Check if user has owner or manager role for this farm
+      const userRole = await this.farmService.getUserFarmRole(userId, farmId);
+      if (userRole !== 'owner' && userRole !== 'manager') {
+        ResponseHelper.error(res, 'Only farm owners and managers can update user roles', 403);
+        return;
+      }
+
+      const result = await this.farmService.updateFarmUserRole(farmId, targetUserId, role);
+
+      if (result.success && result.data) {
+        ResponseHelper.success(res, result.data, result.message);
+      } else {
+        ResponseHelper.error(
+          res,
+          result.message || 'Failed to update user role',
+          400,
+          result.error,
+        );
+      }
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * Remove user from farm
+   */
+  removeUserFromFarm = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { farmId, userId: targetUserId } = req.params;
+      const userId = (req as any).user?.id;
+
+      if (!userId) {
+        ResponseHelper.error(res, 'User not authenticated', 401);
+        return;
+      }
+
+      // Check if user has owner or manager role for this farm
+      const userRole = await this.farmService.getUserFarmRole(userId, farmId);
+      if (userRole !== 'owner' && userRole !== 'manager') {
+        ResponseHelper.error(res, 'Only farm owners and managers can remove users', 403);
+        return;
+      }
+
+      const result = await this.farmService.removeUserFromFarm(farmId, targetUserId);
+
+      if (result.success) {
+        ResponseHelper.success(res, undefined, result.message);
+      } else {
+        ResponseHelper.error(
+          res,
+          result.message || 'Failed to remove user from farm',
+          400,
+          result.error,
+        );
+      }
+    } catch (error) {
+      next(error);
     }
   };
 }

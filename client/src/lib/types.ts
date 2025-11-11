@@ -7,6 +7,8 @@ export interface DashboardStats {
   feedConsumption: number;
   mortalityRate: number;
   productionEfficiency: number;
+  alertsList: AlertItem[];
+  recentActivities: ActivityItem[];
 }
 
 export interface KPIData {

@@ -1,5 +1,5 @@
-import { ApiResponse } from '../../../shared/src/types';
 import { NextFunction, Request, Response } from 'express';
+import { ApiResponse } from '../../../shared/src/types';
 import { ReportingService } from '../services/ReportingService';
 import { ServiceFactory } from '../services/ServiceFactory';
 
@@ -137,8 +137,18 @@ export class ReportingController {
   getDashboardKPIs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { startDate, endDate, modules } = req.query;
+      const farmId = req.farm?.id;
+
+      if (!farmId) {
+        res.status(400).json({
+          success: false,
+          message: 'Farm ID is required',
+        });
+        return;
+      }
 
       const kpis = await this.reportingService.getDashboardKPIs({
+        farmId,
         startDate: startDate ? new Date(startDate as string) : undefined,
         endDate: endDate ? new Date(endDate as string) : undefined,
         modules: modules as string[],
@@ -204,7 +214,11 @@ export class ReportingController {
     }
   };
 
-  getProductionDistribution = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getProductionDistribution = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const distribution = await this.reportingService.getProductionDistribution(req.query);
 
@@ -250,7 +264,9 @@ export class ReportingController {
   getDashboardAlerts = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { limit = 10 } = req.query;
-      const alerts = await this.reportingService.getDashboardAlerts(limit ? Number(limit) : undefined);
+      const alerts = await this.reportingService.getDashboardAlerts(
+        limit ? Number(limit) : undefined,
+      );
 
       res.json({
         success: true,
@@ -776,8 +792,18 @@ export class ReportingController {
   getDashboardData = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { modules, dateRange, startDate, endDate } = req.query;
+      const farmId = req.farm?.id;
+
+      if (!farmId) {
+        res.status(400).json({
+          success: false,
+          message: 'Farm ID is required',
+        });
+        return;
+      }
 
       const dashboardData = await this.reportingService.getDashboardData({
+        farmId,
         modules: modules as string[],
         dateRange: dateRange as string,
         startDate: startDate ? new Date(startDate as string) : undefined,

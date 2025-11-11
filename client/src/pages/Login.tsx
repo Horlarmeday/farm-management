@@ -55,6 +55,7 @@ export default function Login() {
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
+                data-testid="email-input"
                 type="email"
                 placeholder="Enter your email"
                 value={email}
@@ -66,6 +67,7 @@ export default function Login() {
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
+                data-testid="password-input"
                 type="password"
                 placeholder="Enter your password"
                 value={password}
@@ -75,6 +77,7 @@ export default function Login() {
             </div>
             <Button
               type="submit"
+              data-testid="login-button"
               className="w-full farm-button-primary"
               disabled={isLoggingIn}
             >

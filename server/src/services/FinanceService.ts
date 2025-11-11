@@ -1,3 +1,4 @@
+import { Between, IsNull, Repository } from 'typeorm';
 import {
   AccountType,
   FinanceTransactionType,
@@ -5,22 +6,21 @@ import {
   PaymentMethod,
   PaymentStatus,
 } from '../../../shared/src/types';
-import { Repository, IsNull, Between } from 'typeorm';
 import { AppDataSource } from '../config/database';
 import { Account } from '../entities/Account';
-import { Budget, BudgetPeriod, BudgetStatus, BudgetCategory } from '../entities/Budget';
+import { Budget, BudgetCategory, BudgetPeriod, BudgetStatus } from '../entities/Budget';
 import { BudgetItem } from '../entities/BudgetItem';
 import { CashFlow } from '../entities/CashFlow';
 import { CostCenter } from '../entities/CostCenter';
+import { CategoryType, FinancialCategory } from '../entities/FinancialCategory';
 import { FinancialTransaction } from '../entities/FinancialTransaction';
-import { FinancialCategory, CategoryType } from '../entities/FinancialCategory';
 import { Invoice } from '../entities/Invoice';
 import { InvoiceItem } from '../entities/InvoiceItem';
 import { Payment } from '../entities/Payment';
 import { ProfitLossItem } from '../entities/ProfitLossItem';
 import { ProfitLossReport } from '../entities/ProfitLossReport';
-import { NotFoundError } from '../utils/errors';
 import { CreateTransactionDto, GetTransactionsQueryDto } from '../types/finance.types';
+import { NotFoundError } from '../utils/errors';
 
 export class FinanceService {
   private financialTransactionRepository: Repository<FinancialTransaction>;
@@ -98,15 +98,15 @@ export class FinanceService {
   }
 
   async getTransactions(
-    query: GetTransactionsQueryDto
+    query: GetTransactionsQueryDto,
   ): Promise<{ transactions: FinancialTransaction[]; total: number }> {
     const queryBuilder = this.financialTransactionRepository
       .createQueryBuilder('transaction')
       .leftJoinAndSelect('transaction.category', 'category')
-      .leftJoinAndSelect('transaction.account', 'account')
       .leftJoinAndSelect('transaction.user', 'user')
       .leftJoinAndSelect('transaction.farm', 'farm')
-      .where('transaction.farm_id = :farm_id', { farm_id: query.farm_id });
+      .leftJoinAndSelect('transaction.costCenter', 'costCenter')
+      .where('transaction.farmId = :farmId', { farmId: query.farm_id });
 
     // Apply filters
     if (query.type) {
@@ -114,20 +114,26 @@ export class FinanceService {
     }
 
     if (query.start_date) {
-      queryBuilder.andWhere('transaction.date >= :start_date', { start_date: query.start_date });
+      queryBuilder.andWhere('transaction.transactionDate >= :start_date', {
+        start_date: query.start_date,
+      });
     }
 
     if (query.end_date) {
-      queryBuilder.andWhere('transaction.date <= :end_date', { end_date: query.end_date });
+      queryBuilder.andWhere('transaction.transactionDate <= :end_date', {
+        end_date: query.end_date,
+      });
     }
 
     if (query.category_id) {
-      queryBuilder.andWhere('transaction.category_id = :category_id', { category_id: query.category_id });
+      queryBuilder.andWhere('transaction.categoryId = :category_id', {
+        category_id: query.category_id,
+      });
     }
 
     if (query.search) {
       queryBuilder.andWhere(
-        '(transaction.description ILIKE :search OR transaction.reference_number ILIKE :search)',
+        '(transaction.description ILIKE :search OR transaction.referenceNumber ILIKE :search)',
         { search: `%${query.search}%` },
       );
     }
@@ -141,7 +147,7 @@ export class FinanceService {
 
     // Get results
     const [transactions, total] = await queryBuilder
-      .orderBy('transaction.date', 'DESC')
+      .orderBy('transaction.transactionDate', 'DESC')
       .getManyAndCount();
 
     return { transactions, total };
@@ -174,43 +180,45 @@ export class FinanceService {
   async createTransactionWithFarm(
     data: CreateTransactionDto,
     farmId: string,
-    userId: string
+    userId: string,
   ): Promise<FinancialTransaction> {
     console.log('=== SERVICE DEBUG ===');
     console.log('Input data:', JSON.stringify(data, null, 2));
     console.log('farmId:', farmId);
     console.log('userId:', userId);
-    
+
     // Validate transaction type
     const validTypes = ['INCOME', 'EXPENSE'];
     const processedType = data.type.toUpperCase() as FinanceTransactionType;
     console.log('Original type:', data.type);
     console.log('Processed type:', processedType);
-    
+
     if (!validTypes.includes(processedType)) {
       console.log('❌ Invalid transaction type:', processedType);
-      throw new Error(`Invalid transaction type: ${processedType}. Must be one of: ${validTypes.join(', ')}`);
+      throw new Error(
+        `Invalid transaction type: ${processedType}. Must be one of: ${validTypes.join(', ')}`,
+      );
     }
-    
+
     const transactionNumber = await this.generateTransactionNumber();
     console.log('Generated transaction number:', transactionNumber);
-    
+
     // Get categoryId from snake_case property
     const categoryId = data.category_id;
     console.log('🔍 CategoryId - using:', categoryId);
-    
+
     // Validate category exists and belongs to farm (category is required)
     if (!categoryId) {
       throw new Error('Category ID is required for financial transactions');
     }
-    
+
     const category = await this.financialCategoryRepository.findOne({
       where: { id: categoryId, farm_id: farmId },
     });
     if (!category) {
       throw new Error('Category not found or does not belong to this farm');
     }
-    
+
     // Parse date from transaction_date property
     let transactionDate: Date;
     const dateValue = data.transaction_date;
@@ -241,12 +249,12 @@ export class FinanceService {
       farmId: farmId,
       recordedById: userId,
     };
-    
+
     console.log('🔍 Category ID being set:', categoryId);
     console.log('🔍 Transaction data category_id:', transactionData.category_id);
-    
+
     console.log('Transaction data to create:', JSON.stringify(transactionData, null, 2));
-    
+
     // Create transaction entity
     const transactionEntity = new FinancialTransaction();
     transactionEntity.transactionNumber = transactionData.transactionNumber;
@@ -263,7 +271,7 @@ export class FinanceService {
     transactionEntity.costCenterId = transactionData.costCenterId;
     transactionEntity.farmId = transactionData.farmId;
     transactionEntity.recordedById = transactionData.recordedById;
-    
+
     console.log('Transaction entity to save:', JSON.stringify(transactionEntity, null, 2));
 
     const savedTransaction = await this.financialTransactionRepository.save(transactionEntity);
@@ -272,7 +280,7 @@ export class FinanceService {
 
   async getTransactionsByFarm(
     farmId: string,
-    query: GetTransactionsQueryDto = { farm_id: '' }
+    query: GetTransactionsQueryDto = { farm_id: '' },
   ): Promise<FinancialTransaction[]> {
     // Ensure farm_id is set in query
     query.farm_id = farmId;
@@ -286,15 +294,21 @@ export class FinanceService {
     }
 
     if (query.category_id) {
-      queryBuilder.andWhere('transaction.category_id = :category_id', { category_id: query.category_id });
+      queryBuilder.andWhere('transaction.category_id = :category_id', {
+        category_id: query.category_id,
+      });
     }
 
     if (query.start_date) {
-      queryBuilder.andWhere('transaction.transactionDate >= :start_date', { start_date: query.start_date });
+      queryBuilder.andWhere('transaction.transactionDate >= :start_date', {
+        start_date: query.start_date,
+      });
     }
 
     if (query.end_date) {
-      queryBuilder.andWhere('transaction.transactionDate <= :end_date', { end_date: query.end_date });
+      queryBuilder.andWhere('transaction.transactionDate <= :end_date', {
+        end_date: query.end_date,
+      });
     }
 
     queryBuilder.orderBy('transaction.transactionDate', 'DESC');
@@ -314,7 +328,7 @@ export class FinanceService {
 
   async getTransactionByIdAndFarm(
     id: string,
-    farmId: string
+    farmId: string,
   ): Promise<FinancialTransaction | null> {
     return this.financialTransactionRepository.findOne({
       where: { id, farmId },
@@ -325,7 +339,7 @@ export class FinanceService {
   async updateTransactionByFarm(
     id: string,
     farmId: string,
-    data: Partial<CreateTransactionDto>
+    data: Partial<CreateTransactionDto>,
   ): Promise<FinancialTransaction> {
     const transaction = await this.getTransactionByIdAndFarm(id, farmId);
     if (!transaction) {
@@ -381,7 +395,10 @@ export class FinanceService {
     return category;
   }
 
-  async updateCategory(id: string, updates: Partial<FinancialCategory>): Promise<FinancialCategory> {
+  async updateCategory(
+    id: string,
+    updates: Partial<FinancialCategory>,
+  ): Promise<FinancialCategory> {
     const category = await this.getCategoryById(id);
     Object.assign(category, updates);
     return await this.financialCategoryRepository.save(category);
@@ -655,6 +672,144 @@ export class FinanceService {
     return query.orderBy('payment.paymentDate', 'DESC').getMany();
   }
 
+  // Additional Invoice Operations
+  async markInvoiceAsPaid(id: string, paidDate?: Date): Promise<Invoice> {
+    return this.updateInvoice(id, {
+      status: InvoiceStatus.PAID,
+      paidDate: paidDate || new Date(),
+    });
+  }
+
+  async markInvoiceAsOverdue(id: string): Promise<Invoice> {
+    return this.updateInvoice(id, { status: InvoiceStatus.OVERDUE });
+  }
+
+  async deleteInvoice(id: string): Promise<void> {
+    const invoice = await this.getInvoiceById(id);
+
+    // Cannot delete paid invoices
+    if (invoice.status === InvoiceStatus.PAID) {
+      throw new Error('Cannot delete paid invoices');
+    }
+
+    // Delete invoice items first
+    await this.invoiceItemRepository.delete({ invoiceId: id });
+    await this.invoiceRepository.remove(invoice);
+  }
+
+  // Additional Payment Operations
+  async getPaymentById(id: string): Promise<Payment> {
+    const payment = await this.paymentRepository.findOne({
+      where: { id },
+      relations: ['invoice'],
+    });
+
+    if (!payment) {
+      throw new NotFoundError('Payment not found');
+    }
+
+    return payment;
+  }
+
+  async updatePayment(id: string, updates: Partial<Payment>): Promise<Payment> {
+    const payment = await this.getPaymentById(id);
+    Object.assign(payment, updates);
+    return await this.paymentRepository.save(payment);
+  }
+
+  async deletePayment(id: string): Promise<void> {
+    const payment = await this.getPaymentById(id);
+    await this.paymentRepository.remove(payment);
+  }
+
+  // Receipt Management
+  private async generateReceiptNumber(): Promise<string> {
+    const prefix = 'RCP';
+    const date = new Date();
+    const year = date.getFullYear().toString().substr(-2);
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+
+    const lastReceipt = await AppDataSource.getRepository('Receipt')
+      .createQueryBuilder('receipt')
+      .where('receipt.receiptNumber LIKE :pattern', { pattern: `${prefix}-${year}${month}%` })
+      .orderBy('receipt.receiptNumber', 'DESC')
+      .getOne();
+
+    const lastSequence = lastReceipt ? parseInt(lastReceipt.receiptNumber.split('-')[2]) : 0;
+    const newSequence = (lastSequence + 1).toString().padStart(4, '0');
+
+    return `${prefix}-${year}${month}-${newSequence}`;
+  }
+
+  async createReceipt(receiptData: {
+    paymentId?: string;
+    receiptDate: Date;
+    amount: number;
+    currency?: string;
+    paymentMethod: PaymentMethod;
+    paidBy: string;
+    description: string;
+    notes?: string;
+    issuedById: string;
+  }): Promise<any> {
+    const receiptNumber = await this.generateReceiptNumber();
+    const Receipt = AppDataSource.getRepository('Receipt');
+
+    const receipt = Receipt.create({
+      receiptNumber,
+      paymentId: receiptData.paymentId,
+      receiptDate: receiptData.receiptDate,
+      amount: receiptData.amount,
+      currency: receiptData.currency || 'NGN',
+      paymentMethod: receiptData.paymentMethod,
+      paidBy: receiptData.paidBy,
+      description: receiptData.description,
+      notes: receiptData.notes,
+      issuedById: receiptData.issuedById,
+    });
+
+    return await Receipt.save(receipt);
+  }
+
+  async getReceipts(filters?: {
+    paymentId?: string;
+    startDate?: Date;
+    endDate?: Date;
+  }): Promise<any[]> {
+    const Receipt = AppDataSource.getRepository('Receipt');
+    const query = Receipt.createQueryBuilder('receipt')
+      .leftJoinAndSelect('receipt.payment', 'payment')
+      .leftJoinAndSelect('receipt.issuedBy', 'issuedBy');
+
+    if (filters?.paymentId) {
+      query.andWhere('receipt.paymentId = :paymentId', { paymentId: filters.paymentId });
+    }
+
+    if (filters?.startDate) {
+      query.andWhere('receipt.receiptDate >= :startDate', { startDate: filters.startDate });
+    }
+
+    if (filters?.endDate) {
+      query.andWhere('receipt.receiptDate <= :endDate', { endDate: filters.endDate });
+    }
+
+    return query.orderBy('receipt.receiptDate', 'DESC').getMany();
+  }
+
+  async getReceiptById(id: string): Promise<any> {
+    const Receipt = AppDataSource.getRepository('Receipt');
+    const receipt = await Receipt.findOne({
+      where: { id },
+      relations: ['payment', 'issuedBy'],
+    });
+
+    if (!receipt) {
+      throw new NotFoundError('Receipt not found');
+    }
+
+    return receipt;
+  }
+
   // Budget Management
   async createBudget(budgetData: {
     budgetName: string;
@@ -857,7 +1012,11 @@ export class FinanceService {
     return report;
   }
 
-  async generateCashFlowReport(date: Date, recordedById: string, farmId: string): Promise<CashFlow> {
+  async generateCashFlowReport(
+    date: Date,
+    recordedById: string,
+    farmId: string,
+  ): Promise<CashFlow> {
     const startOfDay = new Date(date);
     startOfDay.setHours(0, 0, 0, 0);
 
@@ -986,7 +1145,7 @@ export class FinanceService {
     // Create date range for the current day
     const startOfDay = new Date(date);
     startOfDay.setHours(0, 0, 0, 0);
-    
+
     const endOfDay = new Date(date);
     endOfDay.setHours(23, 59, 59, 999);
 
@@ -1067,5 +1226,173 @@ export class FinanceService {
     }
 
     return trend;
+  }
+
+  // Additional Account Management Methods
+  async deleteAccount(accountId: string): Promise<void> {
+    const account = await this.getAccountById(accountId);
+
+    // Check if account has balance
+    if (account.balance !== 0) {
+      throw new Error('Cannot delete account with non-zero balance');
+    }
+
+    await this.accountRepository.remove(account);
+  }
+
+  async getAccountBalance(accountId: string): Promise<number> {
+    const account = await this.getAccountById(accountId);
+    return account.balance;
+  }
+
+  // ============================================
+  // Analytics & Reporting Methods
+  // ============================================
+
+  async getCashFlowAnalysis(
+    farmId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<{
+    inflows: Array<{ date: string; amount: number; category: string }>;
+    outflows: Array<{ date: string; amount: number; category: string }>;
+    netCashFlow: number;
+    openingBalance: number;
+    closingBalance: number;
+    summary: {
+      totalInflows: number;
+      totalOutflows: number;
+      netChange: number;
+    };
+  }> {
+    const incomeResult = await this.getTransactions({
+      type: FinanceTransactionType.INCOME,
+      start_date: startDate.toISOString(),
+      end_date: endDate.toISOString(),
+      farm_id: farmId,
+    });
+    const incomeTransactions = incomeResult.transactions;
+
+    const expenseResult = await this.getTransactions({
+      type: FinanceTransactionType.EXPENSE,
+      start_date: startDate.toISOString(),
+      end_date: endDate.toISOString(),
+      farm_id: farmId,
+    });
+    const expenseTransactions = expenseResult.transactions;
+
+    const inflows = incomeTransactions.map((t) => ({
+      date: t.transactionDate.toISOString(),
+      amount: t.amount,
+      category: t.category?.name || 'Uncategorized',
+    }));
+
+    const outflows = expenseTransactions.map((t) => ({
+      date: t.transactionDate.toISOString(),
+      amount: t.amount,
+      category: t.category?.name || 'Uncategorized',
+    }));
+
+    const totalInflows = incomeTransactions.reduce((sum, t) => sum + t.amount, 0);
+    const totalOutflows = expenseTransactions.reduce((sum, t) => sum + t.amount, 0);
+    const netCashFlow = totalInflows - totalOutflows;
+
+    // Get opening balance (sum of all transactions before start date)
+    const openingBalanceResult = await this.getTransactions({
+      end_date: new Date(startDate.getTime() - 1).toISOString(),
+      farm_id: farmId,
+    });
+    const openingBalance = openingBalanceResult.transactions.reduce((sum, t) => {
+      return sum + (t.type === FinanceTransactionType.INCOME ? t.amount : -t.amount);
+    }, 0);
+
+    const closingBalance = openingBalance + netCashFlow;
+
+    return {
+      inflows,
+      outflows,
+      netCashFlow,
+      openingBalance,
+      closingBalance,
+      summary: {
+        totalInflows,
+        totalOutflows,
+        netChange: netCashFlow,
+      },
+    };
+  }
+
+  async getIncomeExpenseBreakdown(
+    farmId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<{
+    income: Array<{ category: string; amount: number; percentage: number; count: number }>;
+    expenses: Array<{ category: string; amount: number; percentage: number; count: number }>;
+    totalIncome: number;
+    totalExpenses: number;
+    netProfit: number;
+  }> {
+    const incomeResult = await this.getTransactions({
+      type: FinanceTransactionType.INCOME,
+      start_date: startDate.toISOString(),
+      end_date: endDate.toISOString(),
+      farm_id: farmId,
+    });
+    const incomeTransactions = incomeResult.transactions;
+
+    const expenseResult = await this.getTransactions({
+      type: FinanceTransactionType.EXPENSE,
+      start_date: startDate.toISOString(),
+      end_date: endDate.toISOString(),
+      farm_id: farmId,
+    });
+    const expenseTransactions = expenseResult.transactions;
+
+    const totalIncome = incomeTransactions.reduce((sum, t) => sum + t.amount, 0);
+    const totalExpenses = expenseTransactions.reduce((sum, t) => sum + t.amount, 0);
+
+    // Group by category
+    const incomeByCategory = this.groupTransactionsByCategoryWithCount(incomeTransactions);
+    const expensesByCategory = this.groupTransactionsByCategoryWithCount(expenseTransactions);
+
+    const income = Object.entries(incomeByCategory).map(([category, data]) => ({
+      category,
+      amount: data.amount,
+      percentage: totalIncome > 0 ? (data.amount / totalIncome) * 100 : 0,
+      count: data.count,
+    }));
+
+    const expenses = Object.entries(expensesByCategory).map(([category, data]) => ({
+      category,
+      amount: data.amount,
+      percentage: totalExpenses > 0 ? (data.amount / totalExpenses) * 100 : 0,
+      count: data.count,
+    }));
+
+    return {
+      income: income.sort((a, b) => b.amount - a.amount),
+      expenses: expenses.sort((a, b) => b.amount - a.amount),
+      totalIncome,
+      totalExpenses,
+      netProfit: totalIncome - totalExpenses,
+    };
+  }
+
+  private groupTransactionsByCategoryWithCount(
+    transactions: FinancialTransaction[],
+  ): Record<string, { amount: number; count: number }> {
+    return transactions.reduce(
+      (acc, transaction) => {
+        const category = transaction.category?.name || 'Uncategorized';
+        if (!acc[category]) {
+          acc[category] = { amount: 0, count: 0 };
+        }
+        acc[category].amount += transaction.amount;
+        acc[category].count += 1;
+        return acc;
+      },
+      {} as Record<string, { amount: number; count: number }>,
+    );
   }
 }

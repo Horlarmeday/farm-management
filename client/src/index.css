@@ -23,7 +23,7 @@
   --destructive-foreground: hsl(0, 0%, 98%);
   --ring: hsl(142, 71%, 45%);
   --radius: 0.5rem;
-  
+
   /* Custom farm colors */
   --farm-green-50: hsl(151, 81%, 96%);
   --farm-green-100: hsl(149, 80%, 90%);
@@ -35,7 +35,7 @@
   --farm-green-700: hsl(163, 94%, 24%);
   --farm-green-800: hsl(164, 86%, 20%);
   --farm-green-900: hsl(166, 78%, 16%);
-  
+
   /* Status colors */
   --status-success: hsl(142, 71%, 45%);
   --status-warning: hsl(45, 93%, 47%);
@@ -74,7 +74,12 @@
     @apply bg-background text-foreground font-sans antialiased;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-semibold;
   }
 }
@@ -83,31 +88,31 @@
   .farm-card {
     @apply bg-card border border-border rounded-xl shadow-sm;
   }
-  
+
   .farm-button-primary {
     @apply bg-green-600 text-white hover:bg-green-700 px-4 py-2 rounded-lg transition-colors;
   }
-  
+
   .farm-button-secondary {
     @apply bg-secondary text-secondary-foreground hover:opacity-80 px-4 py-2 rounded-lg transition-colors;
   }
-  
+
   .farm-status-badge {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
   }
-  
+
   .farm-status-success {
     @apply bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400;
   }
-  
+
   .farm-status-warning {
     @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400;
   }
-  
+
   .farm-status-danger {
     @apply bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400;
   }
-  
+
   .farm-status-info {
     @apply bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400;
   }
@@ -117,7 +122,7 @@
   .text-balance {
     text-wrap: balance;
   }
-  
+
   /* Sidebar layout utilities */
   .sidebar-fixed {
     @apply fixed inset-y-0 left-0 z-50;
@@ -127,30 +132,55 @@
     box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
     border-right: 1px solid rgba(226, 232, 240, 0.8);
   }
-  
+
   .main-content-offset {
     min-height: 100vh;
+    width: 100%;
+    margin-left: 0;
   }
-  
+
   @media (min-width: 768px) {
     .main-content-offset {
-      margin-left: 280px;
-      width: calc(100% - 280px);
-      min-height: 100vh;
+      margin-left: 280px !important;
+      width: calc(100% - 280px) !important;
       background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
     }
   }
-  
-  @media (max-width: 767px) {
-    .main-content-offset {
-      margin-left: 0;
-      width: 100%;
-      min-height: 100vh;
-    }
-  }
-  
+
   /* Prevent horizontal overflow */
   .no-horizontal-overflow {
     @apply overflow-x-hidden;
+  }
+
+  /* Dashboard Grid System */
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  @media (min-width: 1024px) {
+    .dashboard-grid {
+      grid-template-columns: 2fr 1fr;
+    }
+  }
+
+  /* Management modules grid */
+  .management-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  @media (min-width: 768px) {
+    .management-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .management-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
 }

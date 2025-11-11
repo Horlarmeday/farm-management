@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback, memo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   LineChart,
@@ -55,7 +55,7 @@ interface ChartDataPoint {
   alert?: boolean;
 }
 
-export const SensorReadings: React.FC<SensorReadingsProps> = ({ sensor }) => {
+export const SensorReadings: React.FC<SensorReadingsProps> = memo(({ sensor }) => {
   const [timeRange, setTimeRange] = useState<TimeRange>('24h');
   const [chartType, setChartType] = useState<ChartType>('line');
   const [limit, setLimit] = useState<number>(100);
@@ -127,8 +127,8 @@ export const SensorReadings: React.FC<SensorReadingsProps> = ({ sensor }) => {
     });
   }, [readings, sensor.configuration, timeRange]);
 
-  // Get appropriate time format based on range
-  function getTimeFormat(range: TimeRange): string {
+  // Memoize time format function
+  const getTimeFormat = useCallback((range: TimeRange): string => {
     switch (range) {
       case '1h':
       case '6h':
@@ -142,7 +142,9 @@ export const SensorReadings: React.FC<SensorReadingsProps> = ({ sensor }) => {
       default:
         return 'HH:mm';
     }
-  }
+  }, []);
+
+
 
   // Calculate statistics
   const statistics = useMemo(() => {
@@ -189,7 +191,7 @@ export const SensorReadings: React.FC<SensorReadingsProps> = ({ sensor }) => {
   }, [readings, chartData]);
 
   // Export data
-  const handleExport = async () => {
+  const handleExport = useCallback(async () => {
     try {
       const csvData = chartData
         .map(point => `${point.timestamp},${point.value}`)
@@ -212,7 +214,20 @@ export const SensorReadings: React.FC<SensorReadingsProps> = ({ sensor }) => {
     } catch (error) {
       toast.error('Failed to export data');
     }
-  };
+  }, [chartData, sensor.name]);
+
+  // Optimized callback functions
+  const handleTimeRangeChange = useCallback((value: TimeRange) => {
+    setTimeRange(value);
+  }, []);
+
+  const handleChartTypeChange = useCallback((value: ChartType) => {
+    setChartType(value);
+  }, []);
+
+  const handleLimitChange = useCallback((value: string) => {
+    setLimit(parseInt(value));
+  }, []);
 
   // Custom tooltip for charts
   const CustomTooltip = ({ active, payload, label }: {
@@ -263,7 +278,7 @@ export const SensorReadings: React.FC<SensorReadingsProps> = ({ sensor }) => {
       {/* Controls */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="flex flex-wrap gap-2">
-          <Select value={timeRange} onValueChange={(value: TimeRange) => setTimeRange(value)}>
+          <Select value={timeRange} onValueChange={handleTimeRangeChange}>
             <SelectTrigger className="w-[120px]">
               <SelectValue />
             </SelectTrigger>
@@ -276,7 +291,7 @@ export const SensorReadings: React.FC<SensorReadingsProps> = ({ sensor }) => {
             </SelectContent>
           </Select>
 
-          <Select value={chartType} onValueChange={(value: ChartType) => setChartType(value)}>
+          <Select value={chartType} onValueChange={handleChartTypeChange}>
             <SelectTrigger className="w-[100px]">
               <SelectValue />
             </SelectTrigger>
@@ -286,7 +301,7 @@ export const SensorReadings: React.FC<SensorReadingsProps> = ({ sensor }) => {
             </SelectContent>
           </Select>
 
-          <Select value={limit.toString()} onValueChange={(value) => setLimit(parseInt(value))}>
+          <Select value={limit.toString()} onValueChange={handleLimitChange}>
             <SelectTrigger className="w-[120px]">
               <SelectValue />
             </SelectTrigger>
@@ -478,4 +493,4 @@ export const SensorReadings: React.FC<SensorReadingsProps> = ({ sensor }) => {
       )}
     </div>
   );
-};
+});

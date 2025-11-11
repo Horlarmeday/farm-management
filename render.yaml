@@ -1,0 +1,87 @@
+# Render Deployment Configuration for Kuyash Farm Management System
+previewsEnabled: true
+
+services:
+  # Frontend React Application
+  - type: web
+    name: kuyash-farm-frontend
+    env: static
+    buildCommand: |
+      yarn install
+      cd client && yarn install && yarn build
+    staticPublishPath: client/dist
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: X-XSS-Protection
+        value: 1; mode=block
+    envVars:
+      - key: VITE_API_BASE_URL
+        fromService:
+          name: kuyash-farm-api
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: VITE_APP_ENV
+        value: production
+
+  # Backend Node.js API
+  - type: web
+    name: kuyash-farm-api
+    env: node
+    buildCommand: |
+      yarn install
+      yarn build:all
+    startCommand: cd server && yarn start:prod
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: CORS_ORIGIN
+        fromService:
+          name: kuyash-farm-frontend
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+      # Database configuration
+      - key: DB_HOST
+        fromDatabase:
+          name: kuyash-farm-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: kuyash-farm-db
+          property: port
+      - key: DB_USERNAME
+        fromDatabase:
+          name: kuyash-farm-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: kuyash-farm-db
+          property: password
+      - key: DB_DATABASE
+        fromDatabase:
+          name: kuyash-farm-db
+          property: database
+      # File upload configuration
+      - key: UPLOAD_DIR
+        value: /tmp/uploads
+      - key: MAX_FILE_SIZE
+        value: 10485760
+
+databases:
+  # MySQL Database
+  - name: kuyash-farm-db
+    databaseName: kuyash_farm_db
+    user: kuyash_user
+    plan: starter

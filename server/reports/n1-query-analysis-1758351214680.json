@@ -1,0 +1,781 @@
+{
+  "timestamp": "2025-09-20T06:53:34.679Z",
+  "summary": {
+    "totalFindings": 67,
+    "critical": 1,
+    "high": 0,
+    "medium": 20,
+    "low": 46
+  },
+  "entityAnalysis": {
+    "totalEntities": 79,
+    "entitiesWithManyRelations": [
+      {
+        "name": "Farm",
+        "relationCount": 12
+      },
+      {
+        "name": "Location",
+        "relationCount": 4
+      },
+      {
+        "name": "User",
+        "relationCount": 15
+      }
+    ]
+  },
+  "findings": [
+    {
+      "type": "FREQUENT_RELATION_ACCESS",
+      "severity": "MEDIUM",
+      "file": "AssetService.ts",
+      "fileType": "service",
+      "pattern": "24 relation access patterns found",
+      "description": "Frequent relation property access may benefit from eager loading",
+      "recommendation": "Consider using eager: true in entity relations or include relations in queries"
+    },
+    {
+      "type": "FREQUENT_RELATION_ACCESS",
+      "severity": "MEDIUM",
+      "file": "AuthService.ts",
+      "fileType": "service",
+      "pattern": "18 relation access patterns found",
+      "description": "Frequent relation property access may benefit from eager loading",
+      "recommendation": "Consider using eager: true in entity relations or include relations in queries"
+    },
+    {
+      "type": "FREQUENT_RELATION_ACCESS",
+      "severity": "MEDIUM",
+      "file": "FarmService.ts",
+      "fileType": "service",
+      "pattern": "12 relation access patterns found",
+      "description": "Frequent relation property access may benefit from eager loading",
+      "recommendation": "Consider using eager: true in entity relations or include relations in queries"
+    },
+    {
+      "type": "FREQUENT_RELATION_ACCESS",
+      "severity": "MEDIUM",
+      "file": "FinanceService.ts",
+      "fileType": "service",
+      "pattern": "51 relation access patterns found",
+      "description": "Frequent relation property access may benefit from eager loading",
+      "recommendation": "Consider using eager: true in entity relations or include relations in queries"
+    },
+    {
+      "type": "FREQUENT_RELATION_ACCESS",
+      "severity": "MEDIUM",
+      "file": "FisheryService.ts",
+      "fileType": "service",
+      "pattern": "30 relation access patterns found",
+      "description": "Frequent relation property access may benefit from eager loading",
+      "recommendation": "Consider using eager: true in entity relations or include relations in queries"
+    },
+    {
+      "type": "LOOP_WITH_QUERY",
+      "severity": "CRITICAL",
+      "file": "InventoryService.ts",
+      "fileType": "service",
+      "pattern": "for (const receivedItem of receiptData.items) {\n      const orderItem = order.items.find((item) => i...",
+      "description": "Database query inside loop - classic N+1 query problem",
+      "recommendation": "Use JOIN queries, IN clauses, or batch loading to fetch all data at once"
+    },
+    {
+      "type": "FREQUENT_RELATION_ACCESS",
+      "severity": "MEDIUM",
+      "file": "InventoryService.ts",
+      "fileType": "service",
+      "pattern": "20 relation access patterns found",
+      "description": "Frequent relation property access may benefit from eager loading",
+      "recommendation": "Consider using eager: true in entity relations or include relations in queries"
+    },
+    {
+      "type": "FREQUENT_RELATION_ACCESS",
+      "severity": "MEDIUM",
+      "file": "IoTService.ts",
+      "fileType": "service",
+      "pattern": "40 relation access patterns found",
+      "description": "Frequent relation property access may benefit from eager loading",
+      "recommendation": "Consider using eager: true in entity relations or include relations in queries"
+    },
+    {
+      "type": "FREQUENT_RELATION_ACCESS",
+      "severity": "MEDIUM",
+      "file": "LivestockService.ts",
+      "fileType": "service",
+      "pattern": "29 relation access patterns found",
+      "description": "Frequent relation property access may benefit from eager loading",
+      "recommendation": "Consider using eager: true in entity relations or include relations in queries"
+    },
+    {
+      "type": "FREQUENT_RELATION_ACCESS",
+      "severity": "MEDIUM",
+      "file": "NotificationService.ts",
+      "fileType": "service",
+      "pattern": "52 relation access patterns found",
+      "description": "Frequent relation property access may benefit from eager loading",
+      "recommendation": "Consider using eager: true in entity relations or include relations in queries"
+    },
+    {
+      "type": "FREQUENT_RELATION_ACCESS",
+      "severity": "MEDIUM",
+      "file": "PoultryService.ts",
+      "fileType": "service",
+      "pattern": "23 relation access patterns found",
+      "description": "Frequent relation property access may benefit from eager loading",
+      "recommendation": "Consider using eager: true in entity relations or include relations in queries"
+    },
+    {
+      "type": "FREQUENT_RELATION_ACCESS",
+      "severity": "MEDIUM",
+      "file": "ReportingService.ts",
+      "fileType": "service",
+      "pattern": "65 relation access patterns found",
+      "description": "Frequent relation property access may benefit from eager loading",
+      "recommendation": "Consider using eager: true in entity relations or include relations in queries"
+    },
+    {
+      "type": "FREQUENT_RELATION_ACCESS",
+      "severity": "MEDIUM",
+      "file": "UserService.ts",
+      "fileType": "service",
+      "pattern": "59 relation access patterns found",
+      "description": "Frequent relation property access may benefit from eager loading",
+      "recommendation": "Consider using eager: true in entity relations or include relations in queries"
+    },
+    {
+      "type": "FREQUENT_RELATION_ACCESS",
+      "severity": "MEDIUM",
+      "file": "alert-engine.service.ts",
+      "fileType": "service",
+      "pattern": "13 relation access patterns found",
+      "description": "Frequent relation property access may benefit from eager loading",
+      "recommendation": "Consider using eager: true in entity relations or include relations in queries"
+    },
+    {
+      "type": "FREQUENT_RELATION_ACCESS",
+      "severity": "MEDIUM",
+      "file": "analytics.service.ts",
+      "fileType": "service",
+      "pattern": "26 relation access patterns found",
+      "description": "Frequent relation property access may benefit from eager loading",
+      "recommendation": "Consider using eager: true in entity relations or include relations in queries"
+    },
+    {
+      "type": "FREQUENT_RELATION_ACCESS",
+      "severity": "MEDIUM",
+      "file": "invitation.service.ts",
+      "fileType": "service",
+      "pattern": "18 relation access patterns found",
+      "description": "Frequent relation property access may benefit from eager loading",
+      "recommendation": "Consider using eager: true in entity relations or include relations in queries"
+    },
+    {
+      "type": "FREQUENT_RELATION_ACCESS",
+      "severity": "MEDIUM",
+      "file": "push-notification.service.ts",
+      "fileType": "service",
+      "pattern": "10 relation access patterns found",
+      "description": "Frequent relation property access may benefit from eager loading",
+      "recommendation": "Consider using eager: true in entity relations or include relations in queries"
+    },
+    {
+      "type": "FREQUENT_RELATION_ACCESS",
+      "severity": "MEDIUM",
+      "file": "reports.service.ts",
+      "fileType": "service",
+      "pattern": "7 relation access patterns found",
+      "description": "Frequent relation property access may benefit from eager loading",
+      "recommendation": "Consider using eager: true in entity relations or include relations in queries"
+    },
+    {
+      "type": "FREQUENT_RELATION_ACCESS",
+      "severity": "MEDIUM",
+      "file": "websocket.service.ts",
+      "fileType": "service",
+      "pattern": "33 relation access patterns found",
+      "description": "Frequent relation property access may benefit from eager loading",
+      "recommendation": "Consider using eager: true in entity relations or include relations in queries"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "Asset.ts",
+      "fileType": "entity",
+      "pattern": "Asset <-> MaintenanceLog",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "CostCenter.ts",
+      "fileType": "entity",
+      "pattern": "CostCenter <-> FinancialTransaction",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "Department.ts",
+      "fileType": "entity",
+      "pattern": "Department <-> User",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "COMPLEX_ENTITY",
+      "severity": "MEDIUM",
+      "file": "Farm.ts",
+      "fileType": "entity",
+      "pattern": "12 OneToMany relations",
+      "description": "Entity with many relations may cause performance issues",
+      "recommendation": "Consider lazy loading for less frequently accessed relations"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "Farm.ts",
+      "fileType": "entity",
+      "pattern": "Farm <-> FarmUser",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "Farm.ts",
+      "fileType": "entity",
+      "pattern": "Farm <-> Animal",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "Farm.ts",
+      "fileType": "entity",
+      "pattern": "Farm <-> Asset",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "Farm.ts",
+      "fileType": "entity",
+      "pattern": "Farm <-> BirdBatch",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "Farm.ts",
+      "fileType": "entity",
+      "pattern": "Farm <-> FinancialTransaction",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "Farm.ts",
+      "fileType": "entity",
+      "pattern": "Farm <-> InventoryItem",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "Farm.ts",
+      "fileType": "entity",
+      "pattern": "Farm <-> Location",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "Farm.ts",
+      "fileType": "entity",
+      "pattern": "Farm <-> Pond",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "Farm.ts",
+      "fileType": "entity",
+      "pattern": "Farm <-> Task",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "Farm.ts",
+      "fileType": "entity",
+      "pattern": "Farm <-> Budget",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "Farm.ts",
+      "fileType": "entity",
+      "pattern": "Farm <-> IoTSensor",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "Farm.ts",
+      "fileType": "entity",
+      "pattern": "Farm <-> Prediction",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "InventoryItem.ts",
+      "fileType": "entity",
+      "pattern": "InventoryItem <-> InventoryTransaction",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "Invoice.ts",
+      "fileType": "entity",
+      "pattern": "Invoice <-> InvoiceItem",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "IoTSensor.ts",
+      "fileType": "entity",
+      "pattern": "IoTSensor <-> SensorReading",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "Location.ts",
+      "fileType": "entity",
+      "pattern": "Location <-> BirdBatch",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "Location.ts",
+      "fileType": "entity",
+      "pattern": "Location <-> Animal",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "Location.ts",
+      "fileType": "entity",
+      "pattern": "Location <-> Pond",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "Location.ts",
+      "fileType": "entity",
+      "pattern": "Location <-> Asset",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "NotificationTemplate.ts",
+      "fileType": "entity",
+      "pattern": "NotificationTemplate <-> Notification",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "ProfitLossReport.ts",
+      "fileType": "entity",
+      "pattern": "ProfitLossReport <-> ProfitLossItem",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "ProfitLossReport.ts",
+      "fileType": "entity",
+      "pattern": "ProfitLossReport <-> ProfitLossItem",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "PurchaseOrder.ts",
+      "fileType": "entity",
+      "pattern": "PurchaseOrder <-> PurchaseOrderItem",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "ReportTemplate.ts",
+      "fileType": "entity",
+      "pattern": "ReportTemplate <-> Report",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "Role.ts",
+      "fileType": "entity",
+      "pattern": "Role <-> User",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "Supplier.ts",
+      "fileType": "entity",
+      "pattern": "Supplier <-> PurchaseOrder",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "Task.ts",
+      "fileType": "entity",
+      "pattern": "Task <-> Notification",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "Task.ts",
+      "fileType": "entity",
+      "pattern": "Task <-> TaskChecklistItem",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "COMPLEX_ENTITY",
+      "severity": "MEDIUM",
+      "file": "User.ts",
+      "fileType": "entity",
+      "pattern": "15 OneToMany relations",
+      "description": "Entity with many relations may cause performance issues",
+      "recommendation": "Consider lazy loading for less frequently accessed relations"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "User.ts",
+      "fileType": "entity",
+      "pattern": "User <-> AttendanceRecord",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "User.ts",
+      "fileType": "entity",
+      "pattern": "User <-> PayrollRecord",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "User.ts",
+      "fileType": "entity",
+      "pattern": "User <-> BirdBatch",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "User.ts",
+      "fileType": "entity",
+      "pattern": "User <-> Animal",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "User.ts",
+      "fileType": "entity",
+      "pattern": "User <-> Task",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "User.ts",
+      "fileType": "entity",
+      "pattern": "User <-> Task",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "User.ts",
+      "fileType": "entity",
+      "pattern": "User <-> InventoryTransaction",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "User.ts",
+      "fileType": "entity",
+      "pattern": "User <-> FinancialTransaction",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "User.ts",
+      "fileType": "entity",
+      "pattern": "User <-> Asset",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "User.ts",
+      "fileType": "entity",
+      "pattern": "User <-> Invoice",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "User.ts",
+      "fileType": "entity",
+      "pattern": "User <-> Notification",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "User.ts",
+      "fileType": "entity",
+      "pattern": "User <-> Notification",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "User.ts",
+      "fileType": "entity",
+      "pattern": "User <-> FarmUser",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "User.ts",
+      "fileType": "entity",
+      "pattern": "User <-> PushSubscription",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    },
+    {
+      "type": "CIRCULAR_REFERENCE",
+      "severity": "LOW",
+      "file": "User.ts",
+      "fileType": "entity",
+      "pattern": "User <-> NotificationPreference",
+      "description": "Circular reference detected between entities",
+      "recommendation": "Ensure proper lazy loading to avoid infinite loops"
+    }
+  ],
+  "optimizationSuggestions": {
+    "indexes": [
+      "CREATE INDEX idx_alert_user_id ON alerts (userId);",
+      "CREATE INDEX idx_alert_user_id ON alerts (userId);",
+      "CREATE INDEX idx_animal_location_id ON animals (locationId);",
+      "CREATE INDEX idx_animal_user_id ON animals (userId);",
+      "CREATE INDEX idx_animal_farm_id ON animals (farmId);",
+      "CREATE INDEX idx_animalfeedinglog_animal_id ON animalfeedinglogs (animalId);",
+      "CREATE INDEX idx_animalfeedinglog_user_id ON animalfeedinglogs (userId);",
+      "CREATE INDEX idx_animalhealthrecord_animal_id ON animalhealthrecords (animalId);",
+      "CREATE INDEX idx_animalproductionlog_animal_id ON animalproductionlogs (animalId);",
+      "CREATE INDEX idx_animalsale_animal_id ON animalsales (animalId);",
+      "CREATE INDEX idx_asset_location_id ON assets (locationId);",
+      "CREATE INDEX idx_asset_user_id ON assets (userId);",
+      "CREATE INDEX idx_asset_farm_id ON assets (farmId);",
+      "CREATE INDEX idx_assetdepreciation_asset_id ON assetdepreciations (assetId);",
+      "CREATE INDEX idx_attendance_user_id ON attendances (userId);",
+      "CREATE INDEX idx_attendance_user_id ON attendances (userId);",
+      "CREATE INDEX idx_attendancerecord_user_id ON attendancerecords (userId);",
+      "CREATE INDEX idx_birdbatch_location_id ON birdbatchs (locationId);",
+      "CREATE INDEX idx_birdbatch_user_id ON birdbatchs (userId);",
+      "CREATE INDEX idx_birdbatch_farm_id ON birdbatchs (farmId);",
+      "CREATE INDEX idx_birdfeedinglog_birdbatch_id ON birdfeedinglogs (birdbatchId);",
+      "CREATE INDEX idx_birdhealthrecord_birdbatch_id ON birdhealthrecords (birdbatchId);",
+      "CREATE INDEX idx_birdsale_birdbatch_id ON birdsales (birdbatchId);",
+      "CREATE INDEX idx_breedingrecord_animal_id ON breedingrecords (animalId);",
+      "CREATE INDEX idx_breedingrecord_animal_id ON breedingrecords (animalId);",
+      "CREATE INDEX idx_budget_farm_id ON budgets (farmId);",
+      "CREATE INDEX idx_budget_user_id ON budgets (userId);",
+      "CREATE INDEX idx_budget_user_id ON budgets (userId);",
+      "CREATE INDEX idx_budget_budget_id ON budgets (budgetId);",
+      "CREATE INDEX idx_budget_financialcategory_id ON budgets (financialcategoryId);",
+      "CREATE INDEX idx_budget_user_id ON budgets (userId);",
+      "CREATE INDEX idx_budget_user_id ON budgets (userId);",
+      "CREATE INDEX idx_budgetitem_budget_id ON budgetitems (budgetId);",
+      "CREATE INDEX idx_cashflow_user_id ON cashflows (userId);",
+      "CREATE INDEX idx_costcenter_user_id ON costcenters (userId);",
+      "CREATE INDEX idx_department_user_id ON departments (userId);",
+      "CREATE INDEX idx_eggproductionlog_birdbatch_id ON eggproductionlogs (birdbatchId);",
+      "CREATE INDEX idx_farm_user_id ON farms (userId);",
+      "CREATE INDEX idx_farminvitation_farm_id ON farminvitations (farmId);",
+      "CREATE INDEX idx_farminvitation_user_id ON farminvitations (userId);",
+      "CREATE INDEX idx_farminvitation_user_id ON farminvitations (userId);",
+      "CREATE INDEX idx_farmuser_farm_id ON farmusers (farmId);",
+      "CREATE INDEX idx_farmuser_user_id ON farmusers (userId);",
+      "CREATE INDEX idx_financialcategory_farm_id ON financialcategorys (farmId);",
+      "CREATE INDEX idx_financialcategory_user_id ON financialcategorys (userId);",
+      "CREATE INDEX idx_financialtransaction_financialcategory_id ON financialtransactions (financialcategoryId);",
+      "CREATE INDEX idx_financialtransaction_user_id ON financialtransactions (userId);",
+      "CREATE INDEX idx_financialtransaction_user_id ON financialtransactions (userId);",
+      "CREATE INDEX idx_financialtransaction_user_id ON financialtransactions (userId);",
+      "CREATE INDEX idx_financialtransaction_costcenter_id ON financialtransactions (costcenterId);",
+      "CREATE INDEX idx_financialtransaction_farm_id ON financialtransactions (farmId);",
+      "CREATE INDEX idx_fishfeedinglog_pond_id ON fishfeedinglogs (pondId);",
+      "CREATE INDEX idx_fishharvest_pond_id ON fishharvests (pondId);",
+      "CREATE INDEX idx_fishharvest_user_id ON fishharvests (userId);",
+      "CREATE INDEX idx_fishharvestlog_pond_id ON fishharvestlogs (pondId);",
+      "CREATE INDEX idx_fishsale_pond_id ON fishsales (pondId);",
+      "CREATE INDEX idx_fishsale_user_id ON fishsales (userId);",
+      "CREATE INDEX idx_fishsamplinglog_pond_id ON fishsamplinglogs (pondId);",
+      "CREATE INDEX idx_fishstock_pond_id ON fishstocks (pondId);",
+      "CREATE INDEX idx_fishstock_user_id ON fishstocks (userId);",
+      "CREATE INDEX idx_fishstockinglog_pond_id ON fishstockinglogs (pondId);",
+      "CREATE INDEX idx_inventoryitem_farm_id ON inventoryitems (farmId);",
+      "CREATE INDEX idx_inventorytransaction_inventoryitem_id ON inventorytransactions (inventoryitemId);",
+      "CREATE INDEX idx_inventorytransaction_user_id ON inventorytransactions (userId);",
+      "CREATE INDEX idx_invoice_user_id ON invoices (userId);",
+      "CREATE INDEX idx_invoiceitem_invoice_id ON invoiceitems (invoiceId);",
+      "CREATE INDEX idx_iotsensor_farm_id ON iotsensors (farmId);",
+      "CREATE INDEX idx_leave_user_id ON leaves (userId);",
+      "CREATE INDEX idx_leave_user_id ON leaves (userId);",
+      "CREATE INDEX idx_leave_user_id ON leaves (userId);",
+      "CREATE INDEX idx_leave_user_id ON leaves (userId);",
+      "CREATE INDEX idx_location_farm_id ON locations (farmId);",
+      "CREATE INDEX idx_maintenancelog_asset_id ON maintenancelogs (assetId);",
+      "CREATE INDEX idx_maintenancerecord_asset_id ON maintenancerecords (assetId);",
+      "CREATE INDEX idx_maintenancerecord_user_id ON maintenancerecords (userId);",
+      "CREATE INDEX idx_maintenancerecord_user_id ON maintenancerecords (userId);",
+      "CREATE INDEX idx_notification_user_id ON notifications (userId);",
+      "CREATE INDEX idx_notification_user_id ON notifications (userId);",
+      "CREATE INDEX idx_notification_task_id ON notifications (taskId);",
+      "CREATE INDEX idx_notification_notificationtemplate_id ON notifications (notificationtemplateId);",
+      "CREATE INDEX idx_notificationlog_notification_id ON notificationlogs (notificationId);",
+      "CREATE INDEX idx_notificationlog_user_id ON notificationlogs (userId);",
+      "CREATE INDEX idx_notificationpreference_user_id ON notificationpreferences (userId);",
+      "CREATE INDEX idx_notificationsubscription_user_id ON notificationsubscriptions (userId);",
+      "CREATE INDEX idx_notificationtemplate_user_id ON notificationtemplates (userId);",
+      "CREATE INDEX idx_passwordresettoken_user_id ON passwordresettokens (userId);",
+      "CREATE INDEX idx_payment_invoice_id ON payments (invoiceId);",
+      "CREATE INDEX idx_payroll_user_id ON payrolls (userId);",
+      "CREATE INDEX idx_payroll_user_id ON payrolls (userId);",
+      "CREATE INDEX idx_payroll_user_id ON payrolls (userId);",
+      "CREATE INDEX idx_payrollrecord_user_id ON payrollrecords (userId);",
+      "CREATE INDEX idx_pond_location_id ON ponds (locationId);",
+      "CREATE INDEX idx_pond_farm_id ON ponds (farmId);",
+      "CREATE INDEX idx_prediction_farm_id ON predictions (farmId);",
+      "CREATE INDEX idx_productionlog_animal_id ON productionlogs (animalId);",
+      "CREATE INDEX idx_profitlossitem_profitlossreport_id ON profitlossitems (profitlossreportId);",
+      "CREATE INDEX idx_profitlossreport_user_id ON profitlossreports (userId);",
+      "CREATE INDEX idx_purchaseorder_supplier_id ON purchaseorders (supplierId);",
+      "CREATE INDEX idx_purchaseorderitem_purchaseorder_id ON purchaseorderitems (purchaseorderId);",
+      "CREATE INDEX idx_purchaseorderitem_inventoryitem_id ON purchaseorderitems (inventoryitemId);",
+      "CREATE INDEX idx_pushsubscription_user_id ON pushsubscriptions (userId);",
+      "CREATE INDEX idx_receipt_payment_id ON receipts (paymentId);",
+      "CREATE INDEX idx_receipt_user_id ON receipts (userId);",
+      "CREATE INDEX idx_reminder_user_id ON reminders (userId);",
+      "CREATE INDEX idx_reminder_user_id ON reminders (userId);",
+      "CREATE INDEX idx_report_reporttemplate_id ON reports (reporttemplateId);",
+      "CREATE INDEX idx_report_user_id ON reports (userId);",
+      "CREATE INDEX idx_report_user_id ON reports (userId);",
+      "CREATE INDEX idx_reportexport_report_id ON reportexports (reportId);",
+      "CREATE INDEX idx_reportexport_user_id ON reportexports (userId);",
+      "CREATE INDEX idx_reportschedule_reporttemplate_id ON reportschedules (reporttemplateId);",
+      "CREATE INDEX idx_reportschedule_user_id ON reportschedules (userId);",
+      "CREATE INDEX idx_reporttemplate_user_id ON reporttemplates (userId);",
+      "CREATE INDEX idx_sensorreading_iotsensor_id ON sensorreadings (iotsensorId);",
+      "CREATE INDEX idx_task_user_id ON tasks (userId);",
+      "CREATE INDEX idx_task_user_id ON tasks (userId);",
+      "CREATE INDEX idx_task_farm_id ON tasks (farmId);",
+      "CREATE INDEX idx_taskchecklistitem_task_id ON taskchecklistitems (taskId);",
+      "CREATE INDEX idx_taskchecklistitem_user_id ON taskchecklistitems (userId);",
+      "CREATE INDEX idx_user_role_id ON users (roleId);",
+      "CREATE INDEX idx_user_department_id ON users (departmentId);",
+      "CREATE INDEX idx_usersession_user_id ON usersessions (userId);",
+      "CREATE INDEX idx_waterqualitylog_pond_id ON waterqualitylogs (pondId);",
+      "CREATE INDEX idx_weightrecord_animal_id ON weightrecords (animalId);"
+    ],
+    "queryOptimizations": [
+      "Implement batch loading for queries inside loops",
+      "Use QueryBuilder with JOIN for complex queries",
+      "Consider implementing DataLoader pattern for GraphQL-like batching"
+    ],
+    "caching": []
+  },
+  "recommendedIndexes": [
+    "CREATE INDEX idx_animals_farm_id ON animals (farmId);",
+    "CREATE INDEX idx_animals_location_id ON animals (locationId);",
+    "CREATE INDEX idx_animals_assigned_user_id ON animals (assignedUserId);",
+    "CREATE INDEX idx_animals_status ON animals (status);",
+    "CREATE INDEX idx_farm_users_farm_id ON farm_users (farmId);",
+    "CREATE INDEX idx_farm_users_user_id ON farm_users (userId);",
+    "CREATE INDEX idx_tasks_farm_id ON tasks (farmId);",
+    "CREATE INDEX idx_tasks_assigned_user_id ON tasks (assignedUserId);",
+    "CREATE INDEX idx_inventory_items_farm_id ON inventory_items (farmId);",
+    "CREATE INDEX idx_financial_transactions_farm_id ON financial_transactions (farmId);",
+    "CREATE INDEX idx_notifications_user_id ON notifications (userId);",
+    "CREATE INDEX idx_users_email ON users (email);",
+    "CREATE INDEX idx_users_role_id ON users (roleId);"
+  ]
+}

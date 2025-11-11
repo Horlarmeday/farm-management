@@ -1,14 +1,22 @@
 import { Router } from 'express';
-import { body, query, param } from 'express-validator';
+import { param, query } from 'express-validator';
 import { reportsController } from '../controllers/reports.controller';
-import { authenticateToken } from '../middleware/auth';
+import { authenticate } from '../middleware/auth.middleware';
+import {
+  getCacheStats,
+  invalidateCache,
+  reportsCacheMiddleware,
+} from '../middleware/cache.middleware';
+import { optionalFarmAccess } from '../middleware/farm-auth.middleware';
 import { rateLimiter } from '../middleware/rateLimiter.middleware';
-import { reportsCacheMiddleware, invalidateCache, getCacheStats } from '../middleware/cache.middleware';
 
 const router = Router();
 
 // Apply authentication middleware to all routes
-router.use(authenticateToken);
+router.use(authenticate);
+
+// Apply optional farm access - reports can work across farms or for specific farm
+router.use(optionalFarmAccess);
 
 // Apply rate limiting for report generation (10 requests per 5 minutes)
 router.use(rateLimiter(10, 5));
@@ -18,9 +26,7 @@ router.get('/cache/stats', getCacheStats);
 
 // Validation middleware for date parameters
 const validateDateRange = [
-  query('startDate')
-    .isISO8601()
-    .withMessage('Start date must be a valid ISO 8601 date'),
+  query('startDate').isISO8601().withMessage('Start date must be a valid ISO 8601 date'),
   query('endDate')
     .isISO8601()
     .withMessage('End date must be a valid ISO 8601 date')
@@ -63,7 +69,7 @@ router.get(
       .isIn(['month', 'quarter', 'year'])
       .withMessage('Group by must be one of: month, quarter, year'),
   ],
-  reportsController.getProfitLoss.bind(reportsController)
+  reportsController.getProfitLoss.bind(reportsController),
 );
 
 // Monthly P&L summary
@@ -72,7 +78,7 @@ router.get(
   '/monthly-summary/:year',
   reportsCacheMiddleware, // Cache for 15 minutes
   validateYear,
-  reportsController.getMonthlyPLSummary.bind(reportsController)
+  reportsController.getMonthlyPLSummary.bind(reportsController),
 );
 
 // Quarterly P&L summary
@@ -81,7 +87,7 @@ router.get(
   '/quarterly-summary/:year',
   reportsCacheMiddleware, // Cache for 15 minutes
   validateYear,
-  reportsController.getQuarterlyPLSummary.bind(reportsController)
+  reportsController.getQuarterlyPLSummary.bind(reportsController),
 );
 
 // Category breakdown
@@ -89,11 +95,8 @@ router.get(
 router.get(
   '/category-breakdown',
   reportsCacheMiddleware, // Cache for 15 minutes
-  [
-    ...validateDateRange,
-    ...validateOptionalCategories,
-  ],
-  reportsController.getCategoryBreakdown.bind(reportsController)
+  [...validateDateRange, ...validateOptionalCategories],
+  reportsController.getCategoryBreakdown.bind(reportsController),
 );
 
 // Export P&L report
@@ -109,7 +112,7 @@ router.get(
       .isIn(['json', 'csv'])
       .withMessage('Format must be either json or csv'),
   ],
-  reportsController.exportPLReport.bind(reportsController)
+  reportsController.exportPLReport.bind(reportsController),
 );
 
 // Compare P&L between periods
@@ -131,7 +134,7 @@ router.get(
       .isISO8601()
       .withMessage('Previous end date must be a valid ISO 8601 date'),
   ],
-  reportsController.comparePLPeriods.bind(reportsController)
+  reportsController.comparePLPeriods.bind(reportsController),
 );
 
 // Performance metrics for dashboard
@@ -145,7 +148,7 @@ router.get(
       .isIn(['month', 'quarter', 'year'])
       .withMessage('Period must be one of: month, quarter, year'),
   ],
-  reportsController.getPerformanceMetrics.bind(reportsController)
+  reportsController.getPerformanceMetrics.bind(reportsController),
 );
 
 // P&L trends over time
@@ -163,10 +166,10 @@ router.get(
       .isInt({ min: 1, max: 60 })
       .withMessage('Periods must be an integer between 1 and 60'),
   ],
-  reportsController.getPLTrends.bind(reportsController)
+  reportsController.getPLTrends.bind(reportsController),
 );
 
 // Cache invalidation endpoint (for when new transactions are added)
-router.post('/cache/invalidate', invalidateCache('/api/reports'));
+router.post('/cache/invalidate', invalidateCache(['/api/reports']));
 
 export default router;

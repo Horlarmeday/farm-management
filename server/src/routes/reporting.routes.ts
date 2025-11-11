@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { ReportingController } from '../controllers/ReportingController';
 import { authenticate } from '../middleware/auth.middleware';
+import { optionalFarmAccess } from '../middleware/farm-auth.middleware';
 import { validate } from '../middleware/joiValidation.middleware';
 import { reportingValidations } from '../validations/reporting.validations';
 
@@ -9,6 +10,9 @@ const reportingController = new ReportingController();
 
 // Apply authentication to all routes
 router.use(authenticate);
+
+// Apply optional farm access - dashboard and reporting can work across farms
+router.use(optionalFarmAccess);
 
 // Report Generation Routes
 router.post(

@@ -1,6 +1,8 @@
 import { Router } from 'express';
+import { FarmRole } from '../../../shared/src/types';
 import { IoTController } from '../controllers/IoTController';
 import { authenticate } from '../middleware/auth.middleware';
+import { requireFarmAccessWithRole } from '../middleware/farm-auth.middleware';
 import { validate } from '../middleware/joiValidation.middleware';
 import { iotValidations } from '../validations/iot.validations';
 
@@ -9,6 +11,9 @@ const iotController = new IoTController();
 
 // Apply authentication to all routes
 router.use(authenticate);
+
+// Apply farm access middleware - IoT operations require WORKER or higher
+router.use(requireFarmAccessWithRole([FarmRole.WORKER, FarmRole.MANAGER, FarmRole.OWNER]));
 
 // Sensor Management Routes
 // Get sensors by farm

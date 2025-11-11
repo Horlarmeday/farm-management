@@ -1,20 +1,31 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { DollarSign, Plus, Search, Filter } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { LoadingTable } from "@/components/ui/loading-card";
-import { useFinanceDashboardSummary, useFinancialTransactions } from "@/hooks/useFinance";
-import TransactionForm from "@/components/forms/TransactionForm";
-import TransactionList from "@/components/finance/TransactionList";
+import FinanceReports from '@/components/finance/FinanceReports';
+import TransactionList from '@/components/finance/TransactionList';
+import TransactionForm from '@/components/forms/TransactionForm';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { LoadingTable } from '@/components/ui/loading-card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useFinanceDashboardSummary, useFinancialTransactions } from '@/hooks/useFinance';
+import { DollarSign, Filter, Plus } from 'lucide-react';
+import { useState } from 'react';
 
 export default function Finance() {
   const [isTransactionDialogOpen, setIsTransactionDialogOpen] = useState(false);
-  const { data: dashboardSummary, isLoading: summaryLoading, error: summaryError } = useFinanceDashboardSummary();
-  const { data: transactions, isLoading: transactionsLoading } = useFinancialTransactions({ limit: 10 });
+  const {
+    data: dashboardSummary,
+    isLoading: summaryLoading,
+    error: summaryError,
+  } = useFinanceDashboardSummary();
+  const { data: transactions, isLoading: transactionsLoading } = useFinancialTransactions({
+    limit: 10,
+  });
 
   const handleTransactionSuccess = () => {
     setIsTransactionDialogOpen(false);
@@ -77,15 +88,13 @@ export default function Finance() {
                 <DialogHeader>
                   <DialogTitle>Record New Transaction</DialogTitle>
                 </DialogHeader>
-                <TransactionForm 
+                <TransactionForm
                   onSuccess={handleTransactionSuccess}
                   onCancel={() => setIsTransactionDialogOpen(false)}
                 />
               </DialogContent>
             </Dialog>
-            <Button variant="outline">
-              Generate Report
-            </Button>
+            <Button variant="outline">Generate Report</Button>
           </div>
         </div>
       </div>
@@ -161,17 +170,7 @@ export default function Finance() {
         </TabsContent>
 
         <TabsContent value="reports" className="space-y-4">
-          <Card>
-            <CardContent className="p-8 text-center">
-              <h3 className="text-lg font-semibold mb-2">Financial Reports</h3>
-              <p className="text-muted-foreground mb-4">
-                Generate comprehensive financial reports and analytics
-              </p>
-              <Button className="farm-button-primary">
-                Generate Report
-              </Button>
-            </CardContent>
-          </Card>
+          <FinanceReports />
         </TabsContent>
       </Tabs>
     </div>

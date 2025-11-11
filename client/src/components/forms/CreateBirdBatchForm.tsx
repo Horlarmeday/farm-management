@@ -26,12 +26,12 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { getBirdBatchPurposeOptions } from '@/lib/formUtils';
 import { apiRequest } from '@/lib/queryClient';
 import { createBirdBatchFormSchema } from '@/lib/schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Bird, Plus } from 'lucide-react';
-import { getBirdBatchPurposeOptions } from "@/lib/formUtils";
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -56,13 +56,13 @@ export default function CreateBirdBatchForm() {
   const createBirdBatch = useMutation({
     mutationFn: async (data: any) => {
       return await apiRequest({
-        url: '/api/bird-batches',
+        url: '/api/poultry/batches',
         method: 'POST',
         body: data,
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/bird-batches'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/poultry/batches'] });
       toast({
         title: 'Success',
         description: 'Bird batch created successfully',
@@ -199,12 +199,12 @@ export default function CreateBirdBatchForm() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                {getBirdBatchPurposeOptions().map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
+                        {getBirdBatchPurposeOptions().map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
                     </Select>
                     <FormMessage />
                   </FormItem>

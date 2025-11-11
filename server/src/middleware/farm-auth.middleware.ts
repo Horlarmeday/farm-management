@@ -1,10 +1,10 @@
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
+import { FarmRole } from '../../../shared/src/types';
 import { AppDataSource } from '../config/database';
-import { FarmUser } from '../entities/FarmUser';
 import { Farm } from '../entities/Farm';
+import { FarmUser } from '../entities/FarmUser';
 import { User as UserEntity } from '../entities/User';
 import { ApiError } from '../utils/ApiError';
-import { FarmRole } from '../../../shared/src/types';
 
 // Extend Express Request interface for farm context
 declare global {
@@ -21,7 +21,11 @@ declare global {
 /**
  * Farm access middleware
  * Verifies user has access to the specified farm
- * Farm ID can come from params.farmId, body.farmId, or query.farmId
+ * Farm ID can come from:
+ * - X-Farm-Id header (preferred for API clients)
+ * - params.farmId (URL path parameter)
+ * - body.farmId (request body)
+ * - query.farmId (query parameter)
  */
 export const requireFarmAccess = async (
   req: Request,
@@ -33,8 +37,12 @@ export const requireFarmAccess = async (
       throw new ApiError(401, 'Authentication required');
     }
 
-    // Extract farm ID from request
-    const farmId = req.params.farmId || req.body.farmId || req.query.farmId;
+    // Extract farm ID from request (check header first, then params, body, query)
+    const farmId =
+      (req.headers['x-farm-id'] as string) ||
+      req.params.farmId ||
+      req.body.farmId ||
+      req.query.farmId;
 
     if (!farmId) {
       throw new ApiError(400, 'Farm ID is required');
@@ -132,7 +140,12 @@ export const optionalFarmAccess = async (
       return next();
     }
 
-    const farmId = req.params.farmId || req.body.farmId || req.query.farmId;
+    // Extract farm ID from request (check header first, then params, body, query)
+    const farmId =
+      (req.headers['x-farm-id'] as string) ||
+      req.params.farmId ||
+      req.body.farmId ||
+      req.query.farmId;
 
     if (!farmId) {
       return next();
@@ -181,11 +194,7 @@ export const requireActiveFarm = (req: Request, res: Response, next: NextFunctio
  * Combines requireFarmAccess and requireFarmRole into one
  */
 export const requireFarmAccessWithRole = (requiredRoles: FarmRole | FarmRole[]) => {
-  return [
-    requireFarmAccess,
-    requireFarmRole(requiredRoles),
-    requireActiveFarm,
-  ];
+  return [requireFarmAccess, requireFarmRole(requiredRoles), requireActiveFarm];
 };
 
 /**
@@ -208,7 +217,11 @@ export const requireFarmUserManagement = (req: Request, res: Response, next: Nex
  * Middleware to check if user can modify farm settings
  * Only owners can modify farm settings
  */
-export const requireFarmSettingsAccess = (req: Request, res: Response, next: NextFunction): void => {
+export const requireFarmSettingsAccess = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void => {
   if (!req.farmUser || !req.farmRole) {
     throw new ApiError(401, 'Farm access required');
   }
