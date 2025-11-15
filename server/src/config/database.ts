@@ -221,10 +221,10 @@ export const initializeDatabase = async (): Promise<void> => {
     console.log('✅ Database connection established successfully');
 
     // Run migrations in production
-    if (config.isProduction) {
-      await AppDataSource.runMigrations();
-      console.log('✅ Database migrations completed');
-    }
+    // if (config.isProduction) {
+    //   await AppDataSource.runMigrations();
+    //   console.log('✅ Database migrations completed');
+    // }
   } catch (error) {
     console.error('❌ Error during database initialization:', error);
     throw error;
