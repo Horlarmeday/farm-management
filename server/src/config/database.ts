@@ -203,15 +203,15 @@ export const AppDataSource = new DataSource({
   ],
   migrations: ['src/database/migrations/*.ts'],
   subscribers: ['src/database/subscribers/*.ts'],
-  cache: {
-    type: 'redis',
-    options: {
-      host: config.redis.host,
-      port: config.redis.port,
-      password: config.redis.password,
-      db: config.redis.db,
-    },
-  },
+  // cache: {
+  //   type: 'redis',
+  //   options: {
+  //     host: config.redis.host,
+  //     port: config.redis.port,
+  //     password: config.redis.password,
+  //     db: config.redis.db,
+  //   },
+  // },
 });
 
 // Initialize database connection

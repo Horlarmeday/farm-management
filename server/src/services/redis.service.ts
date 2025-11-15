@@ -21,7 +21,7 @@ export class RedisService {
     } as const;
 
     if (config.redis.url && config.redis.url.length > 0) {
-      const useTLS = config.redis.url.startsWith('redis://');
+      const useTLS = config.redis.url.startsWith('rediss://');
       this.client = new Redis(config.redis.url, {
         ...commonOptions,
         ...(useTLS ? { tls: {} } : {}),
