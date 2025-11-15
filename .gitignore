@@ -174,3 +174,4 @@ docs/build/
 .claude/
 .trae/
 .cursor/
+dist/

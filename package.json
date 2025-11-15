@@ -14,6 +14,7 @@
     "dev:client": "yarn workspace rest-express dev",
     "dev:shared": "yarn workspace @kuyash/shared dev",
     "build": "yarn workspace @kuyash/shared build && yarn workspace @kuyash/server build && yarn workspace @kuyash/client build",
+    "build:render": "yarn workspace @kuyash/shared build && yarn workspace @kuyash/server build && cp -R shared/dist/* shared/src/",
     "build:shared": "yarn workspace @kuyash/shared build",
     "build:server": "yarn workspace @kuyash/server build",
     "build:client": "yarn workspace @kuyash/client build",
