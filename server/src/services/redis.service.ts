@@ -11,18 +11,30 @@ export class RedisService {
   private isConnected: boolean = false;
 
   private constructor() {
-    this.client = new Redis({
-      host: config.redis.host,
-      port: config.redis.port,
-      password: config.redis.password,
-      db: config.redis.db,
+    const commonOptions = {
       enableReadyCheck: true,
       maxRetriesPerRequest: 3,
       lazyConnect: true,
       keepAlive: 30000,
       connectTimeout: 10000,
-      retryStrategy: (times) => Math.min(times * 50, 2000),
-    });
+      retryStrategy: (times: number) => Math.min(times * 50, 2000),
+    } as const;
+
+    if (config.redis.url && config.redis.url.length > 0) {
+      const useTLS = config.redis.url.startsWith('redis://');
+      this.client = new Redis(config.redis.url, {
+        ...commonOptions,
+        ...(useTLS ? { tls: {} } : {}),
+      } as any);
+    } else {
+      this.client = new Redis({
+        host: config.redis.host,
+        port: config.redis.port,
+        password: config.redis.password,
+        db: config.redis.db,
+        ...commonOptions,
+      } as any);
+    }
 
     this.setupEventHandlers();
   }

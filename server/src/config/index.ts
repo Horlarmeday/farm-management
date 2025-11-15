@@ -26,6 +26,7 @@ const envSchema = Joi.object({
   DB_SSL: Joi.boolean().default(false),
 
   // Redis
+  REDIS_URL: Joi.string().allow('').default(''),
   REDIS_HOST: Joi.string().default('localhost'),
   REDIS_PORT: Joi.number().default(6379),
   REDIS_PASSWORD: Joi.string().allow('').default(''),
@@ -162,6 +163,7 @@ export const config = {
 
   // Redis
   redis: {
+    url: envVars.REDIS_URL || undefined,
     host: envVars.REDIS_HOST,
     port: envVars.REDIS_PORT,
     password: envVars.REDIS_PASSWORD || undefined,
