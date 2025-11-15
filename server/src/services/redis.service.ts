@@ -1,6 +1,6 @@
 import Redis from 'ioredis';
 import { config } from '../config';
-import { AppError } from '../utils/error-handler';
+import { AppError, ErrorType } from '../utils/error-handler';
 
 /**
  * Redis service for caching and session management
@@ -16,13 +16,12 @@ export class RedisService {
       port: config.redis.port,
       password: config.redis.password,
       db: config.redis.db,
-      retryDelayOnFailover: 100,
       enableReadyCheck: true,
       maxRetriesPerRequest: 3,
       lazyConnect: true,
       keepAlive: 30000,
       connectTimeout: 10000,
-      commandTimeout: 5000,
+      retryStrategy: (times) => Math.min(times * 50, 2000),
     });
 
     this.setupEventHandlers();
@@ -74,7 +73,7 @@ export class RedisService {
       await this.client.connect();
     } catch (error) {
       console.error('❌ Redis: Failed to connect:', error);
-      throw new AppError('Redis connection failed', 500);
+      throw new AppError('Redis connection failed', ErrorType.INTERNAL_ERROR, 500);
     }
   }
 
@@ -98,7 +97,7 @@ export class RedisService {
       }
     } catch (error) {
       console.error(`Redis SET error for key ${key}:`, error);
-      throw new AppError('Cache write failed', 500);
+      throw new AppError('Cache write failed', ErrorType.INTERNAL_ERROR, 500);
     }
   }
 
@@ -197,7 +196,7 @@ export class RedisService {
       }
     } catch (error) {
       console.error(`Redis INCREMENT error for key ${key}:`, error);
-      throw new AppError('Cache increment failed', 500);
+      throw new AppError('Cache increment failed', ErrorType.INTERNAL_ERROR, 500);
     }
   }
 
@@ -219,7 +218,7 @@ export class RedisService {
       console.error('Redis STATS error:', error);
       return {
         connected: this.isConnected,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
       };
     }
   }
@@ -232,7 +231,7 @@ export class RedisService {
       await this.client.flushdb();
     } catch (error) {
       console.error('Redis FLUSHDB error:', error);
-      throw new AppError('Cache flush failed', 500);
+      throw new AppError('Cache flush failed', ErrorType.INTERNAL_ERROR, 500);
     }
   }
 

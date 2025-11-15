@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon",
     "dev:nodemon": "nodemon",
-    "build": "corepack enable && tsc && tsc-alias",
+    "build": "corepack prepare yarn@4.9.2 --activate && tsc && tsc-alias",
     "start": "node dist/server.js",
     "start:prod": "NODE_ENV=production node dist/server.js",
     "test": "jest",

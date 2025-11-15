@@ -2,6 +2,9 @@ import { Request, Response, NextFunction } from 'express';
 import { ApiResponse } from '../../../shared/src/types';
 import { redisService } from '../services/redis.service';
 
+const getErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : typeof error === 'string' ? error : JSON.stringify(error);
+
 // Fallback in-memory cache for when Redis is unavailable
 interface CacheEntry {
   data: any;
@@ -115,7 +118,7 @@ class CacheService {
         this.fallbackCache.set(key, data, ttlMinutes);
       }
     } catch (error) {
-      console.warn('Cache SET fallback to memory:', error.message);
+      console.warn('Cache SET fallback to memory:', getErrorMessage(error));
       this.fallbackCache.set(key, data, ttlMinutes);
     }
   }
@@ -128,7 +131,7 @@ class CacheService {
         return this.fallbackCache.get(key);
       }
     } catch (error) {
-      console.warn('Cache GET fallback to memory:', error.message);
+      console.warn('Cache GET fallback to memory:', getErrorMessage(error));
       return this.fallbackCache.get(key);
     }
   }
@@ -141,7 +144,7 @@ class CacheService {
         return this.fallbackCache.delete(key);
       }
     } catch (error) {
-      console.warn('Cache DELETE fallback to memory:', error.message);
+      console.warn('Cache DELETE fallback to memory:', getErrorMessage(error));
       return this.fallbackCache.delete(key);
     }
   }
@@ -154,7 +157,7 @@ class CacheService {
         return this.fallbackCache.deletePattern(pattern);
       }
     } catch (error) {
-      console.warn('Cache DELETE PATTERN fallback to memory:', error.message);
+      console.warn('Cache DELETE PATTERN fallback to memory:', getErrorMessage(error));
       return this.fallbackCache.deletePattern(pattern);
     }
   }
@@ -171,7 +174,7 @@ class CacheService {
         return this.fallbackCache.getStats();
       }
     } catch (error) {
-      console.warn('Cache STATS fallback to memory:', error.message);
+      console.warn('Cache STATS fallback to memory:', getErrorMessage(error));
       return this.fallbackCache.getStats();
     }
   }
@@ -184,7 +187,7 @@ class CacheService {
         this.fallbackCache.clear();
       }
     } catch (error) {
-      console.warn('Cache CLEAR fallback to memory:', error.message);
+      console.warn('Cache CLEAR fallback to memory:', getErrorMessage(error));
       this.fallbackCache.clear();
     }
   }
@@ -218,7 +221,7 @@ export const cacheMiddleware = (ttlMinutes: number = 15) => {
         } as ApiResponse<any>);
       }
     } catch (error) {
-      console.warn('Cache GET error, proceeding without cache:', error.message);
+      console.warn('Cache GET error, proceeding without cache:', getErrorMessage(error));
     }
 
     // Store original json method
@@ -231,7 +234,7 @@ export const cacheMiddleware = (ttlMinutes: number = 15) => {
         if (body && body.success && body.data) {
           // Cache asynchronously without blocking response
           cache.set(cacheKey, body.data, ttlMinutes).catch(error => {
-            console.warn('Cache SET error:', error.message);
+            console.warn('Cache SET error:', getErrorMessage(error));
           });
         }
       }
@@ -261,7 +264,7 @@ export const invalidateCache = (patterns: string[]) => {
           const cachePattern = `cache:${pattern}`;
           // Invalidate cache asynchronously without blocking response
           cache.deletePattern(cachePattern).catch(error => {
-            console.warn('Cache invalidation error:', error.message);
+            console.warn('Cache invalidation error:', getErrorMessage(error));
           });
         });
       }
@@ -295,7 +298,7 @@ export const getCacheStats = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       message: 'Failed to get cache statistics',
-      error: error.message,
+      error: getErrorMessage(error),
       timestamp: new Date().toISOString(),
     } as ApiResponse<any>);
   }
@@ -316,7 +319,7 @@ export const clearCache = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       message: 'Failed to clear cache',
-      error: error.message,
+      error: getErrorMessage(error),
       timestamp: new Date().toISOString(),
     } as ApiResponse<any>);
   }

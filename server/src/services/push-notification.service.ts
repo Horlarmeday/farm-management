@@ -35,7 +35,9 @@ class PushNotificationService {
   private vapidKeys: {
     publicKey: string;
     privateKey: string;
+    subject: string;
   };
+  private isEnabled: boolean = false;
 
   constructor() {
     this.vapidKeys = {
