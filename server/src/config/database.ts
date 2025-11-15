@@ -226,7 +226,7 @@ export const initializeDatabase = async (): Promise<void> => {
     //   console.log('✅ Database migrations completed');
     // }
   } catch (error) {
-    console.error('❌ Error during database initialization:', error);
+    console.error('❌ Error occurred during database initialization:', error);
     throw error;
   }
 };
