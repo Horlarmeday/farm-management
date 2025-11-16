@@ -17,7 +17,7 @@
     "build:render": "yarn workspace @kuyash/shared build && yarn workspace @kuyash/server build && cp -R shared/dist/* shared/src/",
     "build:shared": "yarn workspace @kuyash/shared build",
     "build:server": "yarn workspace @kuyash/server build",
-    "build:client": "yarn workspace @kuyash/client build",
+    "build:client": "yarn workspace @kuyash/client build && rm -rf dist && cp -R client/dist dist",
     "start": "yarn workspace @kuyash/server start",
     "test": "yarn workspaces foreach --all run test",
     "test:server": "yarn workspace @kuyash/server test",
