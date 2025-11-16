@@ -65,6 +65,11 @@ export default defineConfig({
       },
     },
   },
+  preview: {
+    host: '0.0.0.0',
+    strictPort: true,
+    allowedHosts: ['farm-management-4d49.onrender.com'],
+  },
   server: {
     fs: {
       strict: true,
