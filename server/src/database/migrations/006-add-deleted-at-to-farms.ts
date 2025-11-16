@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from 'typeorm';
+import type { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class AddDeletedAtToFarms1703123456791 implements MigrationInterface {
   name = 'AddDeletedAtToFarms1703123456791';

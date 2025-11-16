@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from 'typeorm';
+import type { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class AddMissingFarmColumns1703123456792 implements MigrationInterface {
   name = 'AddMissingFarmColumns1703123456792';

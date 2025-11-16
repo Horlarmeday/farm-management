@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from 'typeorm';
+import type { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class AddInventoryItemReorderPoint1757243800000 implements MigrationInterface {
   name = 'AddInventoryItemReorderPoint1757243800000';

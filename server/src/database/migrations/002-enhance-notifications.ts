@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from 'typeorm';
+import type { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class EnhanceNotifications1703123456789 implements MigrationInterface {
   name = 'EnhanceNotifications1703123456789';
@@ -116,4 +116,4 @@ export class EnhanceNotifications1703123456789 implements MigrationInterface {
       DROP COLUMN reference_url
     `);
   }
-} 
+}

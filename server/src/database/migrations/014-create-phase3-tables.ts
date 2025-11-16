@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from 'typeorm';
+import type { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class CreatePhase3Tables1757758900000 implements MigrationInterface {
   name = 'CreatePhase3Tables1757758900000';

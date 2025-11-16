@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
+import path from 'path';
 import { config } from './index';
 
 // Import all entities
@@ -88,6 +89,14 @@ import { SyncQueue } from '../entities/SyncQueue';
 import { OfflineData } from '../entities/OfflineData';
 
 // Create the data source
+const isTs = __filename.endsWith('.ts');
+const migrationsPath = isTs
+  ? 'src/database/migrations/*.ts'
+  : path.join(__dirname, '../database/migrations/*.js');
+const subscribersPath = isTs
+  ? 'src/database/subscribers/*.ts'
+  : path.join(__dirname, '../database/subscribers/*.js');
+
 export const AppDataSource = new DataSource({
   type: config.database.type as 'mysql',
   host: config.database.host,
@@ -201,8 +210,8 @@ export const AppDataSource = new DataSource({
     SyncQueue,
     OfflineData,
   ],
-  migrations: ['src/database/migrations/*.ts'],
-  subscribers: ['src/database/subscribers/*.ts'],
+  migrations: [migrationsPath],
+  subscribers: [subscribersPath],
   // cache: {
   //   type: 'redis',
   //   options: {

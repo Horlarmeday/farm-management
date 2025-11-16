@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from 'typeorm';
+import type { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class AddMultiTenantSchema1703123456790 implements MigrationInterface {
   name = 'AddMultiTenantSchema1703123456790';

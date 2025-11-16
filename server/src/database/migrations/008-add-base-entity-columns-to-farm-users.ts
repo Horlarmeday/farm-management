@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from 'typeorm';
+import type { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class AddBaseEntityColumnsToFarmUsers1703123456793 implements MigrationInterface {
   name = 'AddBaseEntityColumnsToFarmUsers1703123456793';
